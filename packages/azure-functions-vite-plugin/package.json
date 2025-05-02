@@ -1,0 +1,69 @@
+{
+  "name": "@azure-utils/functions-vite-plugin",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Vite plugin to build and verify Azure functions nodejs.",
+  "author": {
+    "name": "Siddhant Gupta",
+    "url": "https://guptasiddhant.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/guptasiddhant/azure-utils",
+    "directory": "packages/azure-functions-vite-plugin"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/guptasiddhant/azure-utils/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "cjs",
+    "esm"
+  ],
+  "keywords": [
+    "azure",
+    "functions",
+    "vite",
+    "plugin",
+    "build",
+    "verify",
+    "validate",
+    "typecheck"
+  ],
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./esm/index.d.ts",
+      "require": "./cjs/index.js",
+      "default": "./esm/index.js"
+    }
+  },
+  "main": "./cjs/index.js",
+  "module": "./esm/index.js",
+  "types": "./esm/index.d.ts",
+  "scripts": {
+    "build": "yarn build:cjs & yarn build:esm",
+    "build:cjs": "rm -rf cjs; tsc -p tsconfig.cjs.json",
+    "build:esm": "rm -rf esm; tsc -p tsconfig.esm.json",
+    "bump": "node ../../scripts/bump-version.mjs",
+    "clear": "rm -rf coverage cjs esm & true",
+    "jsr:publish": "npx -y jsr publish",
+    "test": "echo 'No tests'",
+    "verify": "yarn clear; yarn test && yarn build"
+  },
+  "packageManager": "yarn@4.1.1",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "glob": "^10",
+    "typescript": "^5.8.0",
+    "vite": "^6"
+  },
+  "peerDependencies": {
+    "glob": "*",
+    "vite": "*"
+  }
+}

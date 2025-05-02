@@ -1,9 +1,16 @@
 {
   "$schema": "https://jsr.io/schema/config-file.v1.json",
-  "name": "@azure-utils/feature-flags",
-  "version": "0.1.7",
+  "name": "@azure-utils/functions-vite-plugin",
+  "version": "0.0.0",
   "license": "MIT",
-  "exports": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./allocate": "./src/allocate.ts",
+    "./client": "./src/client.ts",
+    "./rollout": "./src/rollout.ts",
+    "./service": "./src/service.ts",
+    "./validate": "./src/validate.ts"
+  },
   "publish": {
     "include": ["src/**/*.ts", "README.md"],
     "exclude": [
