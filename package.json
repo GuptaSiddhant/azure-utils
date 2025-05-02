@@ -1,5 +1,5 @@
 {
-  "name": "azure-monorepo",
+  "name": "azure-utils",
   "private": true,
   "type": "module",
   "author": {
@@ -11,6 +11,6 @@
   ],
   "packageManager": "yarn@4.1.1",
   "devDependencies": {
-    "@types/node": "^20.0.0"
+    "@types/node": "^22.0.0"
   }
 }
