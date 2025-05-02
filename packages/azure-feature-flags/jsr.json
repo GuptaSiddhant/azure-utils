@@ -1,7 +1,8 @@
 {
   "$schema": "https://jsr.io/schema/config-file.v1.json",
   "name": "@gs/azure-feature-flags",
-  "version": "1.4.4",
+  "version": "1.4.5",
+  "license": "MIT",
   "exports": {
     ".": "./src/index.ts",
     "./allocate": "./src/allocate.ts",
