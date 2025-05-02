@@ -17,8 +17,7 @@
     "url": "https://github.com/guptasiddhant/azure-utils/issues"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "files": [
     "cjs",
