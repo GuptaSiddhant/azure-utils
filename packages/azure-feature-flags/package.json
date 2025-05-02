@@ -16,6 +16,10 @@
   "bugs": {
     "url": "https://github.com/guptasiddhant/azure-utils/issues"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "files": [
     "cjs",
     "esm",
