@@ -1,6 +1,6 @@
 import { use, useMemo } from "react";
-import type { FeatureFlagWithVariants } from "../../src/types";
-import { validateFeatureFlagWithVariants } from "../../src/validate";
+import type { FeatureFlagWithVariants } from "@azure-utils/feature-flags/types";
+import { validateFeatureFlagWithVariants } from "@azure-utils/feature-flags/validate";
 
 export function VariantFlagHeader({
   featureFlag,

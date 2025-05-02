@@ -5,7 +5,7 @@ import { Suspense, useReducer } from "react";
 import {
   checkIsFeatureFlagWithFilters,
   checkIsFeatureFlagWithVariants,
-} from "../../src/validate";
+} from "@azure-utils/feature-flags/validate";
 import { FilterFlagFooter, FilterFlagHeader } from "./FilterFlag";
 import { VariantFlagFooter, VariantFlagHeader } from "./VariantFlag";
 import { NewFlagForm } from "./NewFlagForm";

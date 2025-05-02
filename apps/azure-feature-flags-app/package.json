@@ -1,0 +1,41 @@
+{
+  "name": "azure-feature-flags-app",
+  "private": true,
+  "type": "module",
+  "description": "Playground App for @azure-utils/feature-flags",
+  "author": {
+    "name": "Siddhant Gupta",
+    "url": "https://guptasiddhant.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/guptasiddhant/azure-utils",
+    "directory": "apps/azure-feature-flags-app"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/guptasiddhant/azure-utils/issues"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@azure-utils/feature-flags": "workspace:*"
+  },
+  "devDependencies": {
+    "@internal/tsconfig": "workspace:*",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4.4.0",
+    "clsx": "^2.1.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.8.0",
+    "vite": "^6.2.0"
+  }
+}

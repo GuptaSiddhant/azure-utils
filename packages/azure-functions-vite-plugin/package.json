@@ -20,8 +20,7 @@
     "access": "public"
   },
   "files": [
-    "cjs",
-    "esm"
+    "dist"
   ],
   "keywords": [
     "azure",
@@ -37,25 +36,26 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./esm/index.d.ts",
-      "require": "./cjs/index.js",
-      "default": "./esm/index.js"
+      "types": "./dist/esm/index.d.ts",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
     }
   },
-  "main": "./cjs/index.js",
-  "module": "./esm/index.js",
-  "types": "./esm/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "scripts": {
     "build": "yarn build:cjs & yarn build:esm",
-    "build:cjs": "rm -rf cjs; tsc -p tsconfig.cjs.json",
-    "build:esm": "rm -rf esm; tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
     "bump": "node ../../scripts/bump-version.mjs",
-    "clear": "rm -rf coverage cjs esm & true",
+    "clear": "rm -rf coverage dist & true",
     "jsr:publish": "npx -y jsr publish",
     "test": "echo 'No tests'",
     "verify": "yarn clear; yarn test && yarn build"
   },
   "devDependencies": {
+    "@internal/tsconfig": "*",
     "@types/node": "^22.0.0",
     "glob": "^10",
     "typescript": "^5.8.0",

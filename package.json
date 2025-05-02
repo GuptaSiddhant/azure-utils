@@ -7,7 +7,9 @@
     "url": "https://guptasiddhant.com"
   },
   "workspaces": [
-    "./packages/*"
+    "./apps/*",
+    "./packages/*",
+    "./scripts/*"
   ],
   "packageManager": "yarn@4.1.1",
   "scripts": {

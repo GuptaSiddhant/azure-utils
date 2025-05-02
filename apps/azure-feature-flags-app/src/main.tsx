@@ -1,11 +1,11 @@
+import "./index.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
 import useFeatureFlagServiceActionState from "./hooks/useFeatureFlagServiceActionState";
 import Connect from "./Connect";
 import App from "./App";
 import { FFServiceContext } from "./contexts";
-import { FeatureFlagService } from "../src";
+import { FeatureFlagService } from "@azure-utils/feature-flags";
 
 function Main() {
   const [serviceOrError, action, isSubmitting] =

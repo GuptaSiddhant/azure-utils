@@ -1,6 +1,6 @@
 import { use, useMemo } from "react";
-import { FeatureFlagWithFilters } from "../../src/types";
-import { validateFeatureFlagWithFilters } from "../../src/validate";
+import { FeatureFlagWithFilters } from "@azure-utils/feature-flags/types";
+import { validateFeatureFlagWithFilters } from "@azure-utils/feature-flags/validate";
 
 export function FilterFlagHeader({
   featureFlag,

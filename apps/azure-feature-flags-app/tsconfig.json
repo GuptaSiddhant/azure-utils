@@ -1,0 +1,11 @@
+{
+  "extends": "@internal/tsconfig/base.tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "Preserve",
+    "jsx": "react-jsx",
+    "noEmit": true
+  },
+  "include": ["./src"],
+  "exclude": ["node_modules", "dist"]
+}

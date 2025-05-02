@@ -1,6 +1,6 @@
 import * as React from "react";
-import { FeatureFlagService } from "../../src";
-import { AppConfigurationClientLite } from "../../src/client";
+import { FeatureFlagService } from "@azure-utils/feature-flags";
+import { AppConfigurationClientLite } from "@azure-utils/feature-flags/client";
 
 export default function useFeatureFlagServiceActionState() {
   return React.useActionState(async (_prev: unknown, formData: FormData) => {
