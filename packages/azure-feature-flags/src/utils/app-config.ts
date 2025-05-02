@@ -156,9 +156,12 @@ export function isFeatureFlagSetting(
 }
 
 export function addFeatureFlagPrefixToKey(key: string) {
+  if (typeof key !== "string") return key;
+
   return key.includes(featureFlagPrefix) ? key : `${featureFlagPrefix}${key}`;
 }
 
 export function removeFeatureFlagPrefixFromKey(key: string) {
+  if (typeof key !== "string") return key;
   return key.replace(featureFlagPrefix, "");
 }
