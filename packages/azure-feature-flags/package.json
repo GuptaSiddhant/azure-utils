@@ -39,39 +39,33 @@
     "./package.json": "./package.json",
     ".": {
       "types": "./esm/index.d.ts",
-      "import": "./esm/index.js",
-      "module": "./esm/index.js",
-      "require": "./cjs/index.js"
+      "require": "./cjs/index.js",
+      "default": "./esm/index.js"
     },
     "./allocate": {
       "types": "./esm/allocate.d.ts",
-      "import": "./esm/allocate.js",
-      "module": "./esm/allocate.js",
-      "require": "./cjs/allocate.js"
+      "require": "./cjs/allocate.js",
+      "default": "./esm/allocate.js"
     },
     "./client": {
       "types": "./esm/client.d.ts",
-      "import": "./esm/client.js",
-      "module": "./esm/client.js",
-      "require": "./cjs/client.js"
+      "require": "./cjs/client.js",
+      "default": "./esm/client.js"
     },
     "./rollout": {
       "types": "./esm/rollout.d.ts",
-      "import": "./esm/rollout.js",
-      "module": "./esm/rollout.js",
-      "require": "./cjs/rollout.js"
+      "require": "./cjs/rollout.js",
+      "default": "./esm/rollout.js"
     },
     "./service": {
       "types": "./esm/service.d.ts",
-      "import": "./esm/service.js",
-      "module": "./esm/service.js",
-      "require": "./cjs/service.js"
+      "require": "./cjs/service.js",
+      "default": "./esm/service.js"
     },
     "./validate": {
       "types": "./esm/validate.d.ts",
-      "import": "./esm/validate.js",
-      "module": "./esm/validate.js",
-      "require": "./cjs/validate.js"
+      "require": "./cjs/validate.js",
+      "default": "./esm/validate.js"
     }
   },
   "main": "./cjs/index.js",
@@ -81,7 +75,7 @@
     "app:build": "vite build",
     "app:dev": "vite",
     "app:preview": "vite preview",
-    "build": "yarn build:cjs & yarn build:esm & node ./scripts/gen-js.js",
+    "build": "yarn build:cjs & yarn build:esm & node ./scripts/gen-js.mjs",
     "build:cjs": "rm -rf cjs; tsc -p tsconfig.cjs.json",
     "build:esm": "rm -rf esm; tsc -p tsconfig.esm.json",
     "bump": "node ./scripts/bump.mjs",
