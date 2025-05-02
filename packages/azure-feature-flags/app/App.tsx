@@ -6,6 +6,7 @@ import FlagPage from "./FlagPage";
 import SideBar from "./Sidebar";
 import { useFeatureFlags } from "./hooks/useFeatureFlag";
 import { RerenderAppContext } from "./contexts";
+import Link from "./ui/Link";
 
 export default function App({
   disconnectAction,
@@ -29,11 +30,16 @@ export default function App({
         <FlagPage />
 
         <Footer className="col-[1]">
-          <form action={disconnectAction} className="flex">
-            <Button className="text-red-500 w-full justify-center">
-              Disconnect from Azure
-            </Button>
-          </form>
+          <div className="grid gap-2 grid-cols-[1fr_max-content]">
+            <Link className="w-full" href="#">
+              + Create new
+            </Link>
+            <form action={disconnectAction} className="flex">
+              <Button className="text-red-500 w-full justify-center">
+                Logout
+              </Button>
+            </form>
+          </div>
         </Footer>
       </div>
     </RerenderAppContext.Provider>

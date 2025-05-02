@@ -8,7 +8,9 @@ export default function Header({
   return (
     <Card as="header" className={clsx(className)}>
       <div className="flex flex-wrap gap-x-4 gap-y-2 items-center justify-between">
-        <span className="font-bold ">Azure Feature Flags</span>
+        <a href="#" className="font-bold ">
+          Azure Feature Flags
+        </a>
 
         {children}
       </div>

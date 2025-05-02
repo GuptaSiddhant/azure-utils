@@ -35,7 +35,7 @@ type ListConfigurationSettingsResult = {
 export type ConfigurationSetting = {
   etag?: string | undefined;
   key: string;
-  label?: string | undefined;
+  label?: string | null;
   contentType?: string | undefined;
   tags?: { [propertyName: string]: string } | undefined;
   value?: string | undefined;
@@ -104,7 +104,10 @@ export function extractFeatureFlagFromSetting(
     );
   }
 
-  const json: unknown = JSON.parse(setting.value);
+  const json: unknown =
+    typeof setting.value === "string"
+      ? JSON.parse(setting.value)
+      : setting.value;
 
   if (
     !json ||
@@ -150,4 +153,12 @@ export function isFeatureFlagSetting(
       setting.value &&
       typeof setting.value === "string"
   );
+}
+
+export function addFeatureFlagPrefixToKey(key: string) {
+  return key.includes(featureFlagPrefix) ? key : `${featureFlagPrefix}${key}`;
+}
+
+export function removeFeatureFlagPrefixFromKey(key: string) {
+  return key.replace(featureFlagPrefix, "");
 }

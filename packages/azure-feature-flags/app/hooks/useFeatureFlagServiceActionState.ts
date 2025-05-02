@@ -1,21 +1,6 @@
 import * as React from "react";
-import { FeatureFlag, FeatureFlagService } from "../../src";
+import { FeatureFlagService } from "../../src";
 import { AppConfigurationClientLite } from "../../src/client";
-
-const flag: FeatureFlag = {
-  id: "test-flag",
-  enabled: false,
-  conditions: {
-    client_filters: [
-      {
-        name: "Microsoft.Targeting",
-        parameters: {
-          Audience: { DefaultRolloutPercentage: 50 },
-        },
-      },
-    ],
-  },
-};
 
 export default function useFeatureFlagServiceActionState() {
   return React.useActionState(async (_prev: unknown, formData: FormData) => {

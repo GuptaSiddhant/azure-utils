@@ -25,11 +25,11 @@ export default function SideBar({
             >
               <div
                 className={clsx(
-                  "w-3 h-3 rounded-full",
+                  "size-3 min-w-3 rounded-full",
                   flag.enabled ? "bg-green-500" : "bg-red-500"
                 )}
               />
-              <span>
+              <span className="whitespace-pre-wrap break-all">
                 [{"variants" in flag ? "V" : "F"}] {flag.displayName ?? flag.id}
               </span>
             </Link>

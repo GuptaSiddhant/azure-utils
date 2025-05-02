@@ -83,7 +83,7 @@ async function validateClientFilter(
   };
 
   if (checkIsTargetingClientFilter(filter)) {
-    return validateFeatureFlagTargetingFilter(
+    return await validateFeatureFlagTargetingFilter(
       filter,
       filterOptions,
       options.handleRollout

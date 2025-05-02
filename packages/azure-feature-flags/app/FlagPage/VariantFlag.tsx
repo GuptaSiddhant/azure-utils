@@ -1,3 +1,4 @@
+import { use, useMemo } from "react";
 import type { FeatureFlagWithVariants } from "../../src/types";
 import { validateFeatureFlagWithVariants } from "../../src/validate";
 
@@ -19,7 +20,14 @@ export function VariantFlagFooter({
   featureFlag: FeatureFlagWithVariants;
 }) {
   try {
-    const variant = validateFeatureFlagWithVariants(featureFlag);
+    const promise = useMemo(
+      () => validateFeatureFlagWithVariants(featureFlag),
+      [featureFlag]
+    );
+    const variant = use(promise);
+    if (!variant) {
+      throw new Error("Flag not found.");
+    }
 
     return (
       <>

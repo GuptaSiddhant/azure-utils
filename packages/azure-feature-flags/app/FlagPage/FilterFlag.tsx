@@ -1,3 +1,4 @@
+import { use, useMemo } from "react";
 import { FeatureFlagWithFilters } from "../../src/types";
 import { validateFeatureFlagWithFilters } from "../../src/validate";
 
@@ -18,7 +19,11 @@ export function FilterFlagFooter({
 }: {
   featureFlag: FeatureFlagWithFilters;
 }) {
-  const isEnabled = validateFeatureFlagWithFilters(featureFlag);
+  const promise = useMemo(
+    () => validateFeatureFlagWithFilters(featureFlag),
+    [featureFlag]
+  );
+  const isEnabled = use(promise);
 
   return (
     <p>

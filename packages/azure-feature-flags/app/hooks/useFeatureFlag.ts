@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { type FeatureFlag } from "../../src";
 import { useFeatureFlagService } from "../contexts";
 import { NEW_FLAG_HASH } from "../constants";
@@ -44,4 +44,33 @@ export function useFeatureFlags(seed?: number) {
   }, [service, seed]);
 
   return featureFlags;
+}
+
+export function useCreateFeatureFlag() {
+  const service = useFeatureFlagService();
+
+  return useCallback(
+    async (formData: FormData): Promise<string | null> => {
+      const id = formData.get("key")?.toString();
+      const description = formData.get("description")?.toString();
+
+      if (!id) {
+        return null;
+      }
+
+      const result = await service.set({
+        id,
+        conditions: {},
+        enabled: false,
+        description,
+      });
+
+      if (result) {
+        return id;
+      }
+
+      return null;
+    },
+    [service]
+  );
 }

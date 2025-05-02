@@ -10,6 +10,7 @@ import {
   iterateAppConfigurationFeatureFlags,
   featureFlagContentType,
   featureFlagPrefix,
+  addFeatureFlagPrefixToKey,
 } from "./utils/app-config.js";
 import type {
   FeatureFlagServiceOptions,
@@ -137,7 +138,7 @@ export async function setFeatureFlag(
   if (client instanceof AppConfigurationClientLite) {
     const setting: ConfigurationSetting = await client
       .get({ keyFilter: featureFlag.id })
-      .then((setting) => {
+      .then((setting): ConfigurationSetting => {
         if (!setting) throw new Error();
         return {
           ...setting,
@@ -145,13 +146,22 @@ export async function setFeatureFlag(
           value: JSON.stringify(featureFlag),
         };
       })
-      .catch(() => ({
-        ...options,
-        key: `${featureFlagPrefix}${featureFlag.id}`,
-        value: JSON.stringify(featureFlag),
-        contentType: featureFlagContentType,
-        isReadOnly: false,
-      }));
+      .catch(
+        (): ConfigurationSetting => ({
+          locked: false,
+          etag: "",
+          label: null,
+          tags: {},
+          last_modified: new Date().toISOString(),
+          ...options,
+          key: `${featureFlagPrefix}${featureFlag.id}`,
+          value: JSON.stringify(featureFlag),
+          contentType: featureFlagContentType,
+          isReadOnly: false,
+          // @ts-expect-error
+          content_type: featureFlagContentType,
+        })
+      );
 
     try {
       await client.set(setting);
@@ -163,7 +173,7 @@ export async function setFeatureFlag(
 
   invariantAppConfigurationClient(client, "setConfigurationSetting");
 
-  const key = `${featureFlagPrefix}${featureFlag.id}`;
+  const key = addFeatureFlagPrefixToKey(featureFlag.id);
 
   try {
     const setting: ConfigurationSetting = await client
@@ -176,13 +186,15 @@ export async function setFeatureFlag(
           value: JSON.stringify(featureFlag),
         };
       })
-      .catch(() => ({
-        ...options,
-        key,
-        value: JSON.stringify(featureFlag),
-        contentType: featureFlagContentType,
-        isReadOnly: false,
-      }));
+      .catch(
+        (): ConfigurationSetting => ({
+          ...options,
+          key,
+          value: JSON.stringify(featureFlag),
+          contentType: featureFlagContentType,
+          isReadOnly: false,
+        })
+      );
 
     await client.setConfigurationSetting(setting);
 
@@ -218,12 +230,11 @@ export async function deleteFeatureFlag(
 
   invariantAppConfigurationClient(client, "deleteConfigurationSetting");
 
-  if (!key.startsWith(featureFlagPrefix)) {
-    key = `${featureFlagPrefix}${key}`;
-  }
-
   try {
-    await client.deleteConfigurationSetting({ key, label });
+    await client.deleteConfigurationSetting({
+      key: addFeatureFlagPrefixToKey(key),
+      label,
+    });
 
     return true;
   } catch {

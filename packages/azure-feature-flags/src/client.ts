@@ -9,7 +9,7 @@ import {
   type FeatureFlagServiceWithKeyOptions,
   type FeatureFlagServiceOptions,
   featureFlagContentType,
-  featureFlagPrefix,
+  addFeatureFlagPrefixToKey,
 } from "./utils/app-config.js";
 import { sha256, sha256Hmac } from "./utils/hash-sha256.js";
 
@@ -65,7 +65,7 @@ export class AppConfigurationClientLite {
         items: ConfigurationSetting[];
       }>(
         "",
-        { ...options, keyFilter: this.#prependFeatureFlagPrefix("*") },
+        { ...options, keyFilter: addFeatureFlagPrefixToKey("*") },
         "GET",
         undefined,
         (json) => "items" in json && Array.isArray(json.items)
@@ -83,7 +83,7 @@ export class AppConfigurationClientLite {
   }: FeatureFlagServiceWithKeyOptions): Promise<ConfigurationSetting | null> {
     try {
       const setting = await this.#makeRequest<ConfigurationSetting>(
-        this.#prependFeatureFlagPrefix(keyFilter),
+        addFeatureFlagPrefixToKey(keyFilter),
         options,
         "GET"
       );
@@ -100,7 +100,7 @@ export class AppConfigurationClientLite {
   }: FeatureFlagServiceWithKeyOptions): Promise<ConfigurationSetting | null> {
     try {
       return await this.#makeRequest<ConfigurationSetting>(
-        this.#prependFeatureFlagPrefix(keyFilter),
+        addFeatureFlagPrefixToKey(keyFilter),
         options,
         "DELETE"
       );
@@ -115,7 +115,7 @@ export class AppConfigurationClientLite {
   ): Promise<ConfigurationSetting | null> {
     try {
       return await this.#makeRequest<ConfigurationSetting>(
-        this.#prependFeatureFlagPrefix(setting.key),
+        addFeatureFlagPrefixToKey(setting.key),
         options,
         "PUT",
         JSON.stringify(setting)
@@ -137,7 +137,7 @@ export class AppConfigurationClientLite {
     const searchParams = new URLSearchParams();
     searchParams.set("api-version", "2023-10-01");
     if (keyFilter) {
-      searchParams.set("key", this.#prependFeatureFlagPrefix(keyFilter));
+      searchParams.set("key", addFeatureFlagPrefixToKey(keyFilter));
     }
     if (labelFilter) {
       searchParams.set("label", labelFilter);
@@ -148,14 +148,12 @@ export class AppConfigurationClientLite {
       "Accept",
       `${featureFlagContentType}, application/problem+json`
     );
-    headers.set("Content-Type", "application/vnd.microsoft.appconfig.kv+json");
+    headers.set("Content-Type", featureFlagContentType);
     if (acceptDateTime) {
       headers.set("Accept-Datetime", acceptDateTime.toISOString());
     }
 
-    const url = `${this.#endpoint}/kv/${encodeURIComponent(
-      path
-    )}?${searchParams.toString()}`;
+    const url = `${this.#endpoint}/kv/${path}?${searchParams.toString()}`;
 
     const request = await this.#addAuthHeaders(
       new Request(url, {
@@ -168,6 +166,7 @@ export class AppConfigurationClientLite {
     );
 
     const response = await fetch(request);
+
     if (!response.ok) throw new Error("not ok");
     const json: T = await response.json();
 
@@ -205,11 +204,5 @@ export class AppConfigurationClientLite {
     );
 
     return request;
-  }
-
-  #prependFeatureFlagPrefix(input: string): string {
-    return input.startsWith(featureFlagPrefix)
-      ? input
-      : `${featureFlagPrefix}${input}`;
   }
 }
