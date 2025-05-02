@@ -83,7 +83,7 @@
     "build:cjs": "rm -rf cjs; tsc -p tsconfig.cjs.json",
     "build:esm": "rm -rf esm; tsc -p tsconfig.esm.json",
     "bump": "node ../../scripts/bump-version.mjs",
-    "clear": "yarn exports-files; rm -rf coverage dist cjs esm & true",
+    "clear": "yarn exports-files clear; rm -rf coverage dist cjs esm & true",
     "exports-files": "node ../../scripts/exports-files.mjs",
     "jsr:publish": "npx -y jsr publish",
     "prepublishOnly": " yarn clear; yarn test && yarn build",

@@ -8,7 +8,6 @@ export default defineConfig(({ mode }) => {
   process.env = { ...process.env, ...env };
 
   return {
-    base: process.env.CI ? "/azure-utils" : undefined,
     build: {
       minify: true,
       rollupOptions: {
