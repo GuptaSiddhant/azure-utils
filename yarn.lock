@@ -15,6 +15,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure-utils/feature-flags@workspace:packages/azure-feature-flags":
+  version: 0.0.0-use.local
+  resolution: "@azure-utils/feature-flags@workspace:packages/azure-feature-flags"
+  dependencies:
+    "@tailwindcss/vite": "npm:^4.0.0-alpha.15"
+    "@types/node": "npm:^22.0.0"
+    "@types/react": "npm:^18"
+    "@types/react-dom": "npm:^18"
+    "@vitejs/plugin-react": "npm:^4.3.0"
+    "@vitest/coverage-v8": "npm:^1.6.0"
+    clsx: "npm:^2.1.1"
+    dotenv: "npm:^16.4.5"
+    react: "npm:19.0.0-rc-9d4fba0788-20240530"
+    react-dom: "npm:19.0.0-rc-9d4fba0788-20240530"
+    tailwindcss: "npm:^4.0.0-alpha.15"
+    typescript: "npm:^5.4.0"
+    vite: "npm:^5.2.12"
+    vitest: "npm:^1.6.0"
+  languageName: unknown
+  linkType: soft
+
 "@babel/code-frame@npm:^7.24.6":
   version: 7.24.6
   resolution: "@babel/code-frame@npm:7.24.6"
@@ -1082,27 +1103,6 @@ __metadata:
   checksum: 10c0/25456b2aa333250f01143968e02e4884a34588a8538fbbf65c91a637f1dbfb8069249133cd2f4e530f10f624d206a664e7df30207830b659e9f5298b00a4099b
   languageName: node
   linkType: hard
-
-"azure-feature-flags@workspace:packages/azure-feature-flags":
-  version: 0.0.0-use.local
-  resolution: "azure-feature-flags@workspace:packages/azure-feature-flags"
-  dependencies:
-    "@tailwindcss/vite": "npm:^4.0.0-alpha.15"
-    "@types/node": "npm:^22.0.0"
-    "@types/react": "npm:^18"
-    "@types/react-dom": "npm:^18"
-    "@vitejs/plugin-react": "npm:^4.3.0"
-    "@vitest/coverage-v8": "npm:^1.6.0"
-    clsx: "npm:^2.1.1"
-    dotenv: "npm:^16.4.5"
-    react: "npm:19.0.0-rc-9d4fba0788-20240530"
-    react-dom: "npm:19.0.0-rc-9d4fba0788-20240530"
-    tailwindcss: "npm:^4.0.0-alpha.15"
-    typescript: "npm:^5.4.0"
-    vite: "npm:^5.2.12"
-    vitest: "npm:^1.6.0"
-  languageName: unknown
-  linkType: soft
 
 "azure-utils@workspace:.":
   version: 0.0.0-use.local
