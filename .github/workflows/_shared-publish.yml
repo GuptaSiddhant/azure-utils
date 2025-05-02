@@ -1,0 +1,76 @@
+name: Shared Publish
+
+on:
+  workflow_call:
+    inputs:
+      CWD:
+        type: string
+        required: true
+    secrets:
+      NPM_AUTH_TOKEN:
+        description: NPM auth token for publishing to NPM
+        required: true
+
+jobs:
+  verify-pkg:
+    name: Verify package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "yarn"
+      - name: Install dependencies
+        working-directory: ${{ inputs.CWD }}
+        run: yarn workspaces focus
+      - name: Verify package
+        working-directory: ${{ inputs.CWD }}
+        run: yarn verify
+
+  publish-npm:
+    name: Publish on NPM
+    needs: [verify-pkg]
+    runs-on: ubuntu-latest
+    environment: PROD
+    permissions:
+      contents: read
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "yarn"
+      - name: Setup NPM TOKEN
+        run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+      - name: Publish to NPM
+        working-directory: ${{ inputs.CWD }}
+        run: npm publish
+
+  publish-jsr:
+    name: Publish on JSR
+    needs: [verify-pkg]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Publish to JSR
+        working-directory: ${{ inputs.CWD }}
+        run: npx -y jsr publish
