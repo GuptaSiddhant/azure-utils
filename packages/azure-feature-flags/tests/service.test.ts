@@ -117,15 +117,11 @@ describe(setFeatureFlag, { concurrent: true }, () => {
     expect(await setFeatureFlag(client, dummyFeatureFlag)).true;
 
     const newFlag = await getFeatureFlagByKey(client, dummyFeatureFlag.id);
-    expect(newFlag).toMatchInlineSnapshot(`
-      {
-        "conditions": {
-          "client_filters": [],
-        },
-        "enabled": true,
-        "id": "feature",
-      }
-    `);
+    expect(newFlag).toEqual({
+      conditions: { client_filters: [] },
+      enabled: true,
+      id: "feature",
+    });
   });
 
   it("updates existing feature flag if it exists", async () => {
@@ -141,16 +137,11 @@ describe(setFeatureFlag, { concurrent: true }, () => {
 
     expect(await setFeatureFlag(client, newFeatureFlag)).true;
 
-    expect(await getFeatureFlagByKey(client, newFeatureFlag.id))
-      .toMatchInlineSnapshot(`
-      {
-        "conditions": {
-          "client_filters": [],
-        },
-        "enabled": false,
-        "id": "feature",
-      }
-    `);
+    expect(await getFeatureFlagByKey(client, newFeatureFlag.id)).toEqual({
+      conditions: { client_filters: [] },
+      enabled: false,
+      id: "feature",
+    });
   });
 
   it("returns false if cannot add new feature flag", async () => {
