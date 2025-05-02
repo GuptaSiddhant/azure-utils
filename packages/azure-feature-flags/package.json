@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/feature-flags",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "description": "Fetch and validate feature flags managed via Azure App Configuration.",
   "author": {
@@ -79,16 +79,18 @@
     "app:build": "vite build",
     "app:dev": "vite",
     "app:preview": "vite preview",
-    "build": "yarn build:cjs & yarn build:esm & node ./scripts/gen-js.mjs",
+    "build": "yarn build:cjs & yarn build:esm & yarn exports-files",
     "build:cjs": "rm -rf cjs; tsc -p tsconfig.cjs.json",
     "build:esm": "rm -rf esm; tsc -p tsconfig.esm.json",
-    "bump": "node ./scripts/bump.mjs",
-    "clear": "rm -rf *.js *.d.ts cjs esm & true",
+    "bump": "node ../../scripts/bump-version.mjs",
+    "clear": "yarn exports-files; rm -rf coverage dist cjs esm & true",
+    "exports-files": "node ../../scripts/exports-files.mjs",
     "jsr:publish": "npx -y jsr publish",
-    "prepublishOnly": " yarn clear && yarn test && yarn build",
+    "prepublishOnly": " yarn clear; yarn test && yarn build",
     "test": "vitest run --coverage",
-    "test:server": "node ./scripts/run.mjs",
-    "test:watch": "vitest --coverage"
+    "test:server": "node ./tests/test-run.mjs",
+    "test:watch": "vitest --coverage",
+    "verify": "yarn clear; yarn test && yarn build"
   },
   "packageManager": "yarn@4.1.1",
   "devDependencies": {
