@@ -43,7 +43,7 @@ jsrJson.version = version;
 writeJsrJson(jsrJson);
 
 execSync(`git add package.json jsr.json`, options);
-execSync(`git commit -m 'bump to v${version}'`, options);
+execSync(`git commit -m 'chore(${pkgJson.name}): v${version}'`, options);
 
 console.log(`Updated version to ${version} and committed the package files.`);
 
