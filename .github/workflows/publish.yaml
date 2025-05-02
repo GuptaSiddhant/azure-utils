@@ -1,16 +1,16 @@
 name: Publish
 on:
   push:
-    tags:
-      - "*"
+    branches:
+      - "main"
   workflow_dispatch:
+
+env:
+  NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
 jobs:
   publish:
     environment: PROD
-
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
     permissions:
       contents: read
@@ -33,7 +33,13 @@ jobs:
       - name: Setup NPM TOKEN
         run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
 
-      - run: yarn install
+      - name: Install dependencies
+        working-directory: packages/azure-feature-flags
+        run: yarn workspaces focus
+
+      - name: Verify package
+        working-directory: packages/azure-feature-flags
+        run: npm verify
 
       - name: Publish to NPM
         working-directory: packages/azure-feature-flags

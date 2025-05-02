@@ -45,11 +45,6 @@ writeJsrJson(jsrJson);
 execSync(`git add package.json jsr.json`, options);
 execSync(`git commit -m 'bump to v${version}'`, options);
 
-console.log("Creating tag v" + version);
-execSync(`git tag -a 'v${version}' -m "Bump to v${version}"`, options);
-
-console.log("Pushing to origin");
-execSync(`git push`, options);
-execSync(`git push --tags`, options);
+console.log(`Updated version to ${version} and committed the package files.`);
 
 exit(0);

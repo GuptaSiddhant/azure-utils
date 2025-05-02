@@ -86,7 +86,6 @@
     "clear": "yarn exports-files clear; rm -rf coverage dist cjs esm & true",
     "exports-files": "node ../../scripts/exports-files.mjs",
     "jsr:publish": "npx -y jsr publish",
-    "prepublishOnly": " yarn clear; yarn test && yarn build",
     "test": "vitest run --coverage",
     "test:server": "node ./tests/test-run.mjs",
     "test:watch": "vitest --coverage",
