@@ -32,7 +32,7 @@ console.log("Creating tag v" + version);
 execSync(`git tag -a 'v${version}' -m "Bump to v${version}"`, options);
 
 console.log("Pushing to origin");
-execSync(`git push --tags`, options);
 execSync(`git push`, options);
+execSync(`git push --tags`, options);
 
 process.exit(0);
