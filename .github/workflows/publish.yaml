@@ -7,6 +7,7 @@ on:
 
 env:
   NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+  cwd: "packages/azure-feature-flags"
 
 jobs:
   publish:
@@ -34,17 +35,17 @@ jobs:
         run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
 
       - name: Install dependencies
-        working-directory: packages/azure-feature-flags
+        working-directory: ${{ env.cwd }}
         run: yarn workspaces focus
 
       - name: Verify package
-        working-directory: packages/azure-feature-flags
-        run: npm verify
+        working-directory: ${{ env.cwd }}
+        run: yarn verify
 
       - name: Publish to NPM
-        working-directory: packages/azure-feature-flags
+        working-directory: ${{ env.cwd }}
         run: npm publish
 
       - name: Publish to JSR
-        working-directory: packages/azure-feature-flags
+        working-directory: ${{ env.cwd }}
         run: npx -y jsr publish
