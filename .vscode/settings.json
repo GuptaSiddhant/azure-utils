@@ -1,0 +1,10 @@
+{
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "tsconfig.json": "*.tsbuildinfo",
+    "*.ts": "${capture}.spec.*, ${capture}.test.*, ${capture}.js",
+    "*.tsx": "${capture}.spec.*, ${capture}.test.*",
+    "*.js": "${capture}.js.map, ${capture}.d.ts"
+  }
+}

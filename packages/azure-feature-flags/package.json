@@ -9,11 +9,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/guptasiddhant/azure-feature-flags.git"
+    "url": "git+https://github.com/guptasiddhant/azure-utils.git",
+    "directory": "packages/azure-feature-flags"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/guptasiddhant/azure-feature-flags/issues"
+    "url": "https://github.com/guptasiddhant/azure-utils/issues"
   },
   "files": [
     "cjs",

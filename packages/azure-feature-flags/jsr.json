@@ -11,21 +11,21 @@
     "./service": "./src/service.ts",
     "./validate": "./src/validate.ts"
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    ".github",
-    ".yarn",
-    "app",
-    "scripts",
-    "tests",
-    ".yarnrc.yml",
-    "*.js",
-    "*.d.ts",
-    "*.html",
-    "vite.config.ts",
-    "yarn.lock",
-    "*.json"
-  ]
+  "publish": {
+    "include": ["src/**/*.ts"],
+    "exclude": [
+      ".github",
+      ".yarn",
+      "app",
+      "scripts",
+      "tests",
+      ".yarnrc.yml",
+      "*.js",
+      "*.d.ts",
+      "*.html",
+      "vite.config.ts",
+      "yarn.lock",
+      "*.json"
+    ]
+  }
 }

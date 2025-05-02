@@ -1,3 +1,9 @@
+/**
+ * @module
+ * This module exports a class to create a minimal version of
+ * AzureConfigurationClient which can be used by this library.
+ */
+
 import {
   type ConfigurationSetting,
   type FeatureFlagServiceWithKeyOptions,
