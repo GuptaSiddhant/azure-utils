@@ -1083,9 +1083,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"azure-feature-flags@workspace:.":
+"azure-feature-flags@workspace:packages/azure-feature-flags":
   version: 0.0.0-use.local
-  resolution: "azure-feature-flags@workspace:."
+  resolution: "azure-feature-flags@workspace:packages/azure-feature-flags"
   dependencies:
     "@tailwindcss/vite": "npm:^4.0.0-alpha.15"
     "@types/node": "npm:^20.0.0"
@@ -1101,6 +1101,14 @@ __metadata:
     typescript: "npm:^5.4.0"
     vite: "npm:^5.2.12"
     vitest: "npm:^1.6.0"
+  languageName: unknown
+  linkType: soft
+
+"azure-monorepo@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "azure-monorepo@workspace:."
+  dependencies:
+    "@types/node": "npm:^20.0.0"
   languageName: unknown
   linkType: soft
 

@@ -25,9 +25,9 @@ jobs:
           fetch-depth: 1
 
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: ".nvmrc"
           cache: "yarn"
 
       - name: Setup NPM TOKEN
@@ -36,7 +36,9 @@ jobs:
       - run: yarn install
 
       - name: Publish to NPM
+        working-directory: packages/azure-feature-flags
         run: npm publish
 
       - name: Publish to JSR
+        working-directory: packages/azure-feature-flags
         run: npx -y jsr publish

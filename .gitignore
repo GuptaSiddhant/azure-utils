@@ -1,15 +1,16 @@
 node_modules
 
-/.cache
-/build
-/esm
-/cjs
-/public/build
+.turbo
+.cache
+build
+esm
+cjs
+public/build
 .env
 .env.*
 *.tsbuildinfo
-/coverage
-/dist
+coverage
+dist
 
 .DS_Store
 vite.config.ts.timestamp*
