@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/feature-flags",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "description": "Fetch and validate feature flags managed via Azure App Configuration.",
   "author": {
