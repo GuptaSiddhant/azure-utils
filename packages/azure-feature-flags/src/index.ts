@@ -1,4 +1,10 @@
 /* c8 ignore start */
+/**
+ * @module
+ * This module exports the FeatureFlagService class which creates
+ * an service instance. It can be used to query, set, delete flags.
+ * Also it can be used to validate the flags.
+ */
 
 import {
   deleteFeatureFlag,
@@ -21,13 +27,6 @@ import type {
   FeatureFlagsRecord,
 } from "./types.js";
 import { AppConfigurationClientLite } from "./client.js";
-
-/**
- * @module
- * This module exports the FeatureFlagService class which creates
- * an service instance. It can be used to query, set, delete flags.
- * Also it can be used to validate the flags.
- */
 
 export type { FeatureFlagServiceOptions } from "./utils/app-config.js";
 export type {
