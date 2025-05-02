@@ -13,6 +13,7 @@ jobs:
   publish:
     name: Publish
     strategy:
+      fail-fast: false
       matrix:
         package:
           - "packages/azure-feature-flags"
