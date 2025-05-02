@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      artifact-name: ${{ steps.get-artifact-name.outputs.artifact-name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,10 +41,17 @@ jobs:
       - name: Verify package
         working-directory: ${{ inputs.CWD }}
         run: yarn verify
+      - name: Define artifact name
+        id: get-artifact-name
+        run: |
+          dirpath=${{ inputs.CWD }};
+          name="package-${dirpath//[^[:alnum:]]/_}"
+          echo "artifact-name=$name" >> "$GITHUB_OUTPUT"
+
       - name: Upload artifact for publish jobs
         uses: actions/upload-artifact@v4
         with:
-          name: package-build-${{ inputs.CWD }}
+          name: ${{ steps.get-artifact-name.outputs.artifact-name }}
           path: ${{ inputs.CWD }}
 
   publish-npm:
@@ -75,7 +84,7 @@ jobs:
       - name: Download artifact to publish
         uses: actions/download-artifact@v4
         with:
-          name: package-build-${{ inputs.CWD }}
+          name: ${{ needs.verify-pkg.outputs.artifact-name }}
           path: ${{ inputs.CWD }}
       - name: Publish to NPM
         working-directory: ${{ inputs.CWD }}
@@ -107,7 +116,7 @@ jobs:
       - name: Download artifact to publish
         uses: actions/download-artifact@v4
         with:
-          name: package-build-${{ inputs.CWD }}
+          name: ${{ needs.verify-pkg.outputs.artifact-name }}
           path: ${{ inputs.CWD }}
       - name: Publish to JSR
         working-directory: ${{ inputs.CWD }}
