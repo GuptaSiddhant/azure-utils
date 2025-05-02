@@ -42,36 +42,43 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
+      "internal": "./src/index.ts",
       "types": "./dist/esm/index.d.ts",
       "require": "./dist/cjs/index.js",
       "default": "./dist/esm/index.js"
     },
     "./allocate": {
+      "internal": "./src/allocate.ts",
       "types": "./dist/esm/allocate.d.ts",
       "require": "./dist/cjs/allocate.js",
       "default": "./dist/esm/allocate.js"
     },
     "./client": {
+      "internal": "./src/client.ts",
       "types": "./dist/esm/client.d.ts",
       "require": "./dist/cjs/client.js",
       "default": "./dist/esm/client.js"
     },
     "./rollout": {
+      "internal": "./src/rollout.ts",
       "types": "./dist/esm/rollout.d.ts",
       "require": "./dist/cjs/rollout.js",
       "default": "./dist/esm/rollout.js"
     },
     "./service": {
+      "internal": "./src/service.ts",
       "types": "./dist/esm/service.d.ts",
       "require": "./dist/cjs/service.js",
       "default": "./dist/esm/service.js"
     },
     "./validate": {
+      "internal": "./src/validate.ts",
       "types": "./dist/esm/validate.d.ts",
       "require": "./dist/cjs/validate.js",
       "default": "./dist/esm/validate.js"
     },
     "./types": {
+      "internal": "./src/types.ts",
       "types": "./dist/esm/types.d.ts",
       "require": "./dist/cjs/types.js",
       "default": "./dist/esm/types.js"

@@ -21,4 +21,7 @@ export default defineConfig({
     },
   },
   plugins: [react(), tailwindcss()],
+  resolve: {
+    conditions: ["internal"],
+  },
 });

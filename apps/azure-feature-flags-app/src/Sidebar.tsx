@@ -2,7 +2,7 @@ import clsx from "clsx";
 import Card from "./ui/Card";
 import Link from "./ui/Link";
 import useHashChange from "./hooks/useHashChange";
-import type { FeatureFlag } from "../../../packages/azure-feature-flags/src/types";
+import type { FeatureFlag } from "@azure-utils/feature-flags/types";
 
 export default function SideBar({
   featureFlags,

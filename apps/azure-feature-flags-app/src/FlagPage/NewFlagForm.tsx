@@ -9,7 +9,7 @@ export function NewFlagForm() {
   const createFlag = useCreateFeatureFlag();
 
   const [, createAction, isCreating] = useActionState(
-    async (state: string | null, formData: FormData) => {
+    async (_state: string | null, formData: FormData) => {
       const result = await createFlag(formData);
       if (result) {
         window.location.hash = result;

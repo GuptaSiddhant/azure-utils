@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { type FeatureFlag } from "../../src";
+import { type FeatureFlag } from "@azure-utils/feature-flags";
 import { useFeatureFlagService } from "../contexts";
 import { NEW_FLAG_HASH } from "../constants";
 

@@ -1,5 +1,5 @@
 import { createContext, use } from "react";
-import { FeatureFlagService } from "../src";
+import { FeatureFlagService } from "@azure-utils/feature-flags";
 
 export const RerenderAppContext = createContext<
   React.DispatchWithoutAction | undefined

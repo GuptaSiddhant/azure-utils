@@ -4,7 +4,8 @@
     "moduleResolution": "bundler",
     "module": "Preserve",
     "jsx": "react-jsx",
-    "noEmit": true
+    "noEmit": true,
+    "customConditions": ["internal"]
   },
   "include": ["./src"],
   "exclude": ["node_modules", "dist"]
