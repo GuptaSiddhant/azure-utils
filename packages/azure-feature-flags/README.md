@@ -2,11 +2,11 @@
 
 **Get/set and validate feature flags from Azure App Configuration.**
 
-[View demo app](https://git.guptasiddhant.com/azure-feature-flags/): Use your own Azure App Configuration to see what Feature Flags are available and how they validate.
+[View demo app](https://git.guptasiddhant.com/azure-utils/): Use your own Azure App Configuration to see what Feature Flags are available and how they validate.
 
-[![GitHub](https://img.shields.io/github/v/tag/GuptaSiddhant/azure-feature-flags?label=GitHub)](https://github.com/guptasiddhant/azure-feature-flags)
-[![NPM](https://img.shields.io/npm/v/azure-feature-flags)](https://www.npmjs.com/package/azure-feature-flags)
-[![JSR](https://jsr.io/badges/@gs/azure-feature-flags)](https://jsr.io/badges/@gs/azure-feature-flags)
+[![GitHub](https://img.shields.io/github/v/tag/GuptaSiddhant/azure-utils?label=GitHub)](https://github.com/guptasiddhant/azure-utils)
+[![NPM](https://img.shields.io/npm/v/@azure-utils/feature-flags)](https://www.npmjs.com/package/@azure-utils/feature-flags)
+[![JSR](https://jsr.io/badges/@azure-utils/feature-flags)](https://jsr.io/badges/@azure-utils/feature-flags)
 
 - [Install](#install)
 - [FeatureFlagService](#class-featureflagservice)
@@ -34,28 +34,28 @@
 ### NPM
 
 ```sh
-npm i azure-feature-flags
+npm i @azure-utils/feature-flags
 ```
 
 ```sh
-yarn add azure-feature-flags
+yarn add @azure-utils/feature-flags
 ```
 
 ```sh
-bun add azure-feature-flags
+bun add @azure-utils/feature-flags
 ```
 
 ### JSR
 
 ```sh
-npx jsr add @gs/azure-feature-flags
+npx jsr add @azure-utils/feature-flags
 ```
 
 ```sh
-deno add @gs/azure-feature-flags
+deno add @azure-utils/feature-flags
 ```
 
-> In all the examples below, the imports are done from `azure-feature-flags` package but for Deno, they need to be replaced with either `npm:azure-feature-flags` or `@gs/azure-feature-flags`.
+> In all the examples below, the imports are done from `@azure-utils/feature-flags` package but for Deno, they need to be replaced with either `npm:@azure-utils/feature-flags` or `@azure-utils/feature-flags`.
 
 ## `class` `FeatureFlagService`
 
@@ -64,7 +64,7 @@ Create and use a singular instance of service. It is wrapper around individually
 > For better tree-shaking, you can import individual functions from their respective entry-points.
 
 ```ts
-import { FeatureFlagService } from "azure-feature-flags";
+import { FeatureFlagService } from "@azure-utils/feature-flags";
 
 // FeatureFlagService service requires `client` of type
 // `AppConfigurationClient` or `AppConfigurationClientLite`
@@ -105,7 +105,7 @@ It can be generated with the `@azure/app-configuration` package or via the inter
 - With internal tool (preferred)
 
   ```ts
-  import { AppConfigurationClientLite } from "azure-feature-flags/client";
+  import { AppConfigurationClientLite } from "@azure-utils/feature-flags/client";
 
   const connectionString = process.env.AZURE_CONFIG_ACCESS_STRING;
   const client = new AppConfigurationClientLite(connectionString);
@@ -128,7 +128,7 @@ Get all feature flags from Azure App Config and return them as a record.
 import {
   getFeatureFlagsRecord,
   type FeatureFlagsRecord,
-} from "azure-feature-flags/service";
+} from "@azure-utils/feature-flags/service";
 
 const featureFlags: FeatureFlagsRecord = await getFeatureFlagsRecord(client);
 ```
@@ -141,7 +141,7 @@ Get all feature flags from Azure App Config and return them as a list/array.
 import {
   getFeatureFlagsList,
   type FeatureFlag,
-} from "azure-feature-flags/service";
+} from "@azure-utils/feature-flags/service";
 
 const featureFlags: FeatureFlag[] = await getFeatureFlagsList(client);
 ```
@@ -154,7 +154,7 @@ Get feature flag data for specific key.
 import {
   getFeatureFlagByKey,
   type FeatureFlag,
-} from "azure-feature-flags/service";
+} from "@azure-utils/feature-flags/service";
 
 const featureFlagKey = "your-feature-flag-key";
 
@@ -169,7 +169,10 @@ const featureFlag: FeatureFlag | null = await getFeatureFlagByKey(
 Set a new feature flag data or update existing one
 
 ```ts
-import { setFeatureFlag, type FeatureFlag } from "azure-feature-flags/service";
+import {
+  setFeatureFlag,
+  type FeatureFlag,
+} from "@azure-utils/feature-flags/service";
 
 const featureFlag: FeatureFlag = {
   id: "your-feature-flag-id",
@@ -185,7 +188,7 @@ const success: boolean = await setFeatureFlag(client, featureFlag);
 Get feature flag data for specific key.
 
 ```ts
-import { deleteFeatureFlag } from "azure-feature-flags/service";
+import { deleteFeatureFlag } from "@azure-utils/feature-flags/service";
 
 const featureFlagKey = "your-feature-flag-key";
 
@@ -201,7 +204,7 @@ Validate both types of Feature Flags - Filters and Variants. The function calls 
 > Note: If you know which type of Feature Flag you wish to validate, then directly import and use `validateFeatureFlagWithFilters` for filters and `validateFeatureFlagWithVariants` for variants.
 
 ```ts
-import { validateFeatureFlag } from "azure-feature-flags/validate";
+import { validateFeatureFlag } from "@azure-utils/feature-flags/validate";
 
 const enabledOrVariant = await validateFeatureFlag(featureFlag);
 ```
@@ -212,14 +215,14 @@ Validate a feature-flag object against filters/conditions.
 
 > Note: The function will `throw` if a custom filter is encountered without a validator. Hence, it is recommended to wrap the function call in try-catch for handling unsupported custom filters.
 
-> Note, all exports can be imported from root package `azure-feature-flags` but for sake of tree-shaking, they are made available from `azure-feature-flags/validate`
+> Note, all exports can be imported from root package `@azure-utils/feature-flags` but for sake of tree-shaking, they are made available from `@azure-utils/feature-flags/validate`
 
 #### Default and TimeWindow filter
 
 If filters are not set on the flag, the validation returns the value set in `featureFlag.enabled`. Otherwise, the `TimeWindow` filter is also tested against current time.
 
 ```ts
-import { validateFeatureFlagWithFilters } from "azure-feature-flags/validate";
+import { validateFeatureFlagWithFilters } from "@azure-utils/feature-flags/validate";
 
 const isValid: boolean = await validateFeatureFlagWithFilters(featureFlag);
 ```
@@ -229,7 +232,7 @@ const isValid: boolean = await validateFeatureFlagWithFilters(featureFlag);
 When a group(s) or user(s) are provided, the value is matched against the targeted audiences (both included and excluded) set in the Azure App Config.
 
 ```ts
-import { validateFeatureFlagWithFilters } from "azure-feature-flags/validate";
+import { validateFeatureFlagWithFilters } from "@azure-utils/feature-flags/validate";
 
 const isValid: boolean = await validateFeatureFlagWithFilters(featureFlag, {
   groups: ["editor"],
@@ -257,8 +260,8 @@ The package exports some rollout handlers which can be used instead of creating 
   For a 75% rollout, first 3 runs will be true and then a false, and then repeat.
 
   ```ts
-  import { validateFeatureFlagWithFilters } from "azure-feature-flags/validate";
-  import { handleRolloutWithIncrement } from "azure-feature-flags/rollout";
+  import { validateFeatureFlagWithFilters } from "@azure-utils/feature-flags/validate";
+  import { handleRolloutWithIncrement } from "@azure-utils/feature-flags/rollout";
 
   const isValid: boolean = await validateFeatureFlagWithFilters(featureFlag, {
     groups: ["editor"],
@@ -272,7 +275,7 @@ The package exports some rollout handlers which can be used instead of creating 
 import {
   validateFeatureFlagWithFilters,
   type FeatureFlagHandleRollout,
-} from "azure-feature-flags/validate";
+} from "@azure-utils/feature-flags/validate";
 
 const handleRollout: FeatureFlagHandleRollout = (
   flagKey,
@@ -299,7 +302,7 @@ The validator function received the `filter` object set in Azure Config as first
 import {
   validateFeatureFlagWithFilters,
   type FeatureFlagCustomFilterValidator,
-} from "azure-feature-flags/validate";
+} from "@azure-utils/feature-flags/validate";
 
 const myFilterValidator: FeatureFlagCustomFilterValidator = async (
   filter,
@@ -321,7 +324,7 @@ const isValid: boolean = await validateFeatureFlagWithFilters(featureFlag, {
 > This API is experimental and may change as the Variants feature of Azure App Configuration Feature Manager is under Preview.
 
 ```ts
-import { validateFeatureFlagWithVariants } from "azure-feature-flags/validate";
+import { validateFeatureFlagWithVariants } from "@azure-utils/feature-flags/validate";
 
 // featureFlag with variants. It will throw if the flag is of other type (filters)
 const variant = await validateFeatureFlagWithVariants(featureFlag, {

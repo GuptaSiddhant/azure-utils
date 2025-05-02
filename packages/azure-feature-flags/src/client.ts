@@ -29,7 +29,7 @@ export type {
  *
  * @example
  * ```ts
- * import { AppConfigurationClientLite } from "azure-feature-flags/client";
+ * import { AppConfigurationClientLite } from "@azure-utils/feature-flags/client";
  * const connectionString = process.env.AZURE_CONFIG_ACCESS_STRING;
  * const client = new AppConfigurationClientLite(connectionString);
  * //    ^ use this client anywhere in this library's services.
