@@ -42,7 +42,7 @@ jobs:
       - name: Upload artifact for publish jobs
         uses: actions/upload-artifact@v4
         with:
-          name: package-build
+          name: package-build-${{ inputs.CWD }}
           path: ${{ inputs.CWD }}
 
   publish-npm:
@@ -75,7 +75,7 @@ jobs:
       - name: Download artifact to publish
         uses: actions/download-artifact@v4
         with:
-          name: package-build
+          name: package-build-${{ inputs.CWD }}
           path: ${{ inputs.CWD }}
       - name: Publish to NPM
         working-directory: ${{ inputs.CWD }}
@@ -107,7 +107,7 @@ jobs:
       - name: Download artifact to publish
         uses: actions/download-artifact@v4
         with:
-          name: package-build
+          name: package-build-${{ inputs.CWD }}
           path: ${{ inputs.CWD }}
       - name: Publish to JSR
         working-directory: ${{ inputs.CWD }}
