@@ -3,49 +3,73 @@ on:
   push:
     branches:
       - "main"
+    paths:
+      - .github/workflows/publish.yaml
+      - packages/azure-feature-flags/**
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-aff
+  cancel-in-progress: true
 
 env:
   NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
   cwd: "packages/azure-feature-flags"
 
 jobs:
-  publish:
-    environment: PROD
-
-    permissions:
-      contents: read
-      id-token: write
-
+  verify-pkg:
+    name: Verify package
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
           cache: "yarn"
-
-      - name: Setup NPM TOKEN
-        run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
-
       - name: Install dependencies
         working-directory: ${{ env.cwd }}
         run: yarn workspaces focus
-
       - name: Verify package
         working-directory: ${{ env.cwd }}
         run: yarn verify
 
+  publish-npm:
+    name: Publish on NPM
+    needs: [verify-pkg]
+    runs-on: ubuntu-latest
+    environment: PROD
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "yarn"
+      - name: Setup NPM TOKEN
+        run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
       - name: Publish to NPM
         working-directory: ${{ env.cwd }}
         run: npm publish
 
+  publish-jsr:
+    name: Publish on JSR
+    needs: [verify-pkg]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       - name: Publish to JSR
         working-directory: ${{ env.cwd }}
         run: npx -y jsr publish
