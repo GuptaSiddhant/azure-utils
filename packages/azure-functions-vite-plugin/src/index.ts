@@ -4,7 +4,6 @@
  */
 
 import type { ConfigEnv, Plugin } from "vite";
-import type { PreRenderedChunk } from "rollup";
 import cp from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -132,7 +131,7 @@ export default function azureFunctionVitePlugin(
  */
 function rollupEntryFileNames(
   inputDirPath: string,
-  entry: PreRenderedChunk
+  entry: { name: string; facadeModuleId: string | null }
 ): string {
   const { name, facadeModuleId } = entry;
   const fileName = `${name}.js`;

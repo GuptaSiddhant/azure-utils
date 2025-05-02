@@ -3,12 +3,16 @@
   "name": "@azure-utils/feature-flags",
   "version": "0.1.8",
   "license": "MIT",
-  "exports": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./allocate": "./src/allocate.ts",
+    "./client": "./src/client.ts",
+    "./rollout": "./src/rollout.ts",
+    "./service": "./src/service.ts",
+    "./validate": "./src/validate.ts"
+  },
   "publish": {
-    "include": [
-      "src/**/*.ts",
-      "README.md"
-    ],
+    "include": ["src/**/*.ts", "README.md"],
     "exclude": [
       ".github",
       ".yarn",

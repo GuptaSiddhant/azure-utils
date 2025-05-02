@@ -3,34 +3,8 @@
   "name": "@azure-utils/functions-vite-plugin",
   "version": "0.0.2",
   "license": "MIT",
-  "exports": {
-    ".": "./src/index.ts",
-    "./allocate": "./src/allocate.ts",
-    "./client": "./src/client.ts",
-    "./rollout": "./src/rollout.ts",
-    "./service": "./src/service.ts",
-    "./validate": "./src/validate.ts"
-  },
+  "exports": "./src/index.ts",
   "publish": {
-    "include": [
-      "src/**/*.ts",
-      "README.md"
-    ],
-    "exclude": [
-      ".github",
-      ".yarn",
-      "app",
-      "scripts",
-      "tests",
-      "esm",
-      "cjs",
-      ".yarnrc.yml",
-      "*.js",
-      "*.d.ts",
-      "*.html",
-      "vite.config.ts",
-      "yarn.lock",
-      "*.json"
-    ]
+    "include": ["src/**/*.ts", "README.md"]
   }
 }
