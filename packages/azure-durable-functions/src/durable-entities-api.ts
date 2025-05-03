@@ -110,6 +110,9 @@ export type ListAzureFunctionsEntitiesResult<T> = {
   /** The list of Azure Functions Entity Instances.*/
   instances: AzureFunctionsEntityInstance<T>[];
 };
+/**
+ * Query and list Azure Functions Entity Instances.
+ */
 export async function listAzureFunctionsEntitiesOrThrow<T = unknown>(
   options: ListAzureFunctionsEntitiesOptions,
   requestOptions: RequestAzureFunctionsDurableTaskWebhookOptions

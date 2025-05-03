@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/durable-functions",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "description": "Utilities for Azure Durable functions.",
   "author": {
