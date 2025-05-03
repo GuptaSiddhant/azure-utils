@@ -1,0 +1,10 @@
+{
+  "extends": "@internal/tsconfig/base.tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
+    "outDir": "./dist/esm/"
+  },
+  "include": ["./src"],
+  "exclude": ["node_modules", "dist", "tests"]
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://jsr.io/schema/config-file.v1.json",
+  "name": "@azure-utils/durable-functions",
+  "version": "0.0.1",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./orchestrations-api": "./src/durable-orchestrations-api.ts",
+    "./entities-api": "./src/durable-entities-api.ts"
+  },
+  "publish": {
+    "include": ["src/**/*.ts", "README.md"]
+  }
+}

@@ -12,25 +12,6 @@
     "./validate": "./src/validate.ts"
   },
   "publish": {
-    "include": [
-      "src/**/*.ts",
-      "README.md"
-    ],
-    "exclude": [
-      ".github",
-      ".yarn",
-      "app",
-      "scripts",
-      "tests",
-      "esm",
-      "cjs",
-      ".yarnrc.yml",
-      "*.js",
-      "*.d.ts",
-      "*.html",
-      "vite.config.ts",
-      "yarn.lock",
-      "*.json"
-    ]
+    "include": ["src/**/*.ts", "README.md"]
   }
 }

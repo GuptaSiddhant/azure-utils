@@ -1,8 +1,8 @@
 {
-  "name": "@azure-utils/feature-flags",
-  "version": "0.1.11",
+  "name": "@azure-utils/durable-functions",
+  "version": "0.0.1",
   "type": "module",
-  "description": "Fetch and validate feature flags managed via Azure App Configuration.",
+  "description": "Utilities for Azure Durable functions.",
   "author": {
     "name": "Siddhant Gupta",
     "url": "https://guptasiddhant.com"
@@ -10,7 +10,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/guptasiddhant/azure-utils",
-    "directory": "packages/azure-feature-flags"
+    "directory": "packages/azure-durable-functions"
   },
   "license": "MIT",
   "bugs": {
@@ -26,16 +26,13 @@
   ],
   "keywords": [
     "azure",
-    "feature",
-    "flag",
-    "flags",
-    "configuration",
-    "config",
-    "validate",
-    "parse",
-    "app",
-    "rollout",
-    "percentage"
+    "functions",
+    "durable",
+    "entity",
+    "orchestration",
+    "activity",
+    "entities",
+    "orchestrations"
   ],
   "sideEffects": false,
   "exports": {
@@ -46,41 +43,17 @@
       "require": "./dist/cjs/index.js",
       "default": "./dist/esm/index.js"
     },
-    "./allocate": {
-      "internal": "./src/allocate.ts",
-      "types": "./dist/esm/allocate.d.ts",
-      "require": "./dist/cjs/allocate.js",
-      "default": "./dist/esm/allocate.js"
+    "./entities-api": {
+      "internal": "./src/durable-entities-api.ts",
+      "types": "./dist/esm/durable-entities-api.d.ts",
+      "require": "./dist/cjs/durable-entities-api.js",
+      "default": "./dist/esm/durable-entities-api.js"
     },
-    "./client": {
-      "internal": "./src/client.ts",
-      "types": "./dist/esm/client.d.ts",
-      "require": "./dist/cjs/client.js",
-      "default": "./dist/esm/client.js"
-    },
-    "./rollout": {
-      "internal": "./src/rollout.ts",
-      "types": "./dist/esm/rollout.d.ts",
-      "require": "./dist/cjs/rollout.js",
-      "default": "./dist/esm/rollout.js"
-    },
-    "./service": {
-      "internal": "./src/service.ts",
-      "types": "./dist/esm/service.d.ts",
-      "require": "./dist/cjs/service.js",
-      "default": "./dist/esm/service.js"
-    },
-    "./validate": {
-      "internal": "./src/validate.ts",
-      "types": "./dist/esm/validate.d.ts",
-      "require": "./dist/cjs/validate.js",
-      "default": "./dist/esm/validate.js"
-    },
-    "./types": {
-      "internal": "./src/types.ts",
-      "types": "./dist/esm/types.d.ts",
-      "require": "./dist/cjs/types.js",
-      "default": "./dist/esm/types.js"
+    "./orchestrations-api": {
+      "internal": "./src/durable-orchestrations-api.ts",
+      "types": "./dist/esm/durable-orchestrations-api.d.ts",
+      "require": "./dist/cjs/durable-orchestrations-api.js",
+      "default": "./dist/esm/durable-orchestrations-api.js"
     }
   },
   "main": "./dist/cjs/index.js",

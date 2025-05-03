@@ -15,6 +15,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure-utils/durable-functions@workspace:packages/azure-durable-functions":
+  version: 0.0.0-use.local
+  resolution: "@azure-utils/durable-functions@workspace:packages/azure-durable-functions"
+  dependencies:
+    "@internal/tsconfig": "npm:*"
+    "@types/node": "npm:^22.0.0"
+    "@vitest/coverage-v8": "npm:^3.0.0"
+    typescript: "npm:^5.8.0"
+    vitest: "npm:^3.0.0"
+  languageName: unknown
+  linkType: soft
+
 "@azure-utils/feature-flags@workspace:*, @azure-utils/feature-flags@workspace:packages/azure-feature-flags":
   version: 0.0.0-use.local
   resolution: "@azure-utils/feature-flags@workspace:packages/azure-feature-flags"
