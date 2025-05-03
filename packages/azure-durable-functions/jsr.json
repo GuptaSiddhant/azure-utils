@@ -5,13 +5,11 @@
   "license": "MIT",
   "exports": {
     ".": "./src/index.ts",
+    "./entity": "./src/DurableEntity.ts",
     "./orchestrations-api": "./src/durable-orchestrations-api.ts",
     "./entities-api": "./src/durable-entities-api.ts"
   },
   "publish": {
-    "include": [
-      "src/**/*.ts",
-      "README.md"
-    ]
+    "include": ["src/**/*.ts", "README.md"]
   }
 }

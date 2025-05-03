@@ -43,6 +43,12 @@
       "require": "./dist/cjs/index.js",
       "default": "./dist/esm/index.js"
     },
+    "./entity": {
+      "internal": "./src/DurableEntity.ts",
+      "types": "./dist/esm/DurableEntity.d.ts",
+      "require": "./dist/cjs/DurableEntity.js",
+      "default": "./dist/esm/DurableEntity.js"
+    },
     "./entities-api": {
       "internal": "./src/durable-entities-api.ts",
       "types": "./dist/esm/durable-entities-api.d.ts",
@@ -69,9 +75,19 @@
     "jsr:publish": "npx -y jsr publish",
     "verify": "yarn clear && yarn build"
   },
+  "dependencies": {
+    "lodash.merge": "^4"
+  },
   "devDependencies": {
+    "@azure/functions": "^4.7.0",
     "@internal/tsconfig": "*",
+    "@types/lodash.merge": "^4",
     "@types/node": "^22.0.0",
+    "durable-functions": "^3.1.0",
     "typescript": "^5.8.0"
+  },
+  "peerDependencies": {
+    "@azure/functions": "^4",
+    "durable-functions": "^3"
   }
 }

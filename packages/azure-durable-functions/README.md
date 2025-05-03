@@ -54,3 +54,21 @@ try {
   console.error(error);
 }
 ```
+
+## `DurableEntity` class
+
+This class is used to define a Durable Entity with a specific state and methods. It provides a way to manage the state of the entity and define actions that can be performed on it.
+
+> This must be used in the Azure Functions app.
+
+```ts
+import { DurableEntity } from "@azure-utils/durable-functions/entity";
+
+type MyEntityState = { foo: string; bar: number };
+const defaultState: MyEntityState = { foo: "bar", bar: 0 };
+
+export const myEntity = new DurableEntity("my-entity", defaultState, {
+  updateFoo: (input: { foo: string }) => ({ foo: input.foo }),
+  updateBar: (input: { bar: number }) => ({ bar: input.bar }),
+});
+```

@@ -107,8 +107,9 @@ export async function requestAzureFunctionsDurableTaskWebhookOrThrow(
       .catch(() => {});
 
     throw new Error(
-      `Failed to request Azure Functions Durable Webhook: ${response.status} ${response.statusText}`,
-      { cause }
+      `Failed to request Azure Functions Durable Webhook: ${response.status} ${
+        response.statusText
+      }, ${JSON.stringify(cause)}`
     );
   }
 

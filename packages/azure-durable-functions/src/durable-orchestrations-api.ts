@@ -6,7 +6,7 @@
 import {
   type RequestAzureFunctionsDurableTaskWebhookOptions,
   requestAzureFunctionsDurableTaskWebhookOrThrow,
-} from "./durable-webhook.ts";
+} from "./durable-webhook.js";
 
 // Start Azure Functions Orchestration
 
