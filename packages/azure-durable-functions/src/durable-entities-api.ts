@@ -6,7 +6,7 @@
 import {
   type RequestAzureFunctionsDurableTaskWebhookOptions,
   requestAzureFunctionsDurableTaskWebhookOrThrow,
-} from "./durable-webhook";
+} from "./durable-webhook.ts";
 
 /**
  * Options for the `signalAzureFunctionsEntityOrThrow` function.

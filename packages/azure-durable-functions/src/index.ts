@@ -10,10 +10,10 @@
  * > by the Azure Functions host but handled directly by the Durable Functions extension.
  */
 
-export type { RequestAzureFunctionsDurableTaskWebhookOptions } from "./durable-webhook";
+export type { RequestAzureFunctionsDurableTaskWebhookOptions } from "./durable-webhook.ts";
 
-import * as orchestrationApi from "./durable-orchestrations-api";
-import * as entitiesApi from "./durable-entities-api";
+import * as orchestrationApi from "./durable-orchestrations-api.ts";
+import * as entitiesApi from "./durable-entities-api.ts";
 
 /**
  * An object that contains all the functions for interacting with Azure Functions Durable Orchestrations.
@@ -45,7 +45,7 @@ export const durableOrchestrations = {
   rewind: orchestrationApi.rewindAzureFunctionsOrchestrationInstanceOrThrow,
 };
 
-export { AzureFunctionsOrchestrationRuntimeStatuses } from "./durable-orchestrations-api";
+export { AzureFunctionsOrchestrationRuntimeStatuses } from "./durable-orchestrations-api.ts";
 export type {
   AzureFunctionsOrchestrationInstance,
   AzureFunctionsOrchestrationInstanceHistoryEvent,
@@ -56,7 +56,7 @@ export type {
   StartAzureFunctionsOrchestrationOptions,
   StartAzureFunctionsOrchestrationResult,
   AzureFunctionsOrchestrationInstanceActionOptions,
-} from "./durable-orchestrations-api";
+} from "./durable-orchestrations-api.ts";
 
 /**
  * An object that contains all the functions for interacting with Azure Functions Durable Entity.
@@ -78,4 +78,4 @@ export type {
   ListAzureFunctionsEntitiesOptions,
   ListAzureFunctionsEntitiesResult,
   SignalAzureFunctionsEntityOptions,
-} from "./durable-entities-api";
+} from "./durable-entities-api.ts";
