@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/durable-functions",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "description": "Utilities for Azure Durable functions.",
   "author": {
@@ -67,16 +67,11 @@
     "clear": "yarn exports-files clear; rm -rf coverage dist cjs esm & true",
     "exports-files": "node ../../scripts/exports-files.mjs",
     "jsr:publish": "npx -y jsr publish",
-    "test": "vitest run --coverage",
-    "test:server": "node ./tests/test-run.mjs",
-    "test:watch": "vitest --coverage",
-    "verify": "yarn clear; yarn test && yarn build"
+    "verify": "yarn clear && yarn build"
   },
   "devDependencies": {
     "@internal/tsconfig": "*",
     "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^3.0.0",
-    "typescript": "^5.8.0",
-    "vitest": "^3.0.0"
+    "typescript": "^5.8.0"
   }
 }
