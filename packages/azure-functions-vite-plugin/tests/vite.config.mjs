@@ -1,7 +1,7 @@
 // @ts-check
 
 import { defineConfig } from "vite";
-import azureFunctionsVitePlugin from "../src";
+import azureFunctionsVitePlugin from "..";
 
 export default defineConfig({
   plugins: [azureFunctionsVitePlugin()],
