@@ -15,9 +15,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure-utils/durable-functions@workspace:packages/azure-durable-functions":
+"@azure-utils/durable-functions@workspace:packages/durable-functions":
   version: 0.0.0-use.local
-  resolution: "@azure-utils/durable-functions@workspace:packages/azure-durable-functions"
+  resolution: "@azure-utils/durable-functions@workspace:packages/durable-functions"
   dependencies:
     "@azure/functions": "npm:^4.7.0"
     "@internal/tsconfig": "npm:*"
@@ -32,9 +32,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@azure-utils/feature-flags@workspace:*, @azure-utils/feature-flags@workspace:packages/azure-feature-flags":
+"@azure-utils/feature-flags@workspace:*, @azure-utils/feature-flags@workspace:packages/feature-flags":
   version: 0.0.0-use.local
-  resolution: "@azure-utils/feature-flags@workspace:packages/azure-feature-flags"
+  resolution: "@azure-utils/feature-flags@workspace:packages/feature-flags"
   dependencies:
     "@internal/tsconfig": "npm:*"
     "@types/node": "npm:^22.0.0"
@@ -44,9 +44,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@azure-utils/functions-vite-plugin@workspace:packages/azure-functions-vite-plugin":
+"@azure-utils/functions-vite-plugin@workspace:packages/functions-vite-plugin":
   version: 0.0.0-use.local
-  resolution: "@azure-utils/functions-vite-plugin@workspace:packages/azure-functions-vite-plugin"
+  resolution: "@azure-utils/functions-vite-plugin@workspace:packages/functions-vite-plugin"
   dependencies:
     "@internal/tsconfig": "npm:*"
     "@types/node": "npm:^22.0.0"
@@ -1231,9 +1231,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"azure-utils-functions-vite-plugin-test@workspace:packages/azure-functions-vite-plugin/tests":
+"azure-utils-functions-vite-plugin-test@workspace:packages/functions-vite-plugin/tests":
   version: 0.0.0-use.local
-  resolution: "azure-utils-functions-vite-plugin-test@workspace:packages/azure-functions-vite-plugin/tests"
+  resolution: "azure-utils-functions-vite-plugin-test@workspace:packages/functions-vite-plugin/tests"
   dependencies:
     typescript: "npm:*"
     vite: "npm:*"
