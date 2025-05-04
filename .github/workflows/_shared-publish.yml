@@ -27,9 +27,7 @@ jobs:
       - name: Compare diff changes
         id: check-diff
         run: |
-          result=$(git log --oneline --name-only --pretty=format: \
-            ${{ github.event.before }}..${{ github.event.after }} |
-            sort -u | grep ${{ inputs.CWD }})
+          result=$(git log --oneline --name-only --pretty=format: ${{ github.event.before }}..${{ github.event.after }} | sort -u | grep '${{ inputs.CWD }}' || true)
 
           if [ -n "$result" ]; then
             echo "result=true" >> "$GITHUB_OUTPUT"
