@@ -13,6 +13,8 @@
   ],
   "packageManager": "yarn@4.1.1",
   "scripts": {
+    "adf": "yarn --cwd ./packages/azure-durable-functions",
+    "adf:bump": "yarn adf bump",
     "aff": "yarn --cwd ./packages/azure-feature-flags",
     "aff:bump": "yarn aff bump",
     "afvp": "yarn --cwd ./packages/azure-functions-vite-plugin",

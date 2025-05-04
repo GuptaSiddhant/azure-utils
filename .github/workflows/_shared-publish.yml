@@ -12,6 +12,19 @@ on:
         required: true
 
 jobs:
+  check-diff:
+    name: Check diff
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Compare diff changes
+        id: check-diff
+        run: |
+          bash ./scripts/compare-diff-changes.sh ${{ github.event.before }} ${{ github.event.after }} ${{ inputs.CWD }}
+
   verify-pkg:
     name: Verify package
     runs-on: ubuntu-latest
@@ -56,7 +69,7 @@ jobs:
 
   publish-npm:
     name: Publish on NPM
-    needs: [verify-pkg]
+    needs: [verify-pkg, check-diff]
     runs-on: ubuntu-latest
     environment: PROD
     permissions:
@@ -92,7 +105,7 @@ jobs:
 
   publish-jsr:
     name: Publish on JSR
-    needs: [verify-pkg]
+    needs: [verify-pkg, check-diff]
     runs-on: ubuntu-latest
     permissions:
       contents: read
