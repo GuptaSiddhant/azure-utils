@@ -51,7 +51,7 @@
     "bump": "node ../../scripts/bump-version.mjs",
     "clear": "rm -rf coverage dist & true",
     "jsr:publish": "npx -y jsr publish",
-    "test": "echo 'No tests'",
+    "test": "yarn --cwd 'tests' vite build",
     "verify": "yarn clear; yarn test && yarn build"
   },
   "devDependencies": {

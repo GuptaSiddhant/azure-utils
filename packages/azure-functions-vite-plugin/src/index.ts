@@ -43,7 +43,7 @@ export type AzureFunctionsPluginOptions = {
 /**
  * Vite plugin to build and verify Azure Functions.
  */
-export default function azureFunctionVitePlugin(
+export default function azureFunctionsVitePlugin(
   options: AzureFunctionsPluginOptions = {}
 ): Plugin {
   const {
@@ -193,11 +193,12 @@ async function verifyBuild(rootPath = cwd()) {
 
   const registeredFunctions = new Set<string>();
   const regexp = /register function "(.*)" because/g;
+  const errors: Array<{ file: string; error: Error }> = [];
 
   const promises = mainFiles.map(async (file) => {
     const { stderr, error } = await execPromise(`node ${file}`);
     if (error) {
-      exitWithError(`Error in file: '${file}'.`, error);
+      errors.push({ file, error });
     }
 
     const matches = stderr.matchAll(regexp);
@@ -221,39 +222,24 @@ async function verifyBuild(rootPath = cwd()) {
     `Build verified with following ${registeredFunctions.size} functions:`,
     "- " + [...registeredFunctions].join("\n\t - ")
   );
+  if (errors.length > 0) {
+    log("warn", "Found errors in the following files:");
+    globalThis.console.group();
+    errors.forEach((e) => {
+      globalThis.console.log("-\x1b[33m", e.file, "\x1b[0m");
+      globalThis.console.group();
+      globalThis.console.log(
+        `\x1b[31m[${e.error.name}]`,
+        e.error.message,
+        "\x1b[0m"
+      );
+      globalThis.console.groupEnd();
+    });
+    globalThis.console.groupEnd();
+  }
 }
 
 // Helpers
-
-function exitWithError(message: string, ...rest: unknown[]) {
-  log("error", message, ...rest);
-  exit(1);
-}
-
-function log(
-  type: "info" | "success" | "error" | "debug" | undefined,
-  message: string,
-  ...rest: unknown[]
-) {
-  const logPrefix = "AZ-FN";
-  const bgColorCode =
-    type === "info"
-      ? 44
-      : type === "success"
-      ? 42
-      : type === "error"
-      ? 41
-      : 100;
-  const textColorCode =
-    type === "info" ? 34 : type === "success" ? 32 : type === "error" ? 31 : 90;
-  globalThis.console.log(
-    `\x1b[${bgColorCode}m ${logPrefix} \x1b[0m\t\x1b[${textColorCode}m`,
-    message,
-    "\x1b[0m",
-    rest.length > 0 ? "\n\t" : "",
-    ...rest
-  );
-}
 
 function execPromise(
   command: string
@@ -263,4 +249,33 @@ function execPromise(
       resolve({ stdout, stderr, error });
     });
   });
+}
+
+function exitWithError(message: string, ...rest: unknown[]) {
+  log("error", message, ...rest);
+  exit(1);
+}
+
+type LogType = "info" | "success" | "error" | "debug" | "warn";
+const logPrefix = "AZ-FN";
+const colorMap: Record<
+  LogType,
+  { bgColorCode: number; textColorCode: number }
+> = {
+  debug: { bgColorCode: 100, textColorCode: 90 },
+  info: { bgColorCode: 44, textColorCode: 34 },
+  success: { bgColorCode: 42, textColorCode: 32 },
+  error: { bgColorCode: 41, textColorCode: 31 },
+  warn: { bgColorCode: 43, textColorCode: 33 },
+};
+function log(type: LogType, message: string, ...rest: unknown[]) {
+  const { bgColorCode, textColorCode } = colorMap[type];
+
+  globalThis.console.log(
+    `\x1b[${bgColorCode}m ${logPrefix} \x1b[0m\t\x1b[${textColorCode}m`,
+    message,
+    "\x1b[0m",
+    rest.length > 0 ? "\n\t" : "",
+    ...rest
+  );
 }
