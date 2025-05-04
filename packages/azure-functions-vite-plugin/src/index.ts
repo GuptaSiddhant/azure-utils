@@ -7,7 +7,7 @@ import type { ConfigEnv, Plugin } from "vite";
 import cp from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { cwd, exit } from "node:process";
+import { cwd, env as processEnv, exit, argv } from "node:process";
 import { glob } from "glob";
 
 /**
@@ -37,7 +37,7 @@ export type AzureFunctionsPluginOptions = {
   /**
    * Option to verify build output. @default true
    */
-  verify?: boolean;
+  buildVerify?: boolean;
 };
 
 /**
@@ -52,7 +52,7 @@ export default function azureFunctionsVitePlugin(
     outputDirname = "dist",
     sourceMap = true,
     typecheck = true,
-    verify = true,
+    buildVerify = true,
   } = options;
   const inputFilesGlob = path.join(inputDirname, "**", "*.ts");
   const inputFilesGlobIgnore = [
@@ -62,6 +62,8 @@ export default function azureFunctionsVitePlugin(
 
   let isWatching = false;
   let command: ConfigEnv["command"] | undefined;
+  let skipTypecheck = false;
+  let skipBuildVerify = false;
 
   return {
     name: "vite-plugin-azure-functions",
@@ -70,10 +72,27 @@ export default function azureFunctionsVitePlugin(
       isWatching = true;
     },
 
-    config: (config, env) => {
-      command = env.command;
+    config: (config, configEnv) => {
       log("info", "Updating vite config...");
+      command = configEnv.command;
 
+      // If checks are skipped,
+      const skipAllChecks =
+        processEnv["CHECKS"] === "false" || argv.includes("--skip-checks");
+
+      skipTypecheck =
+        skipAllChecks ||
+        !typecheck ||
+        processEnv["TYPECHECK"] === "false" ||
+        argv.includes("--skip-typecheck");
+
+      skipBuildVerify =
+        skipAllChecks ||
+        !buildVerify ||
+        processEnv["BUILD_VERIFY"] === "false" ||
+        argv.includes("--skip-build-verify");
+
+      // Update config
       const pkgJson = JSON.parse(
         fs.readFileSync(path.join(rootPath, "package.json"), "utf-8")
       );
@@ -111,14 +130,22 @@ export default function azureFunctionsVitePlugin(
     },
 
     buildStart: async () => {
-      if (!command || command !== "build" || !typecheck || isWatching) {
+      if (!command || command !== "build" || isWatching) {
+        return;
+      }
+      if (skipTypecheck) {
+        log("warn", "Skipping type check.");
         return;
       }
       await checkTypes();
     },
 
     closeBundle: async () => {
-      if (!command || command !== "build" || !verify) {
+      if (!command || command !== "build") {
+        return;
+      }
+      if (skipBuildVerify) {
+        log("warn", "Skipping build verification.");
         return;
       }
       await verifyBuild(rootPath);

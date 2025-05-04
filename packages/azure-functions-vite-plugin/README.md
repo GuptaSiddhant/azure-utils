@@ -2,10 +2,13 @@
 
 > Only works with V4 functions written in typescript.
 
-A modern and faster way to build Azure Function app written in TypeScript. The plugin also runs a verification function to check which functions are actually registered.
-
 [![NPM](https://img.shields.io/npm/v/@azure-utils/functions-vite-plugin)](https://www.npmjs.com/package/@azure-utils/functions-vite-plugin)
 [![JSR](https://jsr.io/badges/@azure-utils/functions-vite-plugin)](https://jsr.io/badges/@azure-utils/functions-vite-plugin)
+
+A modern and faster way to build Azure Function app written in TypeScript. The plugin also runs a verification function to check which functions are actually registered.
+
+The build-verification step runs a test to check if the function is registered in the Azure Functions runtime.
+If the script encounters any issues, it will list them as warnings in the console along with all the functions-registered.
 
 ## Install
 
@@ -38,13 +41,13 @@ deno add -D @azure-utils/functions-vite-plugin
 The plugin needs to be added to Vite config plugin list.
 
 ```ts
-// vite.config.js
+// VITE config
 
 import { defineConfig } from "vite/config";
-import azureFunctionVitePlugin from "@azure-utils/functions-vite-plugin";
+import azureFunctionsVitePlugin from "@azure-utils/functions-vite-plugin";
 
 export default defineConfig({
-  plugins: [azureFunctionVitePlugin()],
+  plugins: [azureFunctionsVitePlugin()],
 });
 ```
 
@@ -77,8 +80,40 @@ type AzureFunctionsPluginOptions = {
   /**
    * Option to verify build output. @default true
    */
-  verify?: boolean;
+  buildVerify?: boolean;
 };
+```
+
+### Checks
+
+Typecheck and build verification can be configured in the plugin options but that remains static.
+
+You can also skip the checks in the CLI or via ENV for more custom scripts.
+
+#### CLI
+
+```sh
+# Skip all checks (typecheck and build verification)
+vite build -- --skip-checks
+
+# Skip typecheck
+vite build -- --skip-typecheck
+
+# Skip build verification
+vite build -- --skip-build-verify
+```
+
+#### ENV
+
+```sh
+# Skip all checks (typecheck and build verification)
+CHECKS=false vite build
+
+# Skip typecheck
+TYPECHECK=false vite build
+
+# Skip build verification
+BUILD_VERIFY=false vite build
 ```
 
 ## License
