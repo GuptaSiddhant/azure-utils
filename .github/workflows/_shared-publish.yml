@@ -14,16 +14,23 @@ on:
 jobs:
   check-diff:
     name: Check diff
+
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Compare diff changes
         id: check-diff
         run: |
-          bash ./scripts/compare-diff-changes.sh ${{ github.event.before }} ${{ github.event.after }} ${{ inputs.CWD }}
+          # Check if the push-diff contains changes in the specified directory
+          git log --oneline --name-only --pretty=format: \
+            ${{ github.event.before }}..${{ github.event.after }} |
+            sort -u |
+            grep ${{ inputs.CWD }}
 
   verify-pkg:
     name: Verify package
@@ -35,8 +42,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
       - name: Setup node
         uses: actions/setup-node@v4
         with:
@@ -60,7 +65,6 @@ jobs:
           dirpath=${{ inputs.CWD }};
           name="package-${dirpath//[^[:alnum:]]/_}"
           echo "artifact-name=$name" >> "$GITHUB_OUTPUT"
-
       - name: Upload artifact for publish jobs
         uses: actions/upload-artifact@v4
         with:
@@ -79,8 +83,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
       - name: Setup node
         uses: actions/setup-node@v4
         with:
@@ -113,8 +115,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
       - name: Setup node
         uses: actions/setup-node@v4
         with:
