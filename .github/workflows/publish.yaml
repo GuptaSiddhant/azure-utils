@@ -16,9 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         package:
-          - "packages/azure-feature-flags"
-          - "packages/azure-durable-functions"
-          - "packages/azure-functions-vite-plugin"
+          - "packages/feature-flags"
+          - "packages/durable-functions"
+          - "packages/functions-vite-plugin"
 
     uses: "./.github/workflows/_shared-publish.yml"
     secrets: inherit
