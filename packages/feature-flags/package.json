@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/feature-flags",
-  "version": "0.1.13",
+  "version": "0.2.0",
   "type": "module",
   "description": "Fetch and validate feature flags managed via Azure App Configuration.",
   "author": {
@@ -42,56 +42,54 @@
     "./package.json": "./package.json",
     ".": {
       "internal": "./src/index.ts",
-      "types": "./dist/esm/index.d.ts",
-      "require": "./dist/cjs/index.js",
-      "default": "./dist/esm/index.js"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     },
     "./allocate": {
       "internal": "./src/allocate.ts",
-      "types": "./dist/esm/allocate.d.ts",
-      "require": "./dist/cjs/allocate.js",
-      "default": "./dist/esm/allocate.js"
+      "types": "./dist/allocate.d.ts",
+      "require": "./dist/allocate.cjs",
+      "default": "./dist/allocate.mjs"
     },
     "./client": {
       "internal": "./src/client.ts",
-      "types": "./dist/esm/client.d.ts",
-      "require": "./dist/cjs/client.js",
-      "default": "./dist/esm/client.js"
+      "types": "./dist/client.d.ts",
+      "require": "./dist/client.cjs",
+      "default": "./dist/client.mjs"
     },
     "./rollout": {
       "internal": "./src/rollout.ts",
-      "types": "./dist/esm/rollout.d.ts",
-      "require": "./dist/cjs/rollout.js",
-      "default": "./dist/esm/rollout.js"
+      "types": "./dist/rollout.d.ts",
+      "require": "./dist/rollout.cjs",
+      "default": "./dist/rollout.mjs"
     },
     "./service": {
       "internal": "./src/service.ts",
-      "types": "./dist/esm/service.d.ts",
-      "require": "./dist/cjs/service.js",
-      "default": "./dist/esm/service.js"
+      "types": "./dist/service.d.ts",
+      "require": "./dist/service.cjs",
+      "default": "./dist/service.mjs"
     },
     "./validate": {
       "internal": "./src/validate.ts",
-      "types": "./dist/esm/validate.d.ts",
-      "require": "./dist/cjs/validate.js",
-      "default": "./dist/esm/validate.js"
+      "types": "./dist/validate.d.ts",
+      "require": "./dist/validate.cjs",
+      "default": "./dist/validate.mjs"
     },
     "./types": {
       "internal": "./src/types.ts",
-      "types": "./dist/esm/types.d.ts",
-      "require": "./dist/cjs/types.js",
-      "default": "./dist/esm/types.js"
+      "types": "./dist/types.d.ts",
+      "require": "./dist/types.cjs",
+      "default": "./dist/types.mjs"
     }
   },
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "yarn build:cjs & yarn build:esm & yarn exports-files",
-    "build:cjs": "rm -rf cjs; tsc -p tsconfig.cjs.json",
-    "build:esm": "rm -rf esm; tsc -p tsconfig.esm.json",
+    "build": "rolldown -c rolldown.config.ts & yarn exports-files",
     "bump": "node ../../scripts/bump-version.mjs",
-    "clear": "yarn exports-files clear; rm -rf coverage dist cjs esm & true",
+    "clear": "yarn exports-files clear; rm -rf coverage dist & true",
     "exports-files": "node ../../scripts/exports-files.mjs",
     "jsr:publish": "npx -y jsr publish",
     "test": "vitest run --coverage",
@@ -103,6 +101,8 @@
     "@internal/tsconfig": "*",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^3.0.0",
+    "glob": "^10",
+    "rolldown": "1.0.0-beta.8",
     "typescript": "^5.8.0",
     "vitest": "^3.0.0"
   }
