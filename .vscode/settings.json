@@ -5,7 +5,9 @@
     "tsconfig.json": "*.tsbuildinfo",
     "*.ts": "${capture}.spec.*, ${capture}.test.*, ${capture}.js",
     "*.tsx": "${capture}.spec.*, ${capture}.test.*",
-    "*.js": "${capture}.js.map, ${capture}.d.ts"
+    "*.js": "${capture}.js.map, ${capture}.d.ts",
+    "*.cjs": "${capture}.js.map, ${capture}.d.ts",
+    "*.mjs": "${capture}.js.map, ${capture}.d.ts"
   },
-  "cSpell.words": ["vite"]
+  "cSpell.words": ["rolldown", "vite"]
 }

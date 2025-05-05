@@ -39,51 +39,48 @@
     "./package.json": "./package.json",
     ".": {
       "internal": "./src/index.ts",
-      "types": "./dist/esm/index.d.ts",
-      "require": "./dist/cjs/index.js",
-      "default": "./dist/esm/index.js"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     },
     "./entity": {
       "internal": "./src/DurableEntity.ts",
-      "types": "./dist/esm/DurableEntity.d.ts",
-      "require": "./dist/cjs/DurableEntity.js",
-      "default": "./dist/esm/DurableEntity.js"
+      "types": "./dist/DurableEntity.d.ts",
+      "require": "./dist/DurableEntity.cjs",
+      "default": "./dist/DurableEntity.mjs"
     },
     "./entities-api": {
       "internal": "./src/durable-entities-api.ts",
-      "types": "./dist/esm/durable-entities-api.d.ts",
-      "require": "./dist/cjs/durable-entities-api.js",
-      "default": "./dist/esm/durable-entities-api.js"
+      "types": "./dist/durable-entities-api.d.ts",
+      "require": "./dist/durable-entities-api.cjs",
+      "default": "./dist/durable-entities-api.mjs"
     },
     "./orchestrations-api": {
       "internal": "./src/durable-orchestrations-api.ts",
-      "types": "./dist/esm/durable-orchestrations-api.d.ts",
-      "require": "./dist/cjs/durable-orchestrations-api.js",
-      "default": "./dist/esm/durable-orchestrations-api.js"
+      "types": "./dist/durable-orchestrations-api.d.ts",
+      "require": "./dist/durable-orchestrations-api.cjs",
+      "default": "./dist/durable-orchestrations-api.mjs"
     }
   },
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "yarn build:cjs & yarn build:esm & yarn exports-files",
-    "build:cjs": "rm -rf cjs; tsc -p tsconfig.cjs.json",
-    "build:esm": "rm -rf esm; tsc -p tsconfig.esm.json",
+    "build": "rolldown -c rolldown.config.ts && yarn exports-files",
     "bump": "node ../../scripts/bump-version.mjs",
-    "clear": "yarn exports-files clear; rm -rf coverage dist cjs esm & true",
+    "clear": "yarn exports-files clear; rm -rf coverage dist & true",
     "exports-files": "node ../../scripts/exports-files.mjs",
     "jsr:publish": "npx -y jsr publish",
     "verify": "yarn clear && yarn build"
   },
-  "dependencies": {
-    "lodash.merge": "^4"
-  },
   "devDependencies": {
     "@azure/functions": "^4.7.0",
     "@internal/tsconfig": "*",
-    "@types/lodash.merge": "^4",
     "@types/node": "^22.0.0",
+    "deepmerge": "^4",
     "durable-functions": "^3.1.0",
+    "glob": "^10",
+    "rolldown": "1.0.0-beta.8",
     "typescript": "^5.8.0"
   },
   "peerDependencies": {

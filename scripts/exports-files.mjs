@@ -95,7 +95,7 @@ function generateExportFiles(exports) {
 
   for (const item of exports) {
     writeFileSync(
-      join(workingDir, `${item.name}.js`),
+      join(workingDir, `${item.name}.cjs`),
       `${fileDisclaimer}
 module.exports = require("${item.path}");
 `

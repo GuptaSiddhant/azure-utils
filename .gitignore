@@ -33,6 +33,7 @@ public/sprite*
 .npmrc
 
 *.js
+*.cjs
 *.d.ts
 
 !app/*.d.ts

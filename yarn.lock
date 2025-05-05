@@ -21,10 +21,11 @@ __metadata:
   dependencies:
     "@azure/functions": "npm:^4.7.0"
     "@internal/tsconfig": "npm:*"
-    "@types/lodash.merge": "npm:^4"
     "@types/node": "npm:^22.0.0"
+    deepmerge: "npm:^4"
     durable-functions: "npm:^3.1.0"
-    lodash.merge: "npm:^4"
+    glob: "npm:^10"
+    rolldown: "npm:1.0.0-beta.8"
     typescript: "npm:^5.8.0"
   peerDependencies:
     "@azure/functions": ^4
@@ -560,7 +561,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@napi-rs/wasm-runtime@npm:^0.2.9":
+"@napi-rs/wasm-runtime@npm:^0.2.4, @napi-rs/wasm-runtime@npm:^0.2.9":
   version: 0.2.9
   resolution: "@napi-rs/wasm-runtime@npm:0.2.9"
   dependencies:
@@ -593,10 +594,103 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@oxc-project/types@npm:0.65.0":
+  version: 0.65.0
+  resolution: "@oxc-project/types@npm:0.65.0"
+  checksum: 10c0/011215840a9c4d7acd703a3d36c07757093602a87856f573f5debde2c5de3f1b1b63ecc14e57f9780bc475bc645983cd097ef3983c985bcbb693fc7098daf819
+  languageName: node
+  linkType: hard
+
 "@pkgjs/parseargs@npm:^0.11.0":
   version: 0.11.0
   resolution: "@pkgjs/parseargs@npm:0.11.0"
   checksum: 10c0/5bd7576bb1b38a47a7fc7b51ac9f38748e772beebc56200450c4a817d712232b8f1d3ef70532c80840243c657d491cf6a6be1e3a214cff907645819fdc34aadd
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-darwin-arm64@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-darwin-arm64@npm:1.0.0-beta.8"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-darwin-x64@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-darwin-x64@npm:1.0.0-beta.8"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-freebsd-x64@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-freebsd-x64@npm:1.0.0-beta.8"
+  conditions: os=freebsd & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-linux-arm-gnueabihf@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-linux-arm-gnueabihf@npm:1.0.0-beta.8"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-linux-arm64-gnu@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-linux-arm64-gnu@npm:1.0.0-beta.8"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-linux-arm64-musl@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-linux-arm64-musl@npm:1.0.0-beta.8"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-linux-x64-gnu@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-linux-x64-gnu@npm:1.0.0-beta.8"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-linux-x64-musl@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-linux-x64-musl@npm:1.0.0-beta.8"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-wasm32-wasi@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-wasm32-wasi@npm:1.0.0-beta.8"
+  dependencies:
+    "@napi-rs/wasm-runtime": "npm:^0.2.4"
+  conditions: cpu=wasm32
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-win32-arm64-msvc@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-win32-arm64-msvc@npm:1.0.0-beta.8"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-win32-ia32-msvc@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-win32-ia32-msvc@npm:1.0.0-beta.8"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
+"@rolldown/binding-win32-x64-msvc@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "@rolldown/binding-win32-x64-msvc@npm:1.0.0-beta.8"
+  conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
@@ -965,22 +1059,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash.merge@npm:^4":
-  version: 4.6.9
-  resolution: "@types/lodash.merge@npm:4.6.9"
-  dependencies:
-    "@types/lodash": "npm:*"
-  checksum: 10c0/2e2ccacdceb2e23343a514e8c24540fc4e1f1ffd616b645eb72ec685da9389d99a2544f04d61921e46a6768f8cc0fe5f58d4f7edaba9bc50552f0ca7df905e83
-  languageName: node
-  linkType: hard
-
-"@types/lodash@npm:*":
-  version: 4.17.16
-  resolution: "@types/lodash@npm:4.17.16"
-  checksum: 10c0/cf017901b8ab1d7aabc86d5189d9288f4f99f19a75caf020c0e2c77b8d4cead4db0d0b842d009b029339f92399f49f34377dd7c2721053388f251778b4c23534
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:^22.0.0":
   version: 22.15.3
   resolution: "@types/node@npm:22.15.3"
@@ -1005,6 +1083,15 @@ __metadata:
   dependencies:
     csstype: "npm:^3.0.2"
   checksum: 10c0/76ffe71395c713d4adc3c759465012d3c956db00af35ab7c6d0d91bd07b274b7ce69caa0478c0760311587bd1e38c78ffc9688ebc629f2b266682a19d8750947
+  languageName: node
+  linkType: hard
+
+"@valibot/to-json-schema@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@valibot/to-json-schema@npm:1.0.0"
+  peerDependencies:
+    valibot: ^1.0.0
+  checksum: 10c0/700fd47cc48cae133804baa33274e3c2e7d6aa166ab16e472570f6d5f988c5147348cd184e24f806f448861954d64c6425bc1d75a0f014aa19c792c4449ddc31
   languageName: node
   linkType: hard
 
@@ -1183,6 +1270,13 @@ __metadata:
   version: 6.2.1
   resolution: "ansi-styles@npm:6.2.1"
   checksum: 10c0/5d1ec38c123984bcedd996eac680d548f31828bd679a66db2bdf11844634dde55fec3efa9c6bb1d89056a5e79c1ac540c4c784d592ea1d25028a92227d2f2d5c
+  languageName: node
+  linkType: hard
+
+"ansis@npm:^3.17.0":
+  version: 3.17.0
+  resolution: "ansis@npm:3.17.0"
+  checksum: 10c0/d8fa94ca7bb91e7e5f8a7d323756aa075facce07c5d02ca883673e128b2873d16f93e0dec782f98f1eeb1f2b3b4b7b60dcf0ad98fb442e75054fe857988cc5cb
   languageName: node
   linkType: hard
 
@@ -1455,6 +1549,13 @@ __metadata:
   version: 5.0.2
   resolution: "deep-eql@npm:5.0.2"
   checksum: 10c0/7102cf3b7bb719c6b9c0db2e19bf0aa9318d141581befe8c7ce8ccd39af9eaa4346e5e05adef7f9bd7015da0f13a3a25dcfe306ef79dc8668aedbecb658dd247
+  languageName: node
+  linkType: hard
+
+"deepmerge@npm:^4":
+  version: 4.3.1
+  resolution: "deepmerge@npm:4.3.1"
+  checksum: 10c0/e53481aaf1aa2c4082b5342be6b6d8ad9dfe387bc92ce197a66dea08bd4265904a087e75e464f14d1347cf2ac8afe1e4c16b266e0561cc5df29382d3c5f80044
   languageName: node
   linkType: hard
 
@@ -2222,13 +2323,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash.merge@npm:^4":
-  version: 4.6.2
-  resolution: "lodash.merge@npm:4.6.2"
-  checksum: 10c0/402fa16a1edd7538de5b5903a90228aa48eb5533986ba7fa26606a49db2572bf414ff73a2c9f5d5fd36b31c46a5d5c7e1527749c07cbcf965ccff5fbdf32c506
-  languageName: node
-  linkType: hard
-
 "lodash@npm:^4.17.15":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
@@ -2673,6 +2767,62 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rolldown@npm:1.0.0-beta.8":
+  version: 1.0.0-beta.8
+  resolution: "rolldown@npm:1.0.0-beta.8"
+  dependencies:
+    "@oxc-project/types": "npm:0.65.0"
+    "@rolldown/binding-darwin-arm64": "npm:1.0.0-beta.8"
+    "@rolldown/binding-darwin-x64": "npm:1.0.0-beta.8"
+    "@rolldown/binding-freebsd-x64": "npm:1.0.0-beta.8"
+    "@rolldown/binding-linux-arm-gnueabihf": "npm:1.0.0-beta.8"
+    "@rolldown/binding-linux-arm64-gnu": "npm:1.0.0-beta.8"
+    "@rolldown/binding-linux-arm64-musl": "npm:1.0.0-beta.8"
+    "@rolldown/binding-linux-x64-gnu": "npm:1.0.0-beta.8"
+    "@rolldown/binding-linux-x64-musl": "npm:1.0.0-beta.8"
+    "@rolldown/binding-wasm32-wasi": "npm:1.0.0-beta.8"
+    "@rolldown/binding-win32-arm64-msvc": "npm:1.0.0-beta.8"
+    "@rolldown/binding-win32-ia32-msvc": "npm:1.0.0-beta.8"
+    "@rolldown/binding-win32-x64-msvc": "npm:1.0.0-beta.8"
+    "@valibot/to-json-schema": "npm:1.0.0"
+    ansis: "npm:^3.17.0"
+    valibot: "npm:1.0.0"
+  peerDependencies:
+    "@oxc-project/runtime": 0.65.0
+  dependenciesMeta:
+    "@rolldown/binding-darwin-arm64":
+      optional: true
+    "@rolldown/binding-darwin-x64":
+      optional: true
+    "@rolldown/binding-freebsd-x64":
+      optional: true
+    "@rolldown/binding-linux-arm-gnueabihf":
+      optional: true
+    "@rolldown/binding-linux-arm64-gnu":
+      optional: true
+    "@rolldown/binding-linux-arm64-musl":
+      optional: true
+    "@rolldown/binding-linux-x64-gnu":
+      optional: true
+    "@rolldown/binding-linux-x64-musl":
+      optional: true
+    "@rolldown/binding-wasm32-wasi":
+      optional: true
+    "@rolldown/binding-win32-arm64-msvc":
+      optional: true
+    "@rolldown/binding-win32-ia32-msvc":
+      optional: true
+    "@rolldown/binding-win32-x64-msvc":
+      optional: true
+  peerDependenciesMeta:
+    "@oxc-project/runtime":
+      optional: true
+  bin:
+    rolldown: bin/cli.mjs
+  checksum: 10c0/0f5787f2adce3fe7136871ebfe724f3a6fe06f9d25a1ddc597451f7906168d847f1ef5fb248ac3bea492fd50bbb7e1d4e00e067190710d4dc591628dff169798
+  languageName: node
+  linkType: hard
+
 "rollup@npm:^4.34.9":
   version: 4.40.1
   resolution: "rollup@npm:4.40.1"
@@ -3096,6 +3246,18 @@ __metadata:
   bin:
     uuid: ./bin/uuid
   checksum: 10c0/6808339bfeabca4c3ca33a790a907a2172c904a19701e9997c7a5103aced30a73c4c8c3e2e0e0c298832928a5a6f4f7d52843a26ed0c7d22fec27458f40101e5
+  languageName: node
+  linkType: hard
+
+"valibot@npm:1.0.0":
+  version: 1.0.0
+  resolution: "valibot@npm:1.0.0"
+  peerDependencies:
+    typescript: ">=5"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10c0/fd80529ce5445e2340b0a2c3d88a61a86180b652eb6bc24da7d0da476b214d8a04f7621ee355f627a1a2dc2b29f39d179effb60e8067b7cf58e300d77dae8f51
   languageName: node
   linkType: hard
 

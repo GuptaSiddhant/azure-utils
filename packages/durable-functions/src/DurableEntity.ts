@@ -6,8 +6,8 @@
  */
 
 import type { InvocationContext } from "@azure/functions";
-import df from "durable-functions";
-import deepMerge from "lodash.merge";
+import * as df from "durable-functions";
+import deepMerge from "deepmerge";
 
 /**
  * DurableEntity is a wrapper around Durable Functions entities.
@@ -46,7 +46,7 @@ export class DurableEntity<
 
     // Register the entity with the Durable framework
     df.app.entity(entityName, (context: df.EntityContext<State>) => {
-      const state = context.df.getState(() => this.#defaultState)!;
+      const state: State = context.df.getState(() => this.#defaultState)!;
       const operationName = context.df.operationName;
 
       context.info(`[${context.functionName}] Operation: ${operationName}`);
@@ -58,7 +58,7 @@ export class DurableEntity<
           return context.df.setState(this.#defaultState);
         case "update": {
           const operationInput = context.df.getInput();
-          const newState = deepMerge(state, operationInput);
+          const newState = deepMerge(state, operationInput ?? {}) as State;
           return context.df.setState(newState);
         }
         default: {
