@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/functions-vite-plugin",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
   "description": "Vite plugin to build and verify Azure functions nodejs.",
   "author": {
@@ -37,18 +37,16 @@
     "./package.json": "./package.json",
     ".": {
       "internal": "./src/index.ts",
-      "types": "./dist/esm/index.d.ts",
-      "require": "./dist/cjs/index.js",
-      "default": "./dist/esm/index.js"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
     }
   },
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "yarn build:cjs & yarn build:esm",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
-    "build:esm": "tsc -p tsconfig.esm.json",
+    "build": "rolldown -c rolldown.config.ts",
     "bump": "node ../../scripts/bump-version.mjs",
     "clear": "rm -rf coverage dist & true",
     "jsr:publish": "npx -y jsr publish",
@@ -62,6 +60,7 @@
     "@internal/tsconfig": "*",
     "@types/node": "^22.0.0",
     "glob": "^10",
+    "rolldown": "1.0.0-beta.8",
     "typescript": "^5.8.0",
     "vite": "^6"
   },
