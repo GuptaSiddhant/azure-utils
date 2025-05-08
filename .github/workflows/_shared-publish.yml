@@ -27,7 +27,7 @@ jobs:
       - name: Compare diff changes
         id: check-diff
         run: |
-          result=$(git log --oneline --name-only --pretty=format: ${{ github.event.before }}..${{ github.event.after }} | sort -u | grep '${{ inputs.CWD }}' || true);
+          result=$(git log --oneline --name-only --pretty=format: ${{ github.event.before }}..${{ github.event.after }} | sort -u | grep -e '.github/workflows' -e '${{ inputs.CWD }}' || true);
           if [ -n "$result" ]; then
             echo "result=true" >> "$GITHUB_OUTPUT"
             echo "Following files have changed in ${{ inputs.CWD }}:"
@@ -51,10 +51,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-          cache: yarn
-      - name: Install dependencies
-        working-directory: ${{ inputs.CWD }}
-        run: yarn workspaces focus
+      - name: Cache deps
+        id: cache
+        uses: actions/cache@v4
+        with:
+          key: ${{ hashFiles('./yarn.lock') }}
+          fail-on-cache-miss: true
+          path: |
+            "node_modules"
+            "${{ inputs.CWD }}/node_modules"
       - name: Verify package
         working-directory: ${{ inputs.CWD }}
         run: yarn verify
@@ -91,9 +96,11 @@ jobs:
         id: cache
         uses: actions/cache@v4
         with:
-          path: "node_modules"
-          key: ${{ inputs.CWD }}-${{ hashFiles('./yarn.lock') }}
+          key: ${{ hashFiles('./yarn.lock') }}
           fail-on-cache-miss: true
+          path: |
+            "node_modules"
+            "${{ inputs.CWD }}/node_modules"
       - name: Setup NPM TOKEN
         run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
       - name: Download artifact to publish
@@ -124,9 +131,11 @@ jobs:
         id: cache
         uses: actions/cache@v4
         with:
-          path: "node_modules"
-          key: ${{ inputs.CWD }}-${{ hashFiles('./yarn.lock') }}
+          key: ${{ hashFiles('./yarn.lock') }}
           fail-on-cache-miss: true
+          path: |
+            "node_modules"
+            "${{ inputs.CWD }}/node_modules"
       - name: Download artifact to publish
         uses: actions/download-artifact@v4
         with:
