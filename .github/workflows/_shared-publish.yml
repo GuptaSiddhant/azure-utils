@@ -52,14 +52,11 @@ jobs:
         with:
           node-version-file: ".nvmrc"
       - name: Cache deps
-        id: cache
         uses: actions/cache@v4
         with:
           key: ${{ hashFiles('./yarn.lock') }}
           fail-on-cache-miss: true
-          path: |
-            "node_modules"
-            "${{ inputs.CWD }}/node_modules"
+          path: "node_modules"
       - name: Verify package
         working-directory: ${{ inputs.CWD }}
         run: yarn verify
@@ -93,14 +90,11 @@ jobs:
         with:
           node-version-file: ".nvmrc"
       - name: Cache deps
-        id: cache
         uses: actions/cache@v4
         with:
           key: ${{ hashFiles('./yarn.lock') }}
           fail-on-cache-miss: true
-          path: |
-            "node_modules"
-            "${{ inputs.CWD }}/node_modules"
+          path: "node_modules"
       - name: Setup NPM TOKEN
         run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
       - name: Download artifact to publish
@@ -128,14 +122,11 @@ jobs:
         with:
           node-version-file: ".nvmrc"
       - name: Cache deps
-        id: cache
         uses: actions/cache@v4
         with:
           key: ${{ hashFiles('./yarn.lock') }}
           fail-on-cache-miss: true
-          path: |
-            "node_modules"
-            "${{ inputs.CWD }}/node_modules"
+          path: "node_modules"
       - name: Download artifact to publish
         uses: actions/download-artifact@v4
         with:
