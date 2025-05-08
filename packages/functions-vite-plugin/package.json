@@ -46,9 +46,9 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "rolldown -c rolldown.config.ts",
+    "build": "rolldown -c ../../scripts/rolldown.config.ts",
     "bump": "node ../../scripts/bump-version.mjs",
-    "clear": "rm -rf coverage dist & true",
+    "clear": "rm -rf *.cjs *.d.ts coverage dist & true",
     "jsr:publish": "npx -y jsr publish",
     "test": "yarn --cwd 'tests' vite build",
     "test:skip-all": "yarn --cwd 'tests' vite build -- --skip-checks",

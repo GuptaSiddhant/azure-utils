@@ -87,10 +87,9 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "rolldown -c rolldown.config.ts & yarn exports-files",
+    "build": "rolldown -c ../../scripts/rolldown.config.ts",
     "bump": "node ../../scripts/bump-version.mjs",
-    "clear": "yarn exports-files clear; rm -rf coverage dist & true",
-    "exports-files": "node ../../scripts/exports-files.mjs",
+    "clear": "rm -rf *.cjs *.d.ts coverage dist & true",
     "jsr:publish": "npx -y jsr publish",
     "test": "vitest run --coverage",
     "test:server": "node ./tests/test-run.mjs",

@@ -9,6 +9,20 @@ import {
 } from "./durable-webhook.js";
 
 /**
+ * An object that contains all the functions for interacting with Azure Functions Durable Entity.
+ *
+ * @throws Each method can throw an error if the operation fails.
+ */
+export const durableEntities = {
+  /** Query and list Azure Functions Entity Instances. */
+  list: listAzureFunctionsEntitiesOrThrow,
+  /** Gets the state of the specified entity. */
+  getState: getAzureFunctionsEntityStateOrThrow,
+  /** Sends a one-way operation message to a Durable Entity. */
+  signal: signalAzureFunctionsEntityOrThrow,
+};
+
+/**
  * Options for the `signalAzureFunctionsEntityOrThrow` function.
  */
 export type SignalAzureFunctionsEntityOptions = {

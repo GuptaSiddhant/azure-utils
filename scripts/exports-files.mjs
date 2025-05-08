@@ -2,28 +2,13 @@
 
 import { writeFileSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { argv, cwd, exit } from "node:process";
-import { readPackageJson } from "./package-common-utils.mjs";
+import { cwd, exit } from "node:process";
 
-const shouldClear = argv.includes("clear");
-
-const workingDir = cwd();
-console.debug("Running script in dir:", workingDir);
-
-const exports = getPackageExports();
-
-if (shouldClear) {
-  clearExportFiles(exports);
-} else {
-  generateExportFiles(exports);
-}
-
-exit(0);
-
-/** @returns {Export[]} */
-function getPackageExports() {
-  const pkgJson = readPackageJson(workingDir);
-
+/**
+ * @param {import("./package-common-utils.mjs").PackageJson} pkgJson
+ * @returns {Export[]}
+ *  */
+export function getPackageExports(pkgJson) {
   if (pkgJson.private) {
     console.error(
       "The package is private. Skipping the generation of export files."
@@ -68,23 +53,7 @@ function getPackageExports() {
 }
 
 /** @param {Export[]} exports */
-function clearExportFiles(exports) {
-  console.log(
-    "Clearing files for exports: ",
-    exports.map((item) => item.name)
-  );
-  for (const item of exports) {
-    const jsFilepath = join(workingDir, `${item.name}.js`);
-    const dtsFilepath = join(workingDir, `${item.name}.d.ts`);
-    if (existsSync(jsFilepath)) rmSync(jsFilepath);
-    if (existsSync(dtsFilepath)) rmSync(dtsFilepath);
-  }
-
-  console.log("Cleared export files.");
-}
-
-/** @param {Export[]} exports */
-function generateExportFiles(exports) {
+export function generateExportFiles(exports, workingDir = cwd()) {
   console.log(
     "Generating files for exports: ",
     exports.map((item) => item.name)
@@ -118,3 +87,19 @@ export * from "${item.path}";
  *   path: string;
  * }} Export
  */
+
+/** @param {Export[]} exports */
+export function clearExportFiles(exports, workingDir = cwd()) {
+  console.log(
+    "Clearing files for exports: ",
+    exports.map((item) => item.name)
+  );
+  for (const item of exports) {
+    const jsFilepath = join(workingDir, `${item.name}.js`);
+    const dtsFilepath = join(workingDir, `${item.name}.d.ts`);
+    if (existsSync(jsFilepath)) rmSync(jsFilepath);
+    if (existsSync(dtsFilepath)) rmSync(dtsFilepath);
+  }
+
+  console.log("Cleared export files.");
+}

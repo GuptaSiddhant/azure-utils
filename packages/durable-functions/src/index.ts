@@ -12,53 +12,10 @@
 
 export type { RequestAzureFunctionsDurableTaskWebhookOptions } from "./durable-webhook.js";
 
-import {
-  getAzureFunctionsOrchestrationInstanceOrThrow,
-  listAzureFunctionsOrchestrationInstancesOrThrow,
-  purgeAzureFunctionsOrchestrationInstanceOrThrow,
-  purgeAzureFunctionsOrchestrationInstancesOrThrow,
-  startAzureFunctionsOrchestrationOrThrow,
-  raiseAzureFunctionsOrchestrationInstanceEventOrThrow,
-  terminateAzureFunctionsOrchestrationInstanceOrThrow,
-  resumeAzureFunctionsOrchestrationInstanceOrThrow,
-  suspendAzureFunctionsOrchestrationInstanceOrThrow,
-  rewindAzureFunctionsOrchestrationInstanceOrThrow,
+export {
+  durableOrchestrations,
+  AzureFunctionsOrchestrationRuntimeStatuses,
 } from "./durable-orchestrations-api.js";
-import {
-  listAzureFunctionsEntitiesOrThrow,
-  getAzureFunctionsEntityStateOrThrow,
-  signalAzureFunctionsEntityOrThrow,
-} from "./durable-entities-api.js";
-
-/**
- * An object that contains all the functions for interacting with Azure Functions Durable Orchestrations.
- *
- * @throws Each method can throw an error if the operation fails.
- */
-export const durableOrchestrations = {
-  /** Starts executing a new instance of the specified orchestrator function. */
-  start: startAzureFunctionsOrchestrationOrThrow,
-  /** List Azure Functions Orchestration Instances.  */
-  list: listAzureFunctionsOrchestrationInstancesOrThrow,
-  /** Gets the status of a specified orchestration instance. */
-  get: getAzureFunctionsOrchestrationInstanceOrThrow,
-  /** Deletes the history and related artifacts for a specified orchestration instance. */
-  purge: purgeAzureFunctionsOrchestrationInstanceOrThrow,
-  /** Delete the history and related artifacts for multiple instances within a task hub. */
-  purgeAll: purgeAzureFunctionsOrchestrationInstancesOrThrow,
-  /** ends an event notification message to a running orchestration instance. */
-  raiseEvent: raiseAzureFunctionsOrchestrationInstanceEventOrThrow,
-  /** Terminates a running orchestration instance. */
-  terminate: terminateAzureFunctionsOrchestrationInstanceOrThrow,
-  /** Suspend/pause Azure Functions Orchestration Instance . */
-  suspend: suspendAzureFunctionsOrchestrationInstanceOrThrow,
-  /** Resume Azure Functions Orchestration Instance. */
-  resume: resumeAzureFunctionsOrchestrationInstanceOrThrow,
-  /** Restores a failed orchestration instance into a running state by replaying the most recent failed operations. */
-  rewind: rewindAzureFunctionsOrchestrationInstanceOrThrow,
-};
-
-export { AzureFunctionsOrchestrationRuntimeStatuses } from "./durable-orchestrations-api.js";
 export type {
   AzureFunctionsOrchestrationInstance,
   AzureFunctionsOrchestrationInstanceHistoryEvent,
@@ -71,20 +28,7 @@ export type {
   AzureFunctionsOrchestrationInstanceActionOptions,
 } from "./durable-orchestrations-api.js";
 
-/**
- * An object that contains all the functions for interacting with Azure Functions Durable Entity.
- *
- * @throws Each method can throw an error if the operation fails.
- */
-export const durableEntities = {
-  /** Query and list Azure Functions Entity Instances. */
-  list: listAzureFunctionsEntitiesOrThrow,
-  /** Gets the state of the specified entity. */
-  getState: getAzureFunctionsEntityStateOrThrow,
-  /** Sends a one-way operation message to a Durable Entity. */
-  signal: signalAzureFunctionsEntityOrThrow,
-};
-
+export { durableEntities } from "./durable-entities-api.js";
 export type {
   AzureFunctionsEntityInstance,
   GetAzureFunctionsEntityOptions,
