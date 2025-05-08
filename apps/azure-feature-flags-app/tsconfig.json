@@ -1,5 +1,5 @@
 {
-  "extends": "@internal/tsconfig/base.tsconfig.json",
+  "extends": "../../base.tsconfig.json",
   "compilerOptions": {
     "moduleResolution": "bundler",
     "module": "Preserve",

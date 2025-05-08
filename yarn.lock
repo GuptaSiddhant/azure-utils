@@ -20,7 +20,6 @@ __metadata:
   resolution: "@azure-utils/durable-functions@workspace:packages/durable-functions"
   dependencies:
     "@azure/functions": "npm:^4.7.0"
-    "@internal/tsconfig": "npm:*"
     "@types/node": "npm:^22.0.0"
     deepmerge: "npm:^4"
     durable-functions: "npm:^3.1.0"
@@ -30,6 +29,11 @@ __metadata:
   peerDependencies:
     "@azure/functions": ^4
     durable-functions: ^3
+  peerDependenciesMeta:
+    "@azure/functions":
+      optional: true
+    durable-functions:
+      optional: true
   languageName: unknown
   linkType: soft
 
@@ -37,7 +41,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@azure-utils/feature-flags@workspace:packages/feature-flags"
   dependencies:
-    "@internal/tsconfig": "npm:*"
     "@types/node": "npm:^22.0.0"
     "@vitest/coverage-v8": "npm:^3.0.0"
     glob: "npm:^10"
@@ -51,7 +54,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@azure-utils/functions-vite-plugin@workspace:packages/functions-vite-plugin"
   dependencies:
-    "@internal/tsconfig": "npm:*"
     "@types/node": "npm:^22.0.0"
     glob: "npm:^10"
     rolldown: "npm:1.0.0-beta.8"
@@ -487,12 +489,6 @@ __metadata:
   checksum: 10c0/6f8027a8cba7f8f7b736718b013f5a38c0476eea67034c94a0d3c375e2b114366ad4419e6a6fa7ffc2ef9c6d3e0435d76dd584a7a1cbac23962fda7650b579e3
   languageName: node
   linkType: hard
-
-"@internal/tsconfig@npm:*, @internal/tsconfig@workspace:*, @internal/tsconfig@workspace:scripts/tsconfig":
-  version: 0.0.0-use.local
-  resolution: "@internal/tsconfig@workspace:scripts/tsconfig"
-  languageName: unknown
-  linkType: soft
 
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
@@ -1313,7 +1309,6 @@ __metadata:
   resolution: "azure-feature-flags-app@workspace:apps/azure-feature-flags-app"
   dependencies:
     "@azure-utils/feature-flags": "workspace:*"
-    "@internal/tsconfig": "workspace:*"
     "@tailwindcss/vite": "npm:^4.0.0"
     "@types/node": "npm:^22.0.0"
     "@types/react": "npm:^19"

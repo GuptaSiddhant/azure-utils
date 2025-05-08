@@ -8,8 +8,7 @@
   },
   "workspaces": [
     "./apps/*",
-    "./packages/**/*",
-    "./scripts/*"
+    "./packages/**/*"
   ],
   "packageManager": "yarn@4.1.1",
   "scripts": {

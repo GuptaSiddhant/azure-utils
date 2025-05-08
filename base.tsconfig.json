@@ -27,6 +27,7 @@
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "baseUrl": "",
+    "listEmittedFiles": true,
 
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,

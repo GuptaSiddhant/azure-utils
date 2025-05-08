@@ -74,7 +74,6 @@
   },
   "devDependencies": {
     "@azure/functions": "^4.7.0",
-    "@internal/tsconfig": "*",
     "@types/node": "^22.0.0",
     "deepmerge": "^4",
     "durable-functions": "^3.1.0",
@@ -85,5 +84,13 @@
   "peerDependencies": {
     "@azure/functions": "^4",
     "durable-functions": "^3"
+  },
+  "peerDependenciesMeta": {
+    "@azure/functions": {
+      "optional": true
+    },
+    "durable-functions": {
+      "optional": true
+    }
   }
 }

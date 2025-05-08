@@ -57,7 +57,6 @@
     "verify": "yarn clear; yarn build"
   },
   "devDependencies": {
-    "@internal/tsconfig": "*",
     "@types/node": "^22.0.0",
     "glob": "^10",
     "rolldown": "1.0.0-beta.8",
