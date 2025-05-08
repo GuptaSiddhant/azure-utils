@@ -27,8 +27,7 @@ jobs:
       - name: Compare diff changes
         id: check-diff
         run: |
-          result=$(git log --oneline --name-only --pretty=format: ${{ github.event.before }}..${{ github.event.after }} | sort -u | grep '${{ inputs.CWD }}' || true)
-
+          result=$(git log --oneline --name-only --pretty=format: ${{ github.event.before }}..${{ github.event.after }} | sort -u | grep '${{ inputs.CWD }}' || true);
           if [ -n "$result" ]; then
             echo "result=true" >> "$GITHUB_OUTPUT"
             echo "Following files have changed in ${{ inputs.CWD }}:"
@@ -52,14 +51,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-      - name: Cache deps
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: "node_modules"
-          key: ${{ inputs.CWD }}-${{ hashFiles('./yarn.lock') }}
+          cache: yarn
       - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
         working-directory: ${{ inputs.CWD }}
         run: yarn workspaces focus
       - name: Verify package
