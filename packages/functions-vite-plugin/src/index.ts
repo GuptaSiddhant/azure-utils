@@ -4,11 +4,17 @@
  */
 
 import type { ConfigEnv, Plugin } from "vite";
-import cp from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
-import { cwd, env as processEnv, exit, argv } from "node:process";
+import { readFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
+import { cwd, env as processEnv, argv } from "node:process";
 import { glob } from "glob";
+import {
+  verifyBuild,
+  type AzureFunctionsPluginBuildVerifyOptions,
+} from "./verify-build";
+import { execPromise, exitWithError, log } from "./utils";
+
+export type { AzureFunctionsPluginBuildVerifyOptions };
 
 /**
  * Options to override the default plugin behavior.
@@ -37,7 +43,7 @@ export type AzureFunctionsPluginOptions = {
   /**
    * Option to verify build output. @default true
    */
-  buildVerify?: boolean;
+  buildVerify?: boolean | AzureFunctionsPluginBuildVerifyOptions;
 };
 
 /**
@@ -54,10 +60,10 @@ export default function azureFunctionsVitePlugin(
     typecheck = true,
     buildVerify = true,
   } = options;
-  const inputFilesGlob = path.join(inputDirname, "**", "*.ts");
+  const inputFilesGlob = join(inputDirname, "**", "*.ts");
   const inputFilesGlobIgnore = [
-    path.join(inputDirname, "**", "*.spec.ts"),
-    path.join(inputDirname, "**", "*.test.ts"),
+    join(inputDirname, "**", "*.spec.ts"),
+    join(inputDirname, "**", "*.test.ts"),
   ];
 
   let isWatching = false;
@@ -82,19 +88,19 @@ export default function azureFunctionsVitePlugin(
 
       skipTypecheck =
         skipAllChecks ||
-        !typecheck ||
         processEnv["TYPECHECK"] === "false" ||
-        argv.includes("--skip-typecheck");
+        argv.includes("--skip-typecheck") ||
+        !typecheck;
 
       skipBuildVerify =
         skipAllChecks ||
-        !buildVerify ||
         processEnv["BUILD_VERIFY"] === "false" ||
-        argv.includes("--skip-build-verify");
+        argv.includes("--skip-build-verify") ||
+        !buildVerify;
 
       // Update config
       const pkgJson = JSON.parse(
-        fs.readFileSync(path.join(rootPath, "package.json"), "utf-8")
+        readFileSync(join(rootPath, "package.json"), "utf-8")
       );
       const inputFiles = glob.sync(inputFilesGlob, {
         ignore: inputFilesGlobIgnore,
@@ -115,7 +121,7 @@ export default function azureFunctionsVitePlugin(
         input: inputFiles,
         output: {
           entryFileNames: (entry) =>
-            rollupEntryFileNames(path.join(rootPath, inputDirname), entry),
+            rollupEntryFileNames(join(rootPath, inputDirname), entry),
         },
       };
       config.build.ssr = true;
@@ -148,7 +154,10 @@ export default function azureFunctionsVitePlugin(
         log("warn", "Skipping build verification.");
         return;
       }
-      await verifyBuild(rootPath);
+      await verifyBuild(
+        rootPath,
+        typeof buildVerify === "object" ? buildVerify : {}
+      );
     },
   };
 }
@@ -167,9 +176,9 @@ function rollupEntryFileNames(
     return fileName;
   }
 
-  const relativeDir = path.relative(inputDirPath, path.dirname(facadeModuleId));
+  const relativeDir = relative(inputDirPath, dirname(facadeModuleId));
 
-  return path.join(relativeDir, fileName);
+  return join(relativeDir, fileName);
 }
 
 /**
@@ -183,126 +192,4 @@ async function checkTypes() {
   } else {
     log("success", "Type check passed.");
   }
-}
-
-/**
- * Function to check the registered functions in the build
- */
-async function verifyBuild(rootPath = cwd()) {
-  log("info", "Verifying build...");
-
-  const pkgJsonPath = path.join(rootPath, "package.json");
-  if (!fs.existsSync(pkgJsonPath)) {
-    exitWithError(
-      "'package.json' not found.",
-      "Run this script from the root of the project."
-    );
-  }
-
-  const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
-  const mainPath = pkgJson.main;
-  if (!mainPath) {
-    exitWithError(
-      "'main' not found in 'package.json'.",
-      "Add 'main' to 'package.json' and set it to the entry point of your app."
-    );
-  }
-
-  const mainFiles = glob.sync(mainPath);
-  if (mainFiles.length === 0) {
-    exitWithError(
-      `'main' Files not found (${mainPath}).`,
-      `Check that the entry point of your app is correct and app is already built.`
-    );
-  }
-
-  log("debug", "Target files found: " + mainFiles.length);
-
-  const registeredFunctions = new Set<string>();
-  const regexp = /register function "(.*)" because/g;
-  const errors: Array<{ file: string; error: Error }> = [];
-
-  const promises = mainFiles.map(async (file) => {
-    const { stderr, error } = await execPromise(`node ${file}`);
-    if (error) {
-      errors.push({ file, error });
-    }
-
-    const matches = stderr.matchAll(regexp);
-    [...matches]
-      .map((match) => match[1])
-      .filter((name) => name !== undefined)
-      .forEach((name) => registeredFunctions.add(name));
-  });
-
-  await Promise.all(promises);
-
-  if (registeredFunctions.size === 0) {
-    exitWithError(
-      "No functions found.",
-      "Check that the entry point of your app is correct."
-    );
-  }
-
-  log(
-    "success",
-    `Build verified with following ${registeredFunctions.size} functions:`,
-    "- " + [...registeredFunctions].join("\n\t - ")
-  );
-  if (errors.length > 0) {
-    log("warn", "Found errors in the following files:");
-    globalThis.console.group();
-    errors.forEach((e) => {
-      globalThis.console.log("-\x1b[33m", e.file, "\x1b[0m");
-      globalThis.console.group();
-      globalThis.console.log(
-        `\x1b[31m[${e.error.name}]`,
-        e.error.message,
-        "\x1b[0m"
-      );
-      globalThis.console.groupEnd();
-    });
-    globalThis.console.groupEnd();
-  }
-}
-
-// Helpers
-
-function execPromise(
-  command: string
-): Promise<{ stdout: string; stderr: string; error: Error | null }> {
-  return new Promise((resolve) => {
-    cp.exec(command, (error, stdout, stderr) => {
-      resolve({ stdout, stderr, error });
-    });
-  });
-}
-
-function exitWithError(message: string, ...rest: unknown[]) {
-  log("error", message, ...rest);
-  exit(1);
-}
-
-type LogType = "info" | "success" | "error" | "debug" | "warn";
-const logPrefix = "AZ-FN";
-const colorMap: Record<
-  LogType,
-  { bgColorCode: number; textColorCode: number }
-> = {
-  debug: { bgColorCode: 100, textColorCode: 90 },
-  info: { bgColorCode: 44, textColorCode: 34 },
-  success: { bgColorCode: 42, textColorCode: 32 },
-  error: { bgColorCode: 41, textColorCode: 31 },
-  warn: { bgColorCode: 43, textColorCode: 33 },
-};
-function log(type: LogType, message: string, ...rest: unknown[]) {
-  const { bgColorCode, textColorCode } = colorMap[type];
-
-  globalThis.console.log(
-    `\x1b[${bgColorCode}m ${logPrefix} \x1b[0m\t\x1b[${textColorCode}m`,
-    message,
-    "\x1b[0m",
-    rest.length > 0 ? "\n\t" : "",
-    ...rest
-  );
 }
