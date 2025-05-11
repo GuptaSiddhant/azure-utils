@@ -243,6 +243,14 @@ export class DurableEntity<
 }
 
 /**
+ * DurableEntityStatus is the status of a Durable Entity.
+ */
+export type DurableEntityStatus<State> = Pick<
+  df.DurableOrchestrationStatus,
+  "name" | "instanceId" | "createdTime" | "lastUpdatedTime"
+> & { state: State | null; key: string };
+
+/**
  * Helper function to get the Durable Functions client from the context.
  */
 function getDfClientFromContext(
@@ -258,11 +266,6 @@ function getDfClientFromContext(
     return df.getClient(context);
   }
 }
-
-type DurableEntityStatus<State> = Pick<
-  df.DurableOrchestrationStatus,
-  "name" | "instanceId" | "createdTime" | "lastUpdatedTime"
-> & { state: State | null; key: string };
 
 type TransformedOperations<
   T extends Readonly<Record<string, (input: never) => unknown>>
