@@ -24,7 +24,10 @@ const commonOptions: RolldownOptions = {
   }),
   platform: "node",
   treeshake: true,
-  external: Object.keys(pkgJson["peerDependencies"] || {}),
+  external: [
+    ...Object.keys(pkgJson["dependencies"] || {}),
+    ...Object.keys(pkgJson["peerDependencies"] || {}),
+  ],
   output: { dir: "dist", sourcemap: true },
 };
 

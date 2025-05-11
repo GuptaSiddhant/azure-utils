@@ -12,9 +12,6 @@
     "./validate": "./src/validate.ts"
   },
   "publish": {
-    "include": [
-      "src/**/*.ts",
-      "README.md"
-    ]
+    "include": ["src/**/*.ts", "README.md"]
   }
 }
