@@ -3,6 +3,7 @@ import { execPromise, exitWithError, log } from "./utils";
 import { join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
 import { glob } from "glob";
+import { name } from "../package.json";
 
 /**
  * Options for Azure functions build verification
@@ -20,16 +21,6 @@ export type AzureFunctionsPluginBuildVerifyOptions = {
    * Return `true` or `Promise<true>` to ignore the error.
    */
   shouldIgnoreError?: (error: Error) => boolean | Promise<boolean>;
-
-  /**
-   * A string of options passed to `node` cmd while executing the files
-   *
-   * @example
-   * `--trace-uncaught` => `node --trace-uncaught index.js`
-   *
-   * If left undefined, the file be executed with bare `node` (`node index.js`).
-   */
-  nodeOptions?: string;
 };
 
 /**
@@ -40,12 +31,19 @@ export async function verifyBuild(
   options: AzureFunctionsPluginBuildVerifyOptions
 ) {
   log("info", "Verifying build...");
-  const {
-    registeredFunctionsCount: expectedRegisteredFunctionsCount,
-    shouldIgnoreError,
-    nodeOptions,
-  } = options;
+  const { registeredFunctionsCount, shouldIgnoreError } = options;
 
+  const mainFiles = getMainFiles(rootPath);
+  const { errors, invocations } = await executeMainFiles(
+    mainFiles,
+    shouldIgnoreError
+  );
+
+  listErrors(errors);
+  listInvocations(invocations, registeredFunctionsCount);
+}
+
+function getMainFiles(rootPath: string) {
   const pkgJsonPath = join(rootPath, "package.json");
   if (!existsSync(pkgJsonPath)) {
     exitWithError(
@@ -72,39 +70,53 @@ export async function verifyBuild(
   }
 
   log("debug", "Target files found: " + mainFiles.length);
+  return mainFiles;
+}
 
-  const registeredFunctions = new Set<string>();
-  const regexp = /register function "(.*)" because/g;
-  const errors: Array<{ file: string; error: Error; ignored: boolean }> = [];
+async function executeMainFiles(
+  mainFiles: string[],
+  shouldIgnoreError: AzureFunctionsPluginBuildVerifyOptions["shouldIgnoreError"]
+) {
+  const invocations: Invocation[] = [];
+  const errors: Array<ExecError> = [];
+  const mockFilepath = getMockFilepath();
 
   const promises = mainFiles.map(async (file) => {
-    const { stderr, error } = await execPromise(
-      `node ${nodeOptions || ""} ${file}`
+    const { stdout, error } = await execPromise(
+      `node --experimental-test-module-mocks --import=${mockFilepath} ${file}`
     );
+
+    const output = stdout.split("\n");
+    output.forEach((line) => {
+      if (line.startsWith('{"invocations":[')) {
+        invocations.push(...JSON.parse(line).invocations);
+      } else {
+        if (line) log("debug", "Found log message:", line);
+      }
+    });
 
     if (error) {
       let ignored = false;
       if (shouldIgnoreError) {
         const result = shouldIgnoreError(error);
-        if (typeof result === "boolean") {
-          ignored = result;
-        } else {
+        if (result instanceof Promise) {
           ignored = await result;
+        } else {
+          ignored = !!result;
         }
       }
 
       errors.push({ file, error, ignored });
     }
-
-    const matches = stderr.matchAll(regexp);
-    [...matches]
-      .map((match) => match[1])
-      .filter((name) => name !== undefined)
-      .forEach((name) => registeredFunctions.add(name));
   });
 
   await Promise.all(promises);
 
+  return { invocations, errors };
+}
+
+type ExecError = { file: string; error: Error; ignored: boolean };
+function listErrors(errors: ExecError[]) {
   const ignoredErrors = errors.filter((err) => err.ignored);
   if (ignoredErrors.length > 0) {
     log("warn", "Following errors were ignored:");
@@ -132,26 +144,61 @@ export async function verifyBuild(
     globalThis.console.groupEnd();
     exit(1);
   }
+}
 
-  if (registeredFunctions.size === 0) {
+type Invocation = { name: string; trigger: string; [prop: string]: string };
+function listInvocations(
+  invocations: Invocation[],
+  expectedInvocationsCount: number | undefined
+) {
+  if (invocations.length === 0) {
     exitWithError(
-      "No functions found.",
+      "No function invocations found.",
       "Check that the entry point of your app is correct."
     );
   }
-  if (typeof expectedRegisteredFunctionsCount !== "undefined") {
-    if (expectedRegisteredFunctionsCount !== registeredFunctions.size) {
+
+  const invocationsSummaryList = invocations.map(
+    ({ name, trigger, ...rest }) =>
+      `\n\t - [${trigger}] ${name} ${JSON.stringify(rest)}`
+  );
+
+  if (typeof expectedInvocationsCount !== "undefined") {
+    if (expectedInvocationsCount !== invocations.length) {
       exitWithError(
-        "The registered functions mismatch with expected count.",
-        `Expected functions: ${expectedRegisteredFunctionsCount}, Found: ${registeredFunctions.size}`,
-        "\n\t - " + [...registeredFunctions].join("\n\t - ")
+        "The invocated functions mismatch with expected count.",
+        `Expected invocations: ${expectedInvocationsCount}, Found: ${invocations.length}`,
+        ...invocationsSummaryList
       );
     }
   }
 
   log(
     "success",
-    `Build verified with following ${registeredFunctions.size} functions:`,
-    "- " + [...registeredFunctions].join("\n\t - ")
+    `Build verified successfully`,
+    `with following ${invocations.length} invoked functions:`,
+    ...invocationsSummaryList
   );
+}
+
+function getMockFilepath() {
+  let nodeModulesPath;
+  let level = 0;
+
+  while (!nodeModulesPath || level < 5) {
+    const nmPath = join(cwd(), ...Array(level).fill(".."), "node_modules");
+    if (existsSync(nmPath)) {
+      nodeModulesPath = nmPath;
+      break;
+    }
+    level++;
+  }
+
+  if (!nodeModulesPath) {
+    throw new Error(
+      "Could not find node_modules folder in current or parent directory."
+    );
+  }
+
+  return join(nodeModulesPath, ...name.split("/"), "mock.mjs");
 }

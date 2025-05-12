@@ -1,9 +1,9 @@
 import { exit } from "node:process";
-import { exec } from "node:child_process";
+import { exec, type ExecException } from "node:child_process";
 
 export function execPromise(
   command: string
-): Promise<{ stdout: string; stderr: string; error: Error | null }> {
+): Promise<{ stdout: string; stderr: string; error: ExecException | null }> {
   return new Promise((resolve) => {
     exec(command, (error, stdout, stderr) => {
       resolve({ stdout, stderr, error });

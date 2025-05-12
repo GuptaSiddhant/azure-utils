@@ -2,4 +2,4 @@ import { app } from "@azure/functions";
 
 app.setup({ enableHttpStream: true });
 
-throw "test";
+throw new Error("test");
