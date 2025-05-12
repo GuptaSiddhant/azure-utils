@@ -1,5 +1,4 @@
 import { app } from "@azure/functions";
-console.log("health-check");
 
 const handler = () => ({});
 

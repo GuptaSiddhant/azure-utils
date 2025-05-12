@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     azureFunctionsVitePlugin({
       buildVerify: {
-        registeredFunctionsCount: 4,
+        registeredFunctionsCount: 8,
         shouldIgnoreError: (error) => {
           if (error.message.includes("Error: test")) {
             return true;

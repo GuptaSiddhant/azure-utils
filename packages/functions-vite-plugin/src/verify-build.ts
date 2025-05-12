@@ -1,4 +1,4 @@
-import { cwd, exit } from "node:process";
+import { argv0, cwd, exit } from "node:process";
 import { execPromise, exitWithError, log, pkgJson } from "./utils";
 import { join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
@@ -76,21 +76,27 @@ async function executeMainFiles(
   mainFiles: string[],
   shouldIgnoreError: AzureFunctionsPluginBuildVerifyOptions["shouldIgnoreError"]
 ) {
-  const invocations: Invocation[] = [];
+  const invocationsMap = new Map<string, Invocation>();
   const errors: Array<ExecError> = [];
   const mockFilepath = getMockFilepath();
 
   const promises = mainFiles.map(async (file) => {
     const { stdout, error } = await execPromise(
-      `node --experimental-test-module-mocks --import=${mockFilepath} ${file}`
+      `${argv0} --experimental-test-module-mocks --import=${mockFilepath} ${file}`
     );
 
     const output = stdout.split("\n");
     output.forEach((line) => {
       if (line.startsWith('{"invocations":[')) {
-        invocations.push(...JSON.parse(line).invocations);
+        const invocations: Invocation[] = JSON.parse(line).invocations;
+        for (const invocation of invocations) {
+          const key = JSON.stringify(invocation);
+          invocationsMap.set(key, invocation);
+        }
       } else {
-        if (line) log("debug", "Found log message:", line);
+        if (line) {
+          log("debug", `${file} | ${line}`);
+        }
       }
     });
 
@@ -111,7 +117,7 @@ async function executeMainFiles(
 
   await Promise.all(promises);
 
-  return { invocations, errors };
+  return { invocations: Array.from(invocationsMap.values()), errors };
 }
 
 type ExecError = { file: string; error: Error; ignored: boolean };
@@ -159,7 +165,9 @@ function listInvocations(
 
   const invocationsSummaryList = invocations.map(
     ({ name, trigger, ...rest }) =>
-      `\n\t - [${trigger}] ${name} ${JSON.stringify(rest)}`
+      `\n\t - [${trigger}] ${name} ${
+        Object.keys(rest).length > 0 ? JSON.stringify(rest) : ""
+      }`
   );
 
   if (typeof expectedInvocationsCount !== "undefined") {

@@ -1327,6 +1327,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "azure-utils-functions-vite-plugin-test@workspace:packages/functions-vite-plugin/tests"
   dependencies:
+    durable-functions: "npm:*"
     typescript: "npm:*"
     vite: "npm:*"
   languageName: unknown
@@ -1582,7 +1583,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"durable-functions@npm:^3.1.0":
+"durable-functions@npm:*, durable-functions@npm:^3.1.0":
   version: 3.1.0
   resolution: "durable-functions@npm:3.1.0"
   dependencies:

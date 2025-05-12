@@ -33,7 +33,7 @@ process.on("exit", () => {
       }
       case "http": {
         mock.calls.forEach((call) => {
-          const [name, { methods, ...options }] = call.arguments;
+          const [name, { methods = ["GET"], ...options }] = call.arguments;
           methods.forEach((method) => {
             invocations.push({ trigger: "http", name, method, ...options });
           });
@@ -88,11 +88,14 @@ function parseHttpCall(invocations, method, call) {
  * @param {MockFunctionCall} call
  */
 function parseEventCall(invocations, trigger, call) {
-  const [name, options] = call.arguments;
+  const [name, { trigger: triggerObj, ...options }] = call.arguments;
+  const triggerName =
+    triggerObj?.type?.replace("Trigger", "") ?? (trigger || "generic");
+
   if (typeof options === "object") {
-    invocations.push({ trigger, name, ...options });
+    invocations.push({ trigger: triggerName, name, ...options });
   } else {
-    invocations.push({ trigger, name });
+    invocations.push({ trigger: triggerName, name });
   }
 }
 
