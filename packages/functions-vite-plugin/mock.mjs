@@ -1,11 +1,11 @@
 // @ts-check
 
 import { mock } from "node:test";
-import { app } from "@azure/functions";
+import * as azfn from "@azure/functions";
 
 // Mock all methods of Azure functions library
-const namedExports = { app: {} };
-for (const key in app) {
+const namedExports = { ...azfn, app: {} };
+for (const key in azfn.app) {
   if (key === "hooks") {
     continue;
   }
