@@ -26,13 +26,11 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    "baseUrl": "",
     "listEmittedFiles": true,
 
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
     "types": ["node"],
-    "incremental": true,
     "noEmitOnError": true,
     "erasableSyntaxOnly": true
   }

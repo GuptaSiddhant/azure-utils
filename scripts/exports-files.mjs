@@ -72,7 +72,7 @@ module.exports = require("${item.path}");
     writeFileSync(
       join(workingDir, `${item.name}.d.ts`),
       `${fileDisclaimer}
-export * from "${item.path}";
+export * from "${item.path.replace("cjs", "d.ts")}";
 `
     );
   }

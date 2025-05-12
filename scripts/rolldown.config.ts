@@ -13,7 +13,7 @@ try {
 } catch {}
 
 // Generate type declarations
-execSync("tsc --emitDeclarationOnly --outDir dist", { stdio: "inherit" });
+execSync("tsc --emitDeclarationOnly", { stdio: "inherit" });
 
 // Generate export files to support older node versions
 generateExportFiles(getPackageExports(pkgJson));
