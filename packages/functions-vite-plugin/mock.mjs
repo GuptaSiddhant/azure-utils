@@ -1,7 +1,7 @@
 // @ts-check
 
 import { mock } from "node:test";
-import * as azfn from "@azure/functions";
+import azfn from "@azure/functions";
 
 // Mock all methods of Azure functions library
 const namedExports = { ...azfn, app: {} };

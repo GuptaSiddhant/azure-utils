@@ -1,13 +1,14 @@
 {
   "$schema": "https://jsr.io/schema/config-file.v1.json",
   "name": "@azure-utils/functions-vite-plugin",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "license": "MIT",
   "exports": "./src/index.ts",
   "publish": {
     "include": [
       "src",
       "mock.mjs",
+      "package.json",
       "README.md"
     ]
   }
