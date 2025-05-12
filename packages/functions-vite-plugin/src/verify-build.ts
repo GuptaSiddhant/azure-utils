@@ -1,9 +1,8 @@
 import { cwd, exit } from "node:process";
-import { execPromise, exitWithError, log } from "./utils";
+import { execPromise, exitWithError, log, pkgJson } from "./utils";
 import { join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
 import { glob } from "glob";
-import { name } from "../package.json";
 
 /**
  * Options for Azure functions build verification
@@ -200,5 +199,6 @@ function getMockFilepath() {
     );
   }
 
+  const name = pkgJson.name || "@azure-utils/functions-vite-plugin";
   return join(nodeModulesPath, ...name.split("/"), "mock.mjs");
 }
