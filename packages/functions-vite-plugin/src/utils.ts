@@ -1,8 +1,5 @@
 import { exit } from "node:process";
 import { exec, type ExecException } from "node:child_process";
-import pkgJson from "../package.json" with {type:"json"};
-
-export {pkgJson}
 
 export function execPromise(
   command: string

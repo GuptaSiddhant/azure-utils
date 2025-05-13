@@ -1,5 +1,5 @@
 import { argv0, cwd, exit } from "node:process";
-import { execPromise, exitWithError, log, pkgJson } from "./utils";
+import { execPromise, exitWithError, log } from "./utils";
 import { join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
 import { glob } from "glob";
@@ -33,13 +33,13 @@ export async function verifyBuild(
   const { registeredFunctionsCount, shouldIgnoreError } = options;
 
   const mainFiles = getMainFiles(rootPath);
-  const { errors, invocations } = await executeMainFiles(
+  const { errors, registrations } = await executeMainFiles(
     mainFiles,
     shouldIgnoreError
   );
 
   listErrors(errors);
-  listInvocations(invocations, registeredFunctionsCount);
+  listRegistrations(registrations, registeredFunctionsCount);
 }
 
 function getMainFiles(rootPath: string) {
@@ -76,7 +76,7 @@ async function executeMainFiles(
   mainFiles: string[],
   shouldIgnoreError: AzureFunctionsPluginBuildVerifyOptions["shouldIgnoreError"]
 ) {
-  const invocationsMap = new Map<string, Invocation>();
+  const registrationsMap = new Map<string, Registration>();
   const errors: Array<ExecError> = [];
   const mockFilepath = getMockFilepath();
 
@@ -87,11 +87,11 @@ async function executeMainFiles(
 
     const output = stdout.split("\n");
     output.forEach((line) => {
-      if (line.startsWith('{"invocations":[')) {
-        const invocations: Invocation[] = JSON.parse(line).invocations;
-        for (const invocation of invocations) {
-          const key = JSON.stringify(invocation);
-          invocationsMap.set(key, invocation);
+      if (line.startsWith('{"registrations":[')) {
+        const registrations: Registration[] = JSON.parse(line).registrations;
+        for (const registration of registrations) {
+          const key = JSON.stringify(registration);
+          registrationsMap.set(key, registration);
         }
       } else {
         if (line) {
@@ -117,7 +117,7 @@ async function executeMainFiles(
 
   await Promise.all(promises);
 
-  return { invocations: Array.from(invocationsMap.values()), errors };
+  return { registrations: Array.from(registrationsMap.values()), errors };
 }
 
 type ExecError = { file: string; error: Error; ignored: boolean };
@@ -151,66 +151,68 @@ function listErrors(errors: ExecError[]) {
   }
 }
 
-type Invocation = { name: string; trigger: string; [prop: string]: unknown };
-function listInvocations(
-  invocations: Invocation[],
-  expectedInvocationsCount: number | undefined
+type Registration = { name: string; trigger: string; [prop: string]: unknown };
+function listRegistrations(
+  registrations: Registration[],
+  expectedRegistrationsCount: number | undefined
 ) {
-  if (invocations.length === 0) {
+  if (registrations.length === 0) {
     exitWithError(
-      "No function invocations found.",
+      "No function registrations found.",
       "Check that the entry point of your app is correct."
     );
   }
 
-  const invocationsSummaryList = invocations.map(
-    (invocation) => `\n\t - ${summarizeInvocation(invocation)}`
-  );
+  const registrationsSummaryList = registrations.map(summarizeRegistration);
 
-  if (typeof expectedInvocationsCount !== "undefined") {
-    if (expectedInvocationsCount !== invocations.length) {
-      exitWithError(
-        "The invocated functions mismatch with expected count.",
-        `Expected invocations: ${expectedInvocationsCount}, Found: ${invocations.length}`,
-        ...invocationsSummaryList
+  if (typeof expectedRegistrationsCount !== "undefined") {
+    if (expectedRegistrationsCount !== registrations.length) {
+      log(
+        "error",
+        "The registered functions mismatch with expected count.",
+        `Expected registrations: ${expectedRegistrationsCount}, Found: ${registrations.length}`
       );
+      console.table(registrationsSummaryList);
+      exit(1);
     }
   }
 
   log(
     "success",
     `Build verified successfully`,
-    `with following ${invocations.length} invoked functions:`,
-    ...invocationsSummaryList
+    `with following ${registrations.length} registered functions:`
   );
+  console.table(registrationsSummaryList);
 }
 
-function summarizeInvocation({
+function summarizeRegistration({
   trigger,
   name,
   ...options
-}: Invocation): string {
-  let summary = "";
+}: Registration): Record<string, string> {
+  let triggerType = "";
   if (trigger === "http") {
-    summary += `[${trigger}-${options["method"]}]`;
+    triggerType = `${trigger}-${options["method"]}`;
   } else {
-    summary += `[${trigger}]`;
+    triggerType = trigger;
   }
 
-  summary += ` ${name}`;
+  const summary: Record<string, string> = { name, trigger: triggerType };
 
   const { extraInputs, extraOutputs, method: _method, ...rest } = options;
 
   if (extraInputs && Array.isArray(extraInputs) && extraInputs.length > 0) {
-    summary += `\t| inputs:${extraInputs.map((input) => input.type).join(",")}`;
+    summary["inputs"] = extraInputs.map((input) => input.type).join(", ");
   }
+
   if (extraOutputs && Array.isArray(extraOutputs) && extraOutputs.length > 0) {
-    summary += `\t| outputs:${extraOutputs
-      .map((input) => input.type)
-      .join(",")}`;
+    summary["outputs"] = extraOutputs.map((input) => input.type).join(", ");
   }
+
   if (Object.keys(rest).length > 0) {
-    summary += `\t| ${JSON.stringify(rest)}`;
+    summary["properties"] = Object.entries(rest)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(" | ");
   }
 
   return summary;
@@ -219,7 +221,7 @@ function summarizeInvocation({
 function getMockFilepath() {
   let nodeModulesPath;
   let level = 0;
-  const name = pkgJson.name || "@azure-utils/functions-vite-plugin";
+  const name = "@azure-utils/functions-vite-plugin";
 
   while (!nodeModulesPath || level < 5) {
     const nmPath = join(

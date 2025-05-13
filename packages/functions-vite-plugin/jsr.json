@@ -5,11 +5,6 @@
   "license": "MIT",
   "exports": "./src/index.ts",
   "publish": {
-    "include": [
-      "src",
-      "mock.mjs",
-      "package.json",
-      "README.md"
-    ]
+    "include": ["src", "mock.mjs", "README.md"]
   }
 }

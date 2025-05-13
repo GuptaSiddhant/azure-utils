@@ -15,8 +15,8 @@ for (const key in azfn.app) {
 mock.module("@azure/functions", { namedExports, defaultExport: namedExports });
 
 process.on("exit", () => {
-  /** @type {Invocation[]} */
-  const invocations = [];
+  /** @type {Registration[]} */
+  const registrations = [];
 
   for (const key in namedExports.app) {
     const mockFn = namedExports.app[key];
@@ -35,67 +35,69 @@ process.on("exit", () => {
         mock.calls.forEach((call) => {
           const [name, { methods = ["GET"], ...options }] = call.arguments;
           methods.forEach((method) => {
-            invocations.push({ trigger: "http", name, method, ...options });
+            registrations.push({ trigger: "http", name, method, ...options });
           });
         });
         break;
       }
       case "get": {
-        mock.calls.forEach(parseHttpCall.bind(null, invocations, "GET"));
+        mock.calls.forEach(parseHttpCall.bind(null, registrations, "GET"));
         break;
       }
       case "post": {
-        mock.calls.forEach(parseHttpCall.bind(null, invocations, "POST"));
+        mock.calls.forEach(parseHttpCall.bind(null, registrations, "POST"));
         break;
       }
       case "put": {
-        mock.calls.forEach(parseHttpCall.bind(null, invocations, "PUT"));
+        mock.calls.forEach(parseHttpCall.bind(null, registrations, "PUT"));
         break;
       }
       case "patch": {
-        mock.calls.forEach(parseHttpCall.bind(null, invocations, "PATCH"));
+        mock.calls.forEach(parseHttpCall.bind(null, registrations, "PATCH"));
         break;
       }
       case "deleteRequest": {
-        mock.calls.forEach(parseHttpCall.bind(null, invocations, "DELETE"));
+        mock.calls.forEach(parseHttpCall.bind(null, registrations, "DELETE"));
         break;
       }
       default: {
-        mockFn.mock.calls.forEach(parseEventCall.bind(this, invocations, key));
+        mockFn.mock.calls.forEach(
+          parseEventCall.bind(this, registrations, key)
+        );
       }
     }
   }
-  console.log(JSON.stringify({ invocations }));
+  console.log(JSON.stringify({ registrations }));
 });
 
 /**
- * @param {Invocation[]} invocations
+ * @param {Registration[]} registrations
  * @param {string} method
  * @param {MockFunctionCall} call
  */
-function parseHttpCall(invocations, method, call) {
+function parseHttpCall(registrations, method, call) {
   const [name, options] = call.arguments;
   if (typeof options === "object") {
-    invocations.push({ trigger: "http", name, method, ...options });
+    registrations.push({ trigger: "http", name, method, ...options });
   } else {
-    invocations.push({ trigger: "http", name, method });
+    registrations.push({ trigger: "http", name, method });
   }
 }
 
 /**
- * @param {Invocation[]} invocations
+ * @param {Registration[]} registrations
  * @param {string} trigger
  * @param {MockFunctionCall} call
  */
-function parseEventCall(invocations, trigger, call) {
+function parseEventCall(registrations, trigger, call) {
   const [name, { trigger: triggerObj, ...options }] = call.arguments;
   const triggerName =
     triggerObj?.type?.replace("Trigger", "") ?? (trigger || "generic");
 
   if (typeof options === "object") {
-    invocations.push({ trigger: triggerName, name, ...options });
+    registrations.push({ trigger: triggerName, name, ...options });
   } else {
-    invocations.push({ trigger: triggerName, name });
+    registrations.push({ trigger: triggerName, name });
   }
 }
 
@@ -104,5 +106,5 @@ function parseEventCall(invocations, trigger, call) {
  *
  * @typedef {import( "node:test").Mock<(...args: any[])=>undefined>['mock']['calls'][number]}  MockFunctionCall
  *
- * @typedef {{trigger: string, name:string, method?:string }} Invocation
+ * @typedef {{trigger: string, name:string, method?:string }} Registration
  */
