@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/turborepo-cache",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "description": "Utils to deploy TurboRepo Remote Cache on Azure Functions.",
   "author": {
