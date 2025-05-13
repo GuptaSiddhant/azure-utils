@@ -51,10 +51,10 @@
     "bump": "node ../../scripts/bump-version.mjs",
     "clear": "rm -rf *.cjs *.d.ts coverage dist & true",
     "jsr:publish": "npx -y jsr publish",
-    "test": "yarn --cwd 'tests' vite build",
-    "test:skip-all": "yarn --cwd 'tests' vite build -- --skip-checks",
-    "test:skip-typecheck": "TYPECHECK=false yarn --cwd 'tests' vite build",
-    "test:skip-build-verify": "BUILD_VERIFY=false yarn --cwd 'tests' vite build",
+    "test": "yarn --cwd 'test' vite build",
+    "test:skip-all": "yarn --cwd 'test' vite build -- --skip-checks",
+    "test:skip-typecheck": "TYPECHECK=false yarn --cwd 'test' vite build",
+    "test:skip-build-verify": "BUILD_VERIFY=false yarn --cwd 'test' vite build",
     "verify": "yarn clear; yarn build"
   },
   "devDependencies": {

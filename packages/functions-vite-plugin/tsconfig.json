@@ -1,7 +1,7 @@
 {
   "extends": "../../base.tsconfig.json",
   "include": ["./src"],
-  "exclude": ["node_modules", "dist", "tests"],
+  "exclude": ["node_modules", "dist", "test"],
   "compilerOptions": {
     "baseUrl": ".",
     "declarationDir": "./dist"
