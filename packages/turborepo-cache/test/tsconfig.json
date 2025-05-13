@@ -1,0 +1,11 @@
+{
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"],
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "strict": true,
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true
+  }
+}

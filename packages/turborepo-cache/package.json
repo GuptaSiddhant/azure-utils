@@ -51,17 +51,19 @@
     "bump": "node ../../scripts/bump-version.mjs",
     "clear": "rm -rf *.cjs *.d.ts coverage dist & true",
     "jsr:publish": "npx -y jsr publish",
+    "test": "yarn --cwd 'test' vite build",
     "verify": "yarn clear; yarn build"
   },
   "devDependencies": {
+    "@azure-utils/functions-vite-plugin": "workspace:*",
     "@azure/functions": "^4.7.0",
-    "@azure/storage-blob": "*",
+    "@azure/storage-blob": "^12.27.0",
     "@types/node": "^22.0.0",
     "rolldown": "1.0.0-beta.8",
     "typescript": "^5.8.0"
   },
   "peerDependencies": {
     "@azure/functions": ">=4.0.0",
-    "@azure/storage-blob": "*"
+    "@azure/storage-blob": ">=12.0.0"
   }
 }

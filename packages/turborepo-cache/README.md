@@ -1,6 +1,10 @@
-# Azure Functions TurboRepo Remote Cache Utils
+# Azure Functions TurboRepo Remote Cache Router
 
-> Only works with V4 functions written in typescript.
+An easy way to deploy TurboRepo remote cache using Azure Functions. The package registers all endpoints required for TurboRepo to sync with remote cache as per the spec.
+
+Refer [TurboRepo Cache Spec](https://turborepo.com/docs/openapi)
+
+> Only works with **V4** functions written in TypeScript/JavaScript.
 
 [![NPM](https://img.shields.io/npm/v/@azure-utils/turborepo-cache)](https://www.npmjs.com/package/@azure-utils/turborepo-cache)
 [![JSR](https://jsr.io/badges/@azure-utils/turborepo-cache)](https://jsr.io/badges/@azure-utils/turborepo-cache)
@@ -31,20 +35,66 @@ npx jsr add -D @azure-utils/turborepo-cache
 deno add -D @azure-utils/turborepo-cache
 ```
 
-## Plugin
+## Build and deploy app
 
-The plugin needs to be added to Vite config plugin list.
+The package exports a `registerCacheRouter` function which registers all endpoint required to work with TurboRepo remote cache.
+
+### 1. Register the router
+
+Invoke the registration function is a file that is covered by Azure Functions. Normally this is the `index.ts` file. The function takes an optional options argument which can be used override default settings.
 
 ```ts
-// VITE config
+// src/index.ts
+import { registerCacheRouter } from "@azure-utils/turborepo-cache";
 
-import { defineConfig } from "vite/config";
-import azureFunctionsVitePlugin from "@azure-utils/turborepo-cache";
+registerCacheRouter();
+```
 
-export default defineConfig({
-  plugins: [azureFunctionsVitePlugin()],
+-- or --
+
+```ts
+// src/index.ts
+import { registerCacheRouter } from "@azure-utils/turborepo-cache";
+
+registerCacheRouter({
+  // Token used for authentication. Defaults to `env['TURBO_TOKEN']`.
+  turboToken: "",
+  // Azure Storage Connection String. Defaults to `env['AzureWebJobsStorage']`.
+  connectionString: "",
+  // Azure Storage Blob Container name. Defaults to `env['CONTAINER_NAME']` or `turborepocache`.
+  containerName: "",
 });
 ```
+
+### 2. Update `host.json`
+
+Azure functions use `host.json` in app root to configure the settings for whole functions-app.
+
+Add/update the following setting to make sure there is no (empty) prefix before routes. If left unset, then Azure Functions may add `/api` prefix to routes which is incompatible with Turborepo cache spec.
+
+```json
+{
+  "extensions": {
+    "http": {
+      "routePrefix": ""
+    }
+  }
+}
+```
+
+### 3. Build app
+
+If you are using TypeScript, you can use any bundler to build the functions-app. The official template used `tsc`.
+
+If you wish to use Vite and add verification step (for peace of mind), checkout [Azure Functions Vite plugin](https://www.npmjs.com/package/@azure-utils/functions-vite-plugin).
+
+### 4. Deploy app
+
+In order to deploy the app by CLI, CI or Azure plugin, you a need an Azure Functions resource in your Azure subscription.
+
+If you are creating a new resource, select the option to create an associated Storage account, that will be used to store cache artifacts.
+
+If your app is not connected to Storage account or you wish to override storage account, use ENV or OPTIONS to do so.
 
 ## License
 

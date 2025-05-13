@@ -1,0 +1,9 @@
+{
+  "name": "azure-utils-turborepo-cache-test",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "devDependencies": {
+    "typescript": "*",
+    "vite": "*"
+  }
+}

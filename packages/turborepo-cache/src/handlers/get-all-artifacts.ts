@@ -1,27 +1,32 @@
-import type { HttpHandler } from "@azure/functions";
 import {
   parseHashesFromBody,
   parseTeamFromQuery,
   parseTokenFromHeaders,
-} from "src/validators";
+} from "../utils/validators";
+import type { CacheRouterHttpHandler } from "../utils/types";
 
-export const getAllArtifactsHandler: HttpHandler = async (request, context) => {
-  const authResult = parseTokenFromHeaders(request.headers, context);
-  if (authResult !== true) return authResult;
+export const queryArtifactsInfoHandler: CacheRouterHttpHandler =
+  (options) => async (request, context) => {
+    const authResult = parseTokenFromHeaders(
+      request.headers,
+      context,
+      options.turboToken
+    );
+    if (authResult !== true) return authResult;
 
-  const team = parseTeamFromQuery(request.query, context);
-  if (typeof team !== "string") return team;
+    const team = parseTeamFromQuery(request.query, context);
+    if (typeof team !== "string") return team;
 
-  const hashes = parseHashesFromBody(await request.json(), context);
-  if (!Array.isArray(hashes)) return hashes;
+    const hashes = parseHashesFromBody(await request.json(), context);
+    if (!Array.isArray(hashes)) return hashes;
 
-  context.info("Status check for artifacts", { team, hashes });
+    context.info("Status check for artifacts", { team, hashes });
 
-  const result = hashes.map((hash) => ({
-    size: 0,
-    taskDurationMs: 0,
-    tag: `${team}/${hash}`,
-  }));
+    const result = hashes.map((hash) => ({
+      size: 0,
+      taskDurationMs: 0,
+      tag: `${team}/${hash}`,
+    }));
 
-  return { status: 200, jsonBody: result };
-};
+    return { status: 200, jsonBody: result };
+  };

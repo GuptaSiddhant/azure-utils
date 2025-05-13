@@ -1,6 +1,6 @@
 import type { HttpResponseInit, InvocationContext } from "@azure/functions";
 import type { Headers } from "undici";
-import { responseError } from "./utils";
+import { responseError } from "./error-utils";
 
 export function parseTeamFromQuery(
   query: URLSearchParams,
@@ -61,9 +61,9 @@ export function parseHashesFromBody(
 
 export function parseTokenFromHeaders(
   headers: Headers,
-  context: InvocationContext
+  context: InvocationContext,
+  TOKEN = process.env["TURBO_TOKEN"]
 ) {
-  const TOKEN = process.env["TURBO_TOKEN"];
   if (!TOKEN) {
     return responseError(
       "The token is not configured on server correctly",

@@ -1,13 +1,24 @@
 import { join } from "node:path";
 import { PassThrough, pipeline, Readable, Writable } from "node:stream";
-import { BlobServiceClient } from "@azure/storage-blob";
+import { BlobServiceClient, ContainerClient } from "@azure/storage-blob";
+import { AzureBlobStorageOptions } from "./types";
 
+const STORAGE_CONN_STR = process.env["AzureWebJobsStorage"];
 const AZURE_CONTAINER = process.env["CONTAINER_NAME"] ?? "turborepocache";
 
-export function createStorageClient(connectionString: string) {
-  const storage = createAzureBlobStorage({
+export async function createStorageClient({
+  connectionString = STORAGE_CONN_STR,
+  containerName = AZURE_CONTAINER,
+}: Partial<AzureBlobStorageOptions>) {
+  if (!connectionString) {
+    throw new EvalError(
+      "Connection String is missing for Azure Storage. Assign the value to env 'AzureWebJobsStorage'."
+    );
+  }
+
+  const storage = await createAzureBlobStorage({
     connectionString,
-    containerName: AZURE_CONTAINER,
+    containerName,
   });
 
   async function getCachedArtifactOrThrow(
@@ -74,25 +85,30 @@ export interface StorageProvider {
   createWriteStream: (artifactPath: string) => Writable;
 }
 
-interface AzureBlobStorageOptions {
-  containerName: string;
-  connectionString: string;
-}
-
-function createAzureBlobStorage({
+async function createAzureBlobStorage({
   containerName,
   connectionString,
-}: AzureBlobStorageOptions): StorageProvider {
+}: AzureBlobStorageOptions): Promise<StorageProvider> {
   const blobServiceClient =
     BlobServiceClient.fromConnectionString(connectionString);
-  const containerClient = blobServiceClient.getContainerClient(containerName);
+
+  let containerClient: ContainerClient;
+
+  try {
+    containerClient = blobServiceClient.getContainerClient(containerName);
+    if (!containerClient) {
+      throw new Error("Container not found");
+    }
+  } catch {
+    await blobServiceClient.createContainer(containerName);
+  }
 
   return {
-    exists: (artifactPath, cb) => {
+    exists(artifactPath, callback) {
       const blobClient = containerClient.getBlobClient(artifactPath);
       blobClient.exists().then((exists) => {
-        cb(null, exists);
-      }, cb);
+        callback(null, exists);
+      }, callback);
     },
     createReadStream(artifactPath) {
       const blobClient = containerClient.getBlobClient(artifactPath);

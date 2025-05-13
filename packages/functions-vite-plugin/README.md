@@ -1,6 +1,6 @@
 # Azure Functions Vite Plugin
 
-> Only works with V4 functions written in typescript.
+> Only works with **V4** functions written in TypeScript/JavaScript.
 
 [![NPM](https://img.shields.io/npm/v/@azure-utils/functions-vite-plugin)](https://www.npmjs.com/package/@azure-utils/functions-vite-plugin)
 [![JSR](https://jsr.io/badges/@azure-utils/functions-vite-plugin)](https://jsr.io/badges/@azure-utils/functions-vite-plugin)
