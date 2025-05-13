@@ -16,7 +16,10 @@ import { RegisterCacheRouterOptions } from "./utils/types";
 import { checkArtifactExistsHandler } from "./handlers/check-artifact";
 import { recordUsageEventsHandler } from "./handlers/record-usage-events";
 
-export type { RegisterCacheRouterOptions };
+export type {
+  RegisterCacheRouterOptions,
+  AzureBlobStorageOptions,
+} from "./utils/types";
 
 /**
  * Registers all routes required for TurboRepo Remote Caching.

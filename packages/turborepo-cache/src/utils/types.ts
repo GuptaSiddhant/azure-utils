@@ -1,5 +1,8 @@
 import type { HttpHandler } from "@azure/functions";
 
+/**
+ * Options for linking with Azure Blob Storage
+ */
 export interface AzureBlobStorageOptions {
   /**
    * Azure Storage Blob Container name. Defaults to `env['CONTAINER_NAME']` or `turborepocache`.
