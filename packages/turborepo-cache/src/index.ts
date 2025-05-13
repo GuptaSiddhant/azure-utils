@@ -11,20 +11,25 @@ import { app } from "@azure/functions";
 import { checkServiceStatusHandler } from "./handlers/check-service-status";
 import { downloadArtifactHandler } from "./handlers/get-artifact";
 import { uploadArtifactHandler } from "./handlers/upload-artifact";
-import { queryArtifactsInfoHandler } from "./handlers/get-all-artifacts";
+import { queryArtifactsInfoHandler } from "./handlers/query-artifacts-info";
 import { RegisterCacheRouterOptions } from "./utils/types";
 import { checkArtifactExistsHandler } from "./handlers/check-artifact";
+import { recordUsageEventsHandler } from "./handlers/record-usage-events";
 
 export function registerCacheRouter(options: RegisterCacheRouterOptions = {}) {
+  const { healthCheck } = options;
+
   app.setup({ enableHttpStream: true });
 
-  app.get("health-check", {
-    route: "/",
-    handler: async () => ({
-      body: `TurboRepo Remote Cache is up and running!`,
-      status: 200,
-    }),
-  });
+  if (healthCheck !== false) {
+    app.get("health-check", {
+      route: typeof healthCheck === "string" ? healthCheck : "/",
+      handler: async () => ({
+        body: `TurboRepo Remote Cache is up and running!`,
+        status: 200,
+      }),
+    });
+  }
 
   app.get("check-service-status", {
     route: "/v8/artifacts/status",
@@ -50,5 +55,19 @@ export function registerCacheRouter(options: RegisterCacheRouterOptions = {}) {
   app.put("upload-artifact", {
     route: "/v8/artifacts/{hash}",
     handler: uploadArtifactHandler(options),
+  });
+
+  app.post("record-usage-events", {
+    route: "/v8/artifacts/events",
+    handler: recordUsageEventsHandler(options),
+  });
+
+  app.get("openapi-spec", {
+    route: "/v8/openapi",
+    handler: () => {
+      const headers = new Headers();
+      headers.set("location", "https://turborepo.com/api/remote-cache-spec");
+      return { status: 308, headers };
+    },
   });
 }

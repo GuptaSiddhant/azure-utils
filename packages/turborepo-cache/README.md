@@ -63,6 +63,8 @@ registerCacheRouter({
   connectionString: "",
   // Azure Storage Blob Container name. Defaults to `env['CONTAINER_NAME']` or `turborepocache`.
   containerName: "",
+  // Enable/disable health check route
+  healthCheck: true,
 });
 ```
 
@@ -87,6 +89,19 @@ Add/update the following setting to make sure there is no (empty) prefix before 
 If you are using TypeScript, you can use any bundler to build the functions-app. The official template used `tsc`.
 
 If you wish to use Vite and add verification step (for peace of mind), checkout [Azure Functions Vite plugin](https://www.npmjs.com/package/@azure-utils/functions-vite-plugin).
+
+> The vite plugin should output something similar following to confirm the endpoints are discoverable
+>
+> | Type        | Name                  | Options                          |
+> | ----------- | --------------------- | -------------------------------- |
+> | [http-GET]  | health-check          | {"route":"/"}                    |
+> | [http-GET]  | check-service-status  | {"route":"/v8/artifacts/status"} |
+> | [http-GET]  | download-artifact     | {"route":"/v8/artifacts/{hash}"} |
+> | [http-GET]  | openapi-spec          | {"route":"/v8/openapi"}          |
+> | [http-PUT]  | upload-artifact       | {"route":"/v8/artifacts/{hash}"} |
+> | [http-POST] | query-artifacts-info  | {"route":"/v8/artifacts"}        |
+> | [http-POST] | record-usage-events   | {"route":"/v8/artifacts/events"} |
+> | [http-HEAD] | check-artifact-exists | {"route":"/v8/artifacts/{hash}"} |
 
 ### 4. Deploy app
 

@@ -19,6 +19,15 @@ export type RegisterCacheRouterOptions = Partial<AzureBlobStorageOptions> & {
    * Token used for authentication. Defaults to `env['TURBO_TOKEN']`.
    */
   turboToken?: string;
+
+  /**
+   * Add health-check endpoint which is unauthenticated and publicly accessible.
+   *
+   * It is enabled by default at the root path (`/`).
+   *
+   * Set to false to disable it or provide a string to change the route-path.
+   */
+  healthCheck?: boolean | string;
 };
 
 export type CacheRouterHttpHandler = (

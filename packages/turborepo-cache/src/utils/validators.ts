@@ -59,6 +59,18 @@ export function parseHashesFromBody(
   return hashes;
 }
 
+export function parseEventsFromBody(
+  jsonBody: unknown,
+  context: InvocationContext
+) {
+  const events =
+    jsonBody && typeof jsonBody === "object" && Array.isArray(jsonBody)
+      ? jsonBody
+      : [];
+
+  return events;
+}
+
 export function parseTokenFromHeaders(
   headers: Headers,
   context: InvocationContext,
