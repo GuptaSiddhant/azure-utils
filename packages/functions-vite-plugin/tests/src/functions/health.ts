@@ -8,6 +8,8 @@ app.http("health-check", {
   handler,
 });
 
+app.deleteRequest("test-delete", () => ({}));
+
 app.timer("timer-check", {
   schedule: "* * * * *",
   handler,

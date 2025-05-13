@@ -151,7 +151,7 @@ function listErrors(errors: ExecError[]) {
   }
 }
 
-type Invocation = { name: string; trigger: string; [prop: string]: string };
+type Invocation = { name: string; trigger: string; [prop: string]: unknown };
 function listInvocations(
   invocations: Invocation[],
   expectedInvocationsCount: number | undefined
@@ -164,10 +164,7 @@ function listInvocations(
   }
 
   const invocationsSummaryList = invocations.map(
-    ({ name, trigger, ...rest }) =>
-      `\n\t - [${trigger}] ${name} ${
-        Object.keys(rest).length > 0 ? JSON.stringify(rest) : ""
-      }`
+    (invocation) => `\n\t - ${summarizeInvocation(invocation)}`
   );
 
   if (typeof expectedInvocationsCount !== "undefined") {
@@ -188,12 +185,49 @@ function listInvocations(
   );
 }
 
+function summarizeInvocation({
+  trigger,
+  name,
+  ...options
+}: Invocation): string {
+  let summary = "";
+  if (trigger === "http") {
+    summary += `[${trigger}-${options["method"]}]`;
+  } else {
+    summary += `[${trigger}]`;
+  }
+
+  summary += ` ${name}`;
+
+  const { extraInputs, extraOutputs, method: _method, ...rest } = options;
+
+  if (extraInputs && Array.isArray(extraInputs) && extraInputs.length > 0) {
+    summary += `\t| inputs:${extraInputs.map((input) => input.type).join(",")}`;
+  }
+  if (extraOutputs && Array.isArray(extraOutputs) && extraOutputs.length > 0) {
+    summary += `\t| outputs:${extraOutputs
+      .map((input) => input.type)
+      .join(",")}`;
+  }
+  if (Object.keys(rest).length > 0) {
+    summary += `\t| ${JSON.stringify(rest)}`;
+  }
+
+  return summary;
+}
+
 function getMockFilepath() {
   let nodeModulesPath;
   let level = 0;
+  const name = pkgJson.name || "@azure-utils/functions-vite-plugin";
 
   while (!nodeModulesPath || level < 5) {
-    const nmPath = join(cwd(), ...Array(level).fill(".."), "node_modules");
+    const nmPath = join(
+      cwd(),
+      ...Array(level).fill(".."),
+      "node_modules",
+      ...name.split("/")
+    );
     if (existsSync(nmPath)) {
       nodeModulesPath = nmPath;
       break;
@@ -203,10 +237,9 @@ function getMockFilepath() {
 
   if (!nodeModulesPath) {
     throw new Error(
-      "Could not find node_modules folder in current or parent directory."
+      `Could not find node_modules/${name} folder in current or parent directory.`
     );
   }
 
-  const name = pkgJson.name || "@azure-utils/functions-vite-plugin";
-  return join(nodeModulesPath, ...name.split("/"), "mock.mjs");
+  return join(nodeModulesPath, "mock.mjs");
 }
