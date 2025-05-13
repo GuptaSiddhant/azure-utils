@@ -59,10 +59,7 @@ export function parseHashesFromBody(
   return hashes;
 }
 
-export function parseEventsFromBody(
-  jsonBody: unknown,
-  context: InvocationContext
-) {
+export function parseEventsFromBody(jsonBody: unknown) {
   const events =
     jsonBody && typeof jsonBody === "object" && Array.isArray(jsonBody)
       ? jsonBody

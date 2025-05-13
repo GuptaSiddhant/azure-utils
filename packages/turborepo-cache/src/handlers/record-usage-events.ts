@@ -17,7 +17,7 @@ export const recordUsageEventsHandler: CacheRouterHttpHandler =
     const team = parseTeamFromQuery(request.query, context);
     if (typeof team !== "string") return team;
 
-    const events = parseEventsFromBody(await request.json(), context);
+    const events = parseEventsFromBody(await request.json());
 
     context.info("Recording events", { team });
     events.forEach((event) => {
