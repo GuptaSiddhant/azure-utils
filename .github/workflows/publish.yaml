@@ -42,6 +42,7 @@ jobs:
           - "packages/feature-flags"
           - "packages/durable-functions"
           - "packages/functions-vite-plugin"
+          - "packages/turborepo-cache"
 
     uses: "./.github/workflows/_shared-publish.yml"
     secrets: inherit
