@@ -1,0 +1,67 @@
+{
+  "name": "@azure-utils/turborepo-cache",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Utils to deploy TurboRepo Remote Cache on Azure Functions.",
+  "author": {
+    "name": "Siddhant Gupta",
+    "url": "https://guptasiddhant.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/guptasiddhant/azure-utils",
+    "directory": "packages/turborepo-cache"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/guptasiddhant/azure-utils/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "azure",
+    "functions",
+    "azure-functions",
+    "turbo",
+    "turborepo",
+    "cache",
+    "remote",
+    "remote-cache",
+    "utils"
+  ],
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "internal": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "rolldown -c ../../scripts/rolldown.config.ts",
+    "bump": "node ../../scripts/bump-version.mjs",
+    "clear": "rm -rf *.cjs *.d.ts coverage dist & true",
+    "jsr:publish": "npx -y jsr publish",
+    "verify": "yarn clear; yarn build"
+  },
+  "devDependencies": {
+    "@azure/functions": "^4.7.0",
+    "@azure/storage-blob": "*",
+    "@types/node": "^22.0.0",
+    "rolldown": "1.0.0-beta.8",
+    "typescript": "^5.8.0"
+  },
+  "peerDependencies": {
+    "@azure/functions": ">=4.0.0",
+    "@azure/storage-blob": "*"
+  }
+}

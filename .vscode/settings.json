@@ -9,5 +9,5 @@
     "*.cjs": "${capture}.cjs.map, ${capture}.d.ts",
     "*.mjs": "${capture}.mjs.map, ${capture}.d.ts"
   },
-  "cSpell.words": ["rolldown", "vite"]
+  "cSpell.words": ["rolldown", "turborepo", "vite"]
 }
