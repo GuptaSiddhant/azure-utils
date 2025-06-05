@@ -123,7 +123,25 @@ export function extractFeatureFlagFromSetting(
     json.id = setting.key.replace(featureFlagPrefix, "");
   }
 
-  return json as FeatureFlag;
+  const flag = json as FeatureFlag;
+
+  if (typeof setting.lastModified !== "undefined") {
+    flag.lastModified = setting.lastModified;
+  }
+
+  if (typeof setting.label !== "undefined") {
+    flag.label = setting.label;
+  }
+
+  if (typeof setting.isReadOnly !== "undefined") {
+    flag.isReadOnly = setting.isReadOnly;
+  }
+
+  if (typeof setting.tags !== "undefined") {
+    flag.tags = setting.tags;
+  }
+
+  return flag;
 }
 
 /**

@@ -60,6 +60,7 @@ describe(iterateAppConfigurationFeatureFlags, { concurrent: true }, () => {
           },
           "enabled": true,
           "id": "feature",
+          "isReadOnly": false,
         },
       ]
     `);
@@ -80,6 +81,7 @@ describe(iterateAppConfigurationFeatureFlags, { concurrent: true }, () => {
           },
           "enabled": true,
           "id": "feature",
+          "isReadOnly": false,
         },
       }
     `);
@@ -107,6 +109,7 @@ describe(extractFeatureFlagFromSetting, { concurrent: true }, () => {
         },
         "enabled": true,
         "id": "feature",
+        "isReadOnly": false,
       }
     `);
   });
@@ -144,6 +147,7 @@ describe(extractFeatureFlagFromSetting, { concurrent: true }, () => {
         "displayName": "someid",
         "enabled": true,
         "id": "some-id",
+        "isReadOnly": false,
       }
     `);
   });

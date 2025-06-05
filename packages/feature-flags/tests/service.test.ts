@@ -9,12 +9,13 @@ import {
 import { dummyFeatureFlag, generateDummyClient } from "./azure-client.mock";
 import { FeatureFlag } from "../src/types";
 
-const flagObject = {
+const flagObject: FeatureFlag = {
   id: "testFlag",
   description: "",
   enabled: true,
   conditions: { client_filters: undefined },
   displayName: undefined,
+  isReadOnly: false,
 };
 
 describe(getFeatureFlagByKey, { concurrent: true }, () => {
@@ -121,6 +122,7 @@ describe(setFeatureFlag, { concurrent: true }, () => {
       conditions: { client_filters: [] },
       enabled: true,
       id: "feature",
+      isReadOnly: false,
     });
   });
 
@@ -141,6 +143,7 @@ describe(setFeatureFlag, { concurrent: true }, () => {
       conditions: { client_filters: [] },
       enabled: false,
       id: "feature",
+      isReadOnly: false,
     });
   });
 

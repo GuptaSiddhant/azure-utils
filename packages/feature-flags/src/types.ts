@@ -17,11 +17,7 @@ export type FeatureFlag = FeatureFlagWithFilters | FeatureFlagWithVariants;
  * Feature Flag based on Azure App configuration.
  * It only represents the Feature Flag configured with Client Filters.
  */
-export type FeatureFlagWithFilters = {
-  description?: string;
-  displayName?: string;
-  enabled: boolean;
-  id: string;
+export type FeatureFlagWithFilters = FeatureFlagShared & {
   conditions: {
     client_filters?: Array<FeatureFlagClientFilter>;
     requirement_type?: "All" | "Any";
@@ -32,14 +28,21 @@ export type FeatureFlagWithFilters = {
  * Feature Flag based on Azure App configuration.
  * It only represents the Feature Flag configured with Variants.
  */
-export type FeatureFlagWithVariants = {
+export type FeatureFlagWithVariants = FeatureFlagShared & {
+  allocation: FeatureFlagAllocation;
+  telemetry?: { enabled: boolean };
+  variants: Array<FeatureFlagVariant>;
+};
+
+type FeatureFlagShared = {
   description?: string;
   displayName?: string;
   enabled: boolean;
   id: string;
-  allocation: FeatureFlagAllocation;
-  telemetry?: { enabled: boolean };
-  variants: Array<FeatureFlagVariant>;
+  lastModified?: Date;
+  label?: string | null;
+  isReadOnly?: boolean;
+  tags?: Record<string, string>;
 };
 
 /**
