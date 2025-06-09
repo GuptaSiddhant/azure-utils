@@ -193,6 +193,14 @@ export type FeatureFlagWithFiltersValidateOptions = {
    * `onError` can be used to throw or log.
    */
   onError?: (error: Error) => void;
+
+  /**
+   * Current date to use for time-based filters.
+   * If not provided, it defaults to the current date and time.
+   * This is useful for testing or when you want to simulate a specific time.
+   * @default "new Date()"
+   */
+  currentDate?: Date;
 };
 
 /**

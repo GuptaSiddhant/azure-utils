@@ -24,13 +24,14 @@ export function checkIsTimeWindowClientFilter(
 }
 
 export function validateFeatureFlagTimeWindowFilter(
-  filter: FeatureFlagTimeWindowFilter
+  filter: FeatureFlagTimeWindowFilter,
+  currentDate: Date = new Date()
 ): boolean {
   const { End, Start } = filter.parameters;
-  const now = Date.now();
+  const time = currentDate.valueOf();
   if (
-    (End && new Date(End).valueOf() < now) ||
-    (Start && new Date(Start).valueOf() > now)
+    (End && new Date(End).valueOf() < time) ||
+    (Start && new Date(Start).valueOf() > time)
   ) {
     return false;
   }

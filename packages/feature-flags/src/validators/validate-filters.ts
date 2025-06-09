@@ -72,7 +72,7 @@ async function validateClientFilter(
   featureFlag: FeatureFlag
 ): Promise<boolean> {
   if (checkIsTimeWindowClientFilter(filter)) {
-    return validateFeatureFlagTimeWindowFilter(filter);
+    return validateFeatureFlagTimeWindowFilter(filter, options.currentDate);
   }
 
   const filterOptions: FeatureFlagCustomFilterValidatorOptions = {
