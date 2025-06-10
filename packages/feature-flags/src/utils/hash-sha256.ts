@@ -16,16 +16,8 @@ export async function sha256(
   content: string | Uint8Array,
   encoding: Encoding = "base64"
 ): Promise<string> {
-  // Node
-  if (checkIsNode()) {
-    const { createHash } = await import("node:crypto");
-    return createHash("SHA256").update(content).digest(encoding);
-  }
-  // Browser
-  const crypto = globalThis.crypto || (globalThis as any).msCrypto;
-  const subtle = crypto.subtle || (crypto as any).webkitSubtle;
   const buf = typeof content === "string" ? strToBuf(content) : content;
-  const hash = await subtle.digest({ name: "sha-256" }, buf);
+  const hash = await crypto.subtle.digest({ name: "sha-256" }, buf);
 
   switch (encoding) {
     case "hex":
@@ -57,12 +49,4 @@ function uint8ArrayToString(array: Uint8Array): string {
 
 function base64ToUint8Array(value: string): Uint8Array {
   return new Uint8Array([...atob(value)].map((x) => x.charCodeAt(0)));
-}
-
-function checkIsNode(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    !!process.versions &&
-    !!process.versions.node
-  );
 }
