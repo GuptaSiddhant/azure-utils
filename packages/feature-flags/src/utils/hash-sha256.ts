@@ -1,20 +1,12 @@
 type Encoding = "base64" | "hex";
 
 export async function sha256Hmac(key: string, data: string): Promise<string> {
-  // Node
-  if (checkIsNode()) {
-    const { createHmac } = await import("node:crypto");
-    return createHmac("SHA256", Buffer.from(key, "base64"))
-      .update(data)
-      .digest("base64");
-  }
+  const algorithm: EcdsaParams = { name: "HMAC", hash: { name: "SHA-256" } };
 
-  // Browser
-  const algorithm = { name: "HMAC", hash: { name: "SHA-256" } };
-  return await window.crypto.subtle
+  return crypto.subtle
     .importKey("raw", base64ToUint8Array(key), algorithm, false, ["sign"])
     .then((key) =>
-      window.crypto.subtle.sign(algorithm, key, new TextEncoder().encode(data))
+      crypto.subtle.sign(algorithm, key, new TextEncoder().encode(data))
     )
     .then((signature) => new Uint8Array(signature))
     .then(uint8ArrayToString);

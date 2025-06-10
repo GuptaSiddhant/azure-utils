@@ -18,24 +18,15 @@ import type {
   FeatureFlagServiceOptions,
 } from "./utils/app-config.js";
 import { invariantAppConfigurationClient } from "./utils/app-config.js";
-import { validateFeatureFlag } from "./validate.js";
-import type {
-  FeatureFlag,
-  FeatureFlagVariant,
-  FeatureFlagWithFiltersValidateOptions,
-  FeatureFlagWithVariantsValidateOptions,
-  FeatureFlagsRecord,
-} from "./types.js";
+import type { FeatureFlag, FeatureFlagsRecord } from "./types.js";
 import { AppConfigurationClientLite } from "./client.js";
 
 export type { FeatureFlagServiceOptions } from "./utils/app-config.js";
 export type {
   FeatureFlag,
   FeatureFlagsRecord,
-  FeatureFlagVariant,
-  FeatureFlagVariantName,
-  FeatureFlagWithFiltersValidateOptions,
-  FeatureFlagWithVariantsValidateOptions,
+  FeatureFlagWithVariants,
+  FeatureFlagWithFilters,
 } from "./types.js";
 
 /**
@@ -54,7 +45,6 @@ export type {
  * const featureFlagsRecord = await service.getAllAsRecord();
  * const featureFlagsList = await service.getAllAsList();
  * const featureFlag = await service.getByKey("flag-id");
- * const enabledOrVariant = await service.getByKeyAndValidate("flag-id", { groups: ["admin"] });
  * const deleted = await service.delete("flag-id")
  * ```
  */
@@ -97,16 +87,5 @@ export class FeatureFlagService {
 
   async delete(key: string, label?: string): Promise<boolean> {
     return await deleteFeatureFlag(this.#client, key, label);
-  }
-
-  async getByKeyAndValidate(
-    key: string,
-    options:
-      | FeatureFlagWithFiltersValidateOptions
-      | FeatureFlagWithVariantsValidateOptions
-  ): Promise<boolean | FeatureFlagVariant> {
-    const featureFlag = await this.getByKey(key);
-
-    return await validateFeatureFlag(featureFlag, options);
   }
 }
