@@ -219,11 +219,11 @@ function summarizeRegistration({
 }
 
 function getMockFilepath() {
-  let nodeModulesPath;
+  let filepath;
   let level = 0;
-  const name = "@azure-utils/functions-vite-plugin";
+  const name = "@azure-utils/functions-vite-plugin/mock.mjs";
 
-  while (!nodeModulesPath || level < 5) {
+  while (!filepath || level < 5) {
     const nmPath = join(
       cwd(),
       ...Array(level).fill(".."),
@@ -231,17 +231,17 @@ function getMockFilepath() {
       ...name.split("/")
     );
     if (existsSync(nmPath)) {
-      nodeModulesPath = nmPath;
+      filepath = nmPath;
       break;
     }
     level++;
   }
 
-  if (!nodeModulesPath) {
+  if (!filepath) {
     throw new Error(
       `Could not find node_modules/${name} folder in current or parent directory.`
     );
   }
 
-  return join(nodeModulesPath, "mock.mjs");
+  return filepath;
 }

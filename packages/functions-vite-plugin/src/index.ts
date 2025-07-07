@@ -60,10 +60,15 @@ export default function azureFunctionsVitePlugin(
     typecheck = true,
     buildVerify = true,
   } = options;
-  const inputFilesGlob = join(inputDirname, "**", "*.ts");
+  const inputFilesGlobs = [
+    join(inputDirname, "**", "*.ts"),
+    join(inputDirname, "**", "*.tsx"),
+  ];
   const inputFilesGlobIgnore = [
     join(inputDirname, "**", "*.spec.ts"),
+    join(inputDirname, "**", "*.spec.tsx"),
     join(inputDirname, "**", "*.test.ts"),
+    join(inputDirname, "**", "*.test.tsx"),
   ];
 
   let isWatching = false;
@@ -102,7 +107,7 @@ export default function azureFunctionsVitePlugin(
       const pkgJson = JSON.parse(
         readFileSync(join(rootPath, "package.json"), "utf-8")
       );
-      const inputFiles = glob.sync(inputFilesGlob, {
+      const inputFiles = glob.sync(inputFilesGlobs, {
         ignore: inputFilesGlobIgnore,
       });
 
@@ -114,7 +119,7 @@ export default function azureFunctionsVitePlugin(
       config.build.outDir = outputDirname;
       config.build.lib = {
         name: pkgJson.name,
-        entry: inputFilesGlob,
+        entry: inputFilesGlobs,
         formats: ["cjs"],
       };
       config.build.rollupOptions = {
