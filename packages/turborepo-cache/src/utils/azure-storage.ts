@@ -100,7 +100,8 @@ async function createAzureBlobStorage({
       throw new Error("Container not found");
     }
   } catch {
-    await blobServiceClient.createContainer(containerName);
+    containerClient = (await blobServiceClient.createContainer(containerName))
+      .containerClient;
   }
 
   return {
