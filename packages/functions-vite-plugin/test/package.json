@@ -1,6 +1,7 @@
 {
   "name": "azure-utils-functions-vite-plugin-test",
   "version": "0.0.0",
+  "type": "module",
   "main": "dist/{index.js,functions/*.js}",
   "devDependencies": {
     "durable-functions": "*",

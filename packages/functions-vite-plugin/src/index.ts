@@ -33,6 +33,16 @@ export type AzureFunctionsPluginOptions = {
    */
   outputDirname?: string;
   /**
+   * Override output name used. Defaults to 'name' field in package.json
+   */
+  outputName?: string;
+  /**
+   * Output format. By default it matches the 'type' property in package.json.
+   * If nothing is provided, 'commonjs' is used. Can be overridden to output ESmodules.
+   *
+   */
+  outputFormat?: "commonjs" | "module";
+  /**
    * Option to generate source maps. @default true
    */
   sourceMap?: boolean;
@@ -56,6 +66,8 @@ export default function azureFunctionsVitePlugin(
     rootPath = cwd(),
     inputDirname = "src",
     outputDirname = "dist",
+    outputName,
+    outputFormat,
     sourceMap = true,
     typecheck = true,
     buildVerify = true,
@@ -107,9 +119,44 @@ export default function azureFunctionsVitePlugin(
       const pkgJson = JSON.parse(
         readFileSync(join(rootPath, "package.json"), "utf-8")
       );
+
+      const mainField: string | undefined = pkgJson["main"];
+      if (!mainField) {
+        log(
+          "warn",
+          "The 'main' field is missing in package.json. It is required for Azure Functions to find the output."
+        );
+      } else {
+        if (
+          !mainField.startsWith(`${outputDirname}/`) ||
+          !mainField.startsWith(`./${outputDirname}/`) ||
+          !mainField.startsWith(`${outputDirname}\\`) ||
+          !mainField.startsWith(`.\\${outputDirname}\\`)
+        ) {
+          const mainOptions = [
+            join(outputDirname, "{index.js,functions/*.js}"),
+            join(outputDirname, "index.js"),
+            join(outputDirname, "**", "*.js"),
+          ];
+
+          log(
+            "warn",
+            `The 'main' field is not pointing to the outputDirname '${outputDirname}'.`,
+            `Update it to ${mainOptions
+              .map((opt) => `'${opt}'`)
+              .join(", ")} or similar.`
+          );
+        }
+      }
+
       const inputFiles = glob.sync(inputFilesGlobs, {
         ignore: inputFilesGlobIgnore,
       });
+
+      const formatType: "cjs" | "es" =
+        pkgJson["type"] === "module" || outputFormat === "module"
+          ? "es"
+          : "cjs";
 
       // Build
       if (!config.build) {
@@ -118,9 +165,9 @@ export default function azureFunctionsVitePlugin(
       config.build.emptyOutDir = !isWatching;
       config.build.outDir = outputDirname;
       config.build.lib = {
-        name: pkgJson.name,
+        name: outputName || pkgJson.name,
         entry: inputFilesGlobs,
-        formats: ["cjs"],
+        formats: [formatType],
       };
       config.build.rollupOptions = {
         input: inputFiles,
