@@ -1,5 +1,11 @@
 # Azure Feature Flags
 
+> Azure has published an official library to manager Feature Flags in JS
+>
+> [@microsoft/feature-management](https://www.npmjs.com/package/@microsoft/feature-management)
+>
+> Migrate to this library for most up-to-date support.
+
 **Get/set and validate feature flags from Azure App Configuration.**
 
 [View demo app](https://git.guptasiddhant.com/azure-utils/): Use your own Azure App Configuration to see what Feature Flags are available and how they validate.
