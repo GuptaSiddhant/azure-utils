@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/turborepo-cache",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "description": "Utils to deploy TurboRepo Remote Cache on Azure Functions.",
   "author": {
@@ -56,11 +56,11 @@
   },
   "devDependencies": {
     "@azure-utils/functions-vite-plugin": "workspace:*",
-    "@azure/functions": "^4.7.0",
-    "@azure/storage-blob": "^12.27.0",
-    "@types/node": "^22.0.0",
-    "rolldown": "^1.0.0-beta.8",
-    "typescript": "^5.8.0"
+    "@azure/functions": "^4.7.2",
+    "@azure/storage-blob": "^12.28.0",
+    "@types/node": "^22.16.5",
+    "rolldown": "latest",
+    "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "@azure/functions": ">=4.0.0",
