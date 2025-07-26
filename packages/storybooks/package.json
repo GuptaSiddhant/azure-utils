@@ -1,0 +1,80 @@
+{
+  "name": "@azure-utils/storybooks",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Utils to upload and manage Storybooks via Azure Functions and storage.",
+  "author": {
+    "name": "Siddhant Gupta",
+    "url": "https://guptasiddhant.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/guptasiddhant/azure-utils",
+    "directory": "packages/storybooks"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/guptasiddhant/azure-utils/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "azure",
+    "functions",
+    "azure-functions",
+    "storybook",
+    "storybooks",
+    "chromatic",
+    "storage",
+    "blob",
+    "upload",
+    "table",
+    "compress"
+  ],
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "internal": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "main": "./test.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "azurite": "npx -y azurite --skipApiVersionCheck -s -l ./.azurite",
+    "build": "rolldown -c ../../scripts/rolldown.config.ts",
+    "bump": "node ../../scripts/bump-version.mjs",
+    "dev": "rolldown -c ../../scripts/rolldown.config.ts --watch",
+    "clear": "rm -rf *.cjs *.d.ts coverage dist & true",
+    "jsr:publish": "npx -y jsr publish",
+    "start": "func start",
+    "verify": "yarn clear; yarn build"
+  },
+  "dependencies": {
+    "decompress": "^4.2.1"
+  },
+  "devDependencies": {
+    "@azure-utils/functions-vite-plugin": "workspace:*",
+    "@azure/functions": "^4.7.2",
+    "@azure/storage-blob": "^12.28.0",
+    "@types/decompress": "^4.2.7",
+    "@types/node": "^22.16.5",
+    "azure-functions-core-tools": "^4.1.0",
+    "rolldown": "latest",
+    "typescript": "^5.8.3",
+    "zod": "^4.0.10"
+  },
+  "peerDependencies": {
+    "@azure/functions": ">=4.0.0",
+    "@azure/storage-blob": ">=12.0.0",
+    "zod": ">=3.0.0 || >=4.0.0"
+  }
+}
