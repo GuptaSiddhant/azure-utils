@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/functions-vite-plugin",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "type": "module",
   "description": "Vite plugin to build and verify Azure functions nodejs.",
   "author": {
@@ -58,11 +58,11 @@
     "verify": "yarn clear; yarn build"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "glob": "^10",
-    "rolldown": "1.0.0-beta.8",
-    "typescript": "^5.8.0",
-    "vite": "^7"
+    "@types/node": "^22.16.5",
+    "glob": "^10.4.5",
+    "rolldown": "latest",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.0"
   },
   "peerDependencies": {
     "glob": "*",
