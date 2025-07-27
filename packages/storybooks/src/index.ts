@@ -19,6 +19,7 @@ import {
 import { uploadStorybookHandler } from "./handlers/upload-handler";
 import { onStorybookUploadedHandler } from "./handlers/on-uploaded-handler";
 import { serveStorybookHandler } from "./handlers/serve-handler";
+import { deleteStorybookHandler } from "./handlers/delete-handler";
 
 export function registerStorybooksRouter(
   options: RegisterStorybooksRouterOptions = {}
@@ -58,7 +59,7 @@ export function registerStorybooksRouter(
     authLevel,
     route,
     methods: ["DELETE"],
-    handler: async () => ({ status: 415 }),
+    handler: deleteStorybookHandler(handlerOptions),
   });
 
   app.http(`${SERVICE_NAME}-serve`, {

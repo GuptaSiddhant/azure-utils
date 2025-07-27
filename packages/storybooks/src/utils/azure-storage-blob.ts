@@ -5,12 +5,21 @@ import {
   BlobServiceClient,
   type ContainerCreateOptions,
   type ContainerClient,
+  type BlobClient,
 } from "@azure/storage-blob";
 import { getMimeType } from "./mime-utils";
 import { parseErrorMessage } from "./error-utils";
+import { RouterHandlerOptions } from "./types";
 
 export function getAzureStorageBlobServiceClient(connectionString: string) {
   return BlobServiceClient.fromConnectionString(connectionString);
+}
+export function getAzureStorageBlobContainerClient(
+  options: RouterHandlerOptions
+) {
+  return BlobServiceClient.fromConnectionString(
+    options.connectionString
+  ).getContainerClient(options.containerName);
 }
 
 export async function getOrCreateAzureStorageBlobContainerClientOrThrow(
@@ -92,4 +101,36 @@ export async function uploadDirToAzureBlobStorage(
   }
 
   return;
+}
+
+export async function deleteBlobsFromAzureStorageContainerOrThrow(
+  context: InvocationContext,
+  containerClient: ContainerClient,
+  prefix: string
+) {
+  const blobClientsToDelete: BlobClient[] = [];
+  for await (const blob of containerClient.listBlobsFlat({ prefix })) {
+    blobClientsToDelete.push(containerClient.getBlobClient(blob.name));
+  }
+
+  if (blobClientsToDelete.length === 0) {
+    context.log(`No blobs found with the prefix '${prefix}'.`);
+    return;
+  }
+
+  const response = await containerClient
+    .getBlobBatchClient()
+    .deleteBlobs(blobClientsToDelete);
+
+  if (response.errorCode) {
+    context.error(
+      `Failed to delete blobs with prefix '${prefix}'. Error: ${response.errorCode}`
+    );
+    throw new Error(`Failed to delete blobs: ${response.errorCode}`);
+  }
+
+  context.info(
+    `Successfully deleted ${blobClientsToDelete.length} blobs with prefix '${prefix}'.`
+  );
+  return response;
 }
