@@ -57,7 +57,7 @@
     "verify": "yarn clear; yarn build"
   },
   "dependencies": {
-    "decompress": "^4.2.1"
+    "decompress": "^4.0.0"
   },
   "devDependencies": {
     "@azure-utils/functions-vite-plugin": "workspace:*",

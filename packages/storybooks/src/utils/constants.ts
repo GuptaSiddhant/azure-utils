@@ -7,3 +7,5 @@ export const DEFAULT_STORAGE_CONN_STR_ENV_VAR = "AzureWebJobsStorage";
 export const DEFAULT_PURGE_SCHEDULE_CRON = "0 0 0 * * *";
 
 export const CACHE_CONTROL_PUBLIC_YEAR = "public, max-age=31536000, immutable";
+
+export const DEFAULT_PURGE_AFTER_DAYS = 30;

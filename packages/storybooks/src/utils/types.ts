@@ -2,6 +2,7 @@ import type {
   HttpHandler,
   HttpTriggerOptions,
   StorageBlobHandler,
+  TimerHandler,
 } from "@azure/functions";
 import type { TableEntityResult } from "@azure/data-tables";
 import type { StorybookMetadata } from "./schemas";
@@ -44,6 +45,12 @@ export type RegisterStorybooksRouterOptions = {
    * @default "0 0 0 * * *" // Every midnight
    */
   purgeScheduleCron?: string | null;
+
+  /**
+   * Number of days after which storybooks are purged.
+   * @default 30
+   */
+  purgeAfterDays?: number;
 };
 
 /**
@@ -60,6 +67,11 @@ export interface RouterHandlerOptions {
    * Azure Storage Connection String. Defaults to `env['AzureWebJobsStorage']`.
    */
   connectionString: string;
+
+  /**
+   * Number of days after which storybooks are purged.
+   */
+  purgeAfterDays: number;
 }
 
 /** @private */
@@ -71,6 +83,11 @@ export type StorybooksRouterHttpHandler = (
 export type StorybooksRouterStorageBlobHandler = (
   handlerOptions: RouterHandlerOptions
 ) => StorageBlobHandler;
+
+/** @private */
+export type StorybooksRouterTimerHandler = (
+  handlerOptions: RouterHandlerOptions
+) => TimerHandler;
 
 /** @private */
 export type AzureFunctionsStorageBlobTriggerMetadata<

@@ -12,6 +12,7 @@ import type {
 } from "./utils/types";
 import {
   DEFAULT_CONTAINER_NAME,
+  DEFAULT_PURGE_AFTER_DAYS,
   DEFAULT_PURGE_SCHEDULE_CRON,
   DEFAULT_STORAGE_CONN_STR_ENV_VAR,
   SERVICE_NAME,
@@ -20,16 +21,18 @@ import { uploadStorybookHandler } from "./handlers/upload-handler";
 import { onStorybookUploadedHandler } from "./handlers/on-uploaded-handler";
 import { serveStorybookHandler } from "./handlers/serve-handler";
 import { deleteStorybookHandler } from "./handlers/delete-handler";
+import { timerPurgeHandler } from "./handlers/timer-purge-handler";
 
 export function registerStorybooksRouter(
   options: RegisterStorybooksRouterOptions = {}
 ) {
   const {
     authLevel,
-    route = SERVICE_NAME,
+    route,
     storageConnectionStringEnvVar = DEFAULT_STORAGE_CONN_STR_ENV_VAR,
     storageContainerName = DEFAULT_CONTAINER_NAME,
     purgeScheduleCron,
+    purgeAfterDays = DEFAULT_PURGE_AFTER_DAYS,
   } = options;
 
   const storageConnectionString = process.env[storageConnectionStringEnvVar];
@@ -44,27 +47,30 @@ export function registerStorybooksRouter(
   const handlerOptions: RouterHandlerOptions = {
     containerName: storageContainerName,
     connectionString: storageConnectionString,
+    purgeAfterDays,
   };
+
+  const fullRoute = `${route || SERVICE_NAME}/{**path}`;
 
   app.setup({ enableHttpStream: true });
 
   app.http(`${SERVICE_NAME}-upload`, {
     authLevel,
-    route,
+    route: fullRoute,
     methods: ["POST"],
     handler: uploadStorybookHandler(handlerOptions),
   });
 
   app.http(`${SERVICE_NAME}-delete`, {
     authLevel,
-    route,
+    route: fullRoute,
     methods: ["DELETE"],
     handler: deleteStorybookHandler(handlerOptions),
   });
 
   app.http(`${SERVICE_NAME}-serve`, {
     authLevel,
-    route: `${route}/{**path}`,
+    route: fullRoute,
     methods: ["GET"],
     handler: serveStorybookHandler(handlerOptions),
   });
@@ -78,7 +84,8 @@ export function registerStorybooksRouter(
   if (purgeScheduleCron !== null) {
     app.timer(`${SERVICE_NAME}-timer_purge`, {
       schedule: purgeScheduleCron || DEFAULT_PURGE_SCHEDULE_CRON,
-      handler: async () => {},
+      runOnStartup: true,
+      handler: timerPurgeHandler(handlerOptions),
     });
   }
 }
