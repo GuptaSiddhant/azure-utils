@@ -43,6 +43,7 @@ jobs:
           - "packages/durable-functions"
           - "packages/functions-vite-plugin"
           - "packages/turborepo-cache"
+          - "packages/storybooks"
 
     uses: "./.github/workflows/_shared-publish.yml"
     secrets: inherit
