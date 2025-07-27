@@ -23,6 +23,12 @@ import { serveStorybookHandler } from "./handlers/serve-handler";
 import { deleteStorybookHandler } from "./handlers/delete-handler";
 import { timerPurgeHandler } from "./handlers/timer-purge-handler";
 
+export type { RegisterStorybooksRouterOptions };
+
+/**
+ * Function to register all routes required to manage the Storybooks including
+ * GET, POST and DELETE methods.
+ */
 export function registerStorybooksRouter(
   options: RegisterStorybooksRouterOptions = {}
 ) {
