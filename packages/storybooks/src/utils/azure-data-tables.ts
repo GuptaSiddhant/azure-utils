@@ -56,9 +56,11 @@ export async function upsertStorybookProjectToAzureTable(
     {
       partitionKey: "projects",
       rowKey: metadata.project,
-      ...metadata,
+      name: metadata.project,
+      latestCommitSha: metadata.commitSha,
+      gitHubRepo: metadata.gitHubRepo,
     },
-    "Replace"
+    "Merge"
   );
 }
 

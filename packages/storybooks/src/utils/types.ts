@@ -1,6 +1,8 @@
 import type {
   HttpHandler,
+  HttpRequest,
   HttpTriggerOptions,
+  InvocationContext,
   StorageBlobHandler,
   TimerHandler,
 } from "@azure/functions";
@@ -126,3 +128,9 @@ export type AzureFunctionsStorageBlobTriggerMetadata<
 } & Record<Params, string>;
 
 export type StorybookTableEntity = TableEntityResult<StorybookMetadata>;
+
+export type ServeFnOptions = {
+  context: InvocationContext;
+  options: RouterHandlerOptions;
+  request: HttpRequest;
+};
