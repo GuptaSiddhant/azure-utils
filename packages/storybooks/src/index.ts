@@ -18,6 +18,7 @@ import {
 } from "./utils/constants";
 import { uploadStorybookHandler } from "./handlers/upload-handler";
 import { onStorybookUploadedHandler } from "./handlers/on-uploaded-handler";
+import { serveStorybookHandler } from "./handlers/serve-handler";
 
 export function registerStorybooksRouter(
   options: RegisterStorybooksRouterOptions = {}
@@ -62,9 +63,9 @@ export function registerStorybooksRouter(
 
   app.http(`${SERVICE_NAME}-serve`, {
     authLevel,
-    route,
-    methods: ["GET", "HEAD"],
-    handler: async () => ({ status: 415 }),
+    route: `${route}/{**path}`,
+    methods: ["GET"],
+    handler: serveStorybookHandler(handlerOptions),
   });
 
   app.storageBlob(`${SERVICE_NAME}-on_uploaded`, {

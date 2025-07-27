@@ -7,16 +7,23 @@ import { readPackageJson } from "./package-common-utils.mjs";
 
 const pkgJson = readPackageJson();
 
+const isWatchMode =
+  process.argv.includes("--watch") || process.argv.includes("-w");
+
 // Remove the dist directory if it exists
 try {
   rmSync("dist", { recursive: true, force: true });
 } catch {}
 
 // Generate type declarations
-execSync("tsc --emitDeclarationOnly", { stdio: "inherit" });
+if (!isWatchMode) {
+  execSync("tsc --emitDeclarationOnly", { stdio: "inherit" });
+}
 
 // Generate export files to support older node versions
-generateExportFiles(getPackageExports(pkgJson));
+if (!isWatchMode) {
+  generateExportFiles(getPackageExports(pkgJson));
+}
 
 const commonOptions: RolldownOptions = {
   input: globSync("src/**/*.ts", {
@@ -41,13 +48,13 @@ export default defineConfig([
       chunkFileNames: "[name]-[hash].mjs",
     },
   },
-  {
-    ...commonOptions,
-    output: {
-      ...commonOptions.output,
-      format: "cjs",
-      entryFileNames: "[name].cjs",
-      chunkFileNames: "[name]-[hash].cjs",
-    },
-  },
+  // {
+  //   ...commonOptions,
+  //   output: {
+  //     ...commonOptions.output,
+  //     format: "cjs",
+  //     entryFileNames: "[name].cjs",
+  //     chunkFileNames: "[name]-[hash].cjs",
+  //   },
+  // },
 ]);

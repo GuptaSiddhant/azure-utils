@@ -45,9 +45,7 @@
       "default": "./dist/index.mjs"
     }
   },
-  "main": "./test.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./test.mjs",
   "scripts": {
     "azurite": "npx -y azurite --skipApiVersionCheck -s -l ./.azurite",
     "build": "rolldown -c ../../scripts/rolldown.config.ts",
@@ -63,6 +61,7 @@
   },
   "devDependencies": {
     "@azure-utils/functions-vite-plugin": "workspace:*",
+    "@azure/data-tables": "^13.3.1",
     "@azure/functions": "^4.7.2",
     "@azure/storage-blob": "^12.28.0",
     "@types/decompress": "^4.2.7",
@@ -73,8 +72,9 @@
     "zod": "^4.0.10"
   },
   "peerDependencies": {
+    "@azure/data-tables": ">=13.0.0",
     "@azure/functions": ">=4.0.0",
     "@azure/storage-blob": ">=12.0.0",
-    "zod": ">=3.0.0 || >=4.0.0"
+    "zod": "^3.25.0 || ^4.0.0"
   }
 }

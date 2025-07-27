@@ -3,6 +3,8 @@ import type {
   HttpTriggerOptions,
   StorageBlobHandler,
 } from "@azure/functions";
+import type { TableEntityResult } from "@azure/data-tables";
+import type { StorybookMetadata } from "./schemas";
 
 /**
  * Options to register the storybooks router
@@ -105,3 +107,5 @@ export type AzureFunctionsStorageBlobTriggerMetadata<
     };
   };
 } & Record<Params, string>;
+
+export type StorybookTableEntity = TableEntityResult<StorybookMetadata>;

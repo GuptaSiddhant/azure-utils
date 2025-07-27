@@ -6,7 +6,7 @@ import {
   getAzureStorageBlobServiceClient,
   uploadDirToAzureBlobStorage,
 } from "../utils/azure-storage-blob";
-import { StorybookMetadata } from "../utils/schemas";
+import type { StorybookMetadata } from "../utils/schemas";
 import type {
   AzureFunctionsStorageBlobTriggerMetadata,
   StorybooksRouterStorageBlobHandler,
@@ -22,6 +22,9 @@ export const onStorybookUploadedHandler: StorybooksRouterStorageBlobHandler =
         StorybookMetadata
       >;
 
+    const project = triggerMetadata.project.toString();
+    const sha = triggerMetadata.sha.toString();
+
     const containerClient =
       getAzureStorageBlobServiceClient(connectionString).getContainerClient(
         containerName
@@ -35,19 +38,16 @@ export const onStorybookUploadedHandler: StorybooksRouterStorageBlobHandler =
       );
     }
 
-    await decompress(blob, dirpath);
+    try {
+      await decompress(blob, dirpath);
 
-    await uploadDirToAzureBlobStorage(
-      context,
-      containerClient,
-      dirpath,
-      (blobName) =>
-        path.join(
-          triggerMetadata.project,
-          triggerMetadata.sha.toString(),
-          blobName
-        )
-    );
-
-    fs.rmSync(dirpath, { recursive: true, force: true });
+      await uploadDirToAzureBlobStorage(
+        context,
+        containerClient,
+        dirpath,
+        (blobName) => path.join(project, sha, blobName)
+      );
+    } finally {
+      fs.rmSync(dirpath, { recursive: true, force: true });
+    }
   };

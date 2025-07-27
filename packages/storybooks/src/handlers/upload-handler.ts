@@ -8,6 +8,10 @@ import { getOrCreateAzureStorageBlobContainerClientOrThrow } from "../utils/azur
 import { responseError } from "../utils/error-utils";
 import { storybookMetadataSchema } from "../utils/schemas";
 import type { StorybooksRouterHttpHandler } from "../utils/types";
+import {
+  upsertStorybookMetadataToAzureTable,
+  upsertStorybookProjectToAzureTable,
+} from "../utils/azure-data-tables";
 
 export const uploadStorybookHandler: StorybooksRouterHttpHandler =
   (options) => async (request, context) => {
@@ -57,6 +61,11 @@ export const uploadStorybookHandler: StorybooksRouterHttpHandler =
           uploadResponse._response.status
         );
       }
+
+      await Promise.allSettled([
+        upsertStorybookMetadataToAzureTable(options, context, metadata),
+        upsertStorybookProjectToAzureTable(options, context, metadata),
+      ]);
 
       return {
         status: 202,
