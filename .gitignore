@@ -37,3 +37,5 @@ public/sprite*
 *.d.ts
 
 !app/*.d.ts
+
+.azurite

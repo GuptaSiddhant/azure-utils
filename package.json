@@ -15,6 +15,7 @@
     "df": "yarn --cwd ./packages/durable-functions",
     "ff": "yarn --cwd ./packages/feature-flags",
     "fvp": "yarn --cwd ./packages/functions-vite-plugin",
+    "sb": "yarn --cwd ./packages/storybooks",
     "trc": "yarn --cwd ./packages/turborepo-cache"
   }
 }

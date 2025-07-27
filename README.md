@@ -29,6 +29,15 @@ A modern and faster way to build Azure Function app written in TypeScript. The p
 - NPM: https://www.npmjs.com/package/@azure-utils/functions-vite-plugin
 - JSR: https://jsr.io/@azure-utils/functions-vite-plugin
 
+## Storybooks manager (`@azure-utils/storybooks`)
+
+A helper library to manage multiple versions storybooks using Azure Functions and Storage.
+
+[Read more...](./packages/storybooks/README.md)
+
+- NPM: https://www.npmjs.com/package/@azure-utils/storybooks
+- JSR: https://jsr.io/@azure-utils/storybooks
+
 ## TurboRepo remote cache (`@azure-utils/turborepo-cache`)
 
 An easy way to deploy TurboRepo remote cache using Azure Functions. The package registers all endpoints required for TurboRepo to sync with remote cache as per the spec.

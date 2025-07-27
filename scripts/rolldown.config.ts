@@ -2,10 +2,12 @@ import { defineConfig, type RolldownOptions } from "rolldown";
 import { globSync } from "glob";
 import { execSync } from "node:child_process";
 import { rmSync } from "node:fs";
-import { generateExportFiles, getPackageExports } from "./exports-files.mjs";
 import { readPackageJson } from "./package-common-utils.mjs";
 
 const pkgJson = readPackageJson();
+
+const isWatchMode =
+  process.argv.includes("--watch") || process.argv.includes("-w");
 
 // Remove the dist directory if it exists
 try {
@@ -13,10 +15,9 @@ try {
 } catch {}
 
 // Generate type declarations
-execSync("tsc --emitDeclarationOnly", { stdio: "inherit" });
-
-// Generate export files to support older node versions
-generateExportFiles(getPackageExports(pkgJson));
+execSync(`tsc --emitDeclarationOnly ${isWatchMode ? "--watch" : ""}`, {
+  stdio: "inherit",
+});
 
 const commonOptions: RolldownOptions = {
   input: globSync("src/**/*.ts", {
@@ -28,14 +29,14 @@ const commonOptions: RolldownOptions = {
     ...Object.keys(pkgJson["dependencies"] || {}),
     ...Object.keys(pkgJson["peerDependencies"] || {}),
   ],
-  output: { dir: "dist", sourcemap: true },
 };
 
 export default defineConfig([
   {
     ...commonOptions,
     output: {
-      ...commonOptions.output,
+      dir: "dist",
+      sourcemap: true,
       format: "esm",
       entryFileNames: "[name].mjs",
       chunkFileNames: "[name]-[hash].mjs",
@@ -44,7 +45,7 @@ export default defineConfig([
   {
     ...commonOptions,
     output: {
-      ...commonOptions.output,
+      dir: "dist",
       format: "cjs",
       entryFileNames: "[name].cjs",
       chunkFileNames: "[name]-[hash].cjs",
