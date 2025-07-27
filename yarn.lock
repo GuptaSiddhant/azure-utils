@@ -69,10 +69,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@azure-utils/storybooks@workspace:packages/storybooks"
   dependencies:
-    "@azure-utils/functions-vite-plugin": "workspace:*"
-    "@azure/data-tables": "npm:^13.3.1"
-    "@azure/functions": "npm:^4.7.2"
-    "@azure/storage-blob": "npm:^12.28.0"
+    "@azure/data-tables": "npm:^13.0.0"
+    "@azure/functions": "npm:^4.0.0"
+    "@azure/storage-blob": "npm:^12.0.0"
     "@types/decompress": "npm:^4.2.7"
     "@types/node": "npm:^22.16.5"
     azure-functions-core-tools: "npm:^4.1.0"
@@ -81,12 +80,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     zod: "npm:^4.0.10"
   peerDependencies:
-    "@azure/data-tables": ">=13.0.0"
-    "@azure/functions": ">=4.0.0"
-    "@azure/storage-blob": ">=12.0.0"
     zod: ^3.25.0 || ^4.0.0
-  bin:
-    storybooks: ./bin/index.mjs
   languageName: unknown
   linkType: soft
 
@@ -229,7 +223,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/data-tables@npm:^13.3.1":
+"@azure/data-tables@npm:^13.0.0":
   version: 13.3.1
   resolution: "@azure/data-tables@npm:13.3.1"
   dependencies:
@@ -267,7 +261,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/storage-blob@npm:^12.28.0":
+"@azure/storage-blob@npm:^12.0.0, @azure/storage-blob@npm:^12.28.0":
   version: 12.28.0
   resolution: "@azure/storage-blob@npm:12.28.0"
   dependencies:
