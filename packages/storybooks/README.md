@@ -1,109 +1,92 @@
-# Azure Functions TurboRepo Remote Cache Router
+# Azure Functions Storybooks management Router
 
-An easy way to deploy TurboRepo remote cache using Azure Functions. The package registers all endpoints required for TurboRepo to sync with remote cache as per the spec.
-
-Refer [TurboRepo Cache Spec](https://turborepo.com/docs/openapi)
+An easy way to deploy Storybooks management using Azure Functions. The package registers all endpoints required for upload, delete and serve storybooks.
 
 > Only works with **V4** functions written in TypeScript/JavaScript.
 
-[![NPM](https://img.shields.io/npm/v/@azure-utils/turborepo-cache)](https://www.npmjs.com/package/@azure-utils/turborepo-cache)
-[![JSR](https://jsr.io/badges/@azure-utils/turborepo-cache)](https://jsr.io/badges/@azure-utils/turborepo-cache)
+[![NPM](https://img.shields.io/npm/v/@azure-utils/storybooks)](https://www.npmjs.com/package/@azure-utils/storybooks)
+[![JSR](https://jsr.io/badges/@azure-utils/storybooks)](https://jsr.io/badges/@azure-utils/storybooks)
 
 ## Install
 
 ### NPM
 
 ```sh
-npm i -D @azure-utils/turborepo-cache
-```
-
-```sh
-yarn add -D @azure-utils/turborepo-cache
-```
-
-```sh
-bun add -D @azure-utils/turborepo-cache
+npm i -D @azure-utils/storybooks zod
 ```
 
 ### JSR
 
 ```sh
-npx jsr add -D @azure-utils/turborepo-cache
-```
-
-```sh
-deno add -D @azure-utils/turborepo-cache
+deno add -D @azure-utils/storybooks npm:zod
 ```
 
 ## Build and deploy app
 
-The package exports a `registerCacheRouter` function which registers all endpoint required to work with TurboRepo remote cache.
+The package exports a `registerStorybooksRouter` function which registers all endpoint required.
 
-### 1. Register the router
+### Register the router
 
-Invoke the registration function is a file that is covered by Azure Functions. Normally this is the `index.ts` file. The function takes an optional options argument which can be used override default settings.
+Invoke the registration function is a file that is covered by Azure Functions. Normally this is the `index.js` file. The function takes an optional options argument which can be used override default settings.
 
 ```ts
-// src/index.ts
-import { registerCacheRouter } from "@azure-utils/turborepo-cache";
+// index.js
+import { registerStorybooksRouter } from "@azure-utils/storybooks";
 
-registerCacheRouter();
+registerStorybooksRouter();
 ```
 
 -- or --
 
 ```ts
-// src/index.ts
-import { registerCacheRouter } from "@azure-utils/turborepo-cache";
+// index.js
+import { registerStorybooksRouter } from "@azure-utils/storybooks";
 
-registerCacheRouter({
-  // Token used for authentication. Defaults to `env['TURBO_TOKEN']`.
-  turboToken: "",
-  // Azure Storage Connection String. Defaults to `env['AzureWebJobsStorage']`.
-  connectionString: "",
-  // Azure Storage Blob Container name. Defaults to `env['CONTAINER_NAME']` or `turborepocache`.
-  containerName: "",
-  // Enable/disable health check route
-  healthCheck: true,
+registerStorybooksRouter({
+   /**
+   * Define the route on which all router is placed.
+   *
+   * @default 'storybooks/'
+   */
+  route?: string;
+
+  /**
+   * The function HTTP authorization level Defaults to 'anonymous' if not specified.
+   */
+  authLevel?: HttpTriggerOptions["authLevel"];
+
+  /**
+   * Azure Storage Blob Container name.
+   * @default 'storybooks'
+   */
+  storageContainerName?: string;
+
+  /**
+   * Name of the Environment variable which stores
+   * the connection string to the Azure Storage resource.
+   * @default 'AzureWebJobsStorage'
+   */
+  storageConnectionStringEnvVar?: string;
+
+  /**
+   * Modify the cron-schedule of timer function
+   * which purge outdated storybooks.
+   *
+   * Pass `null` to disable auto-purge functionality.
+   *
+   * @default "0 0 0 * * *" // Every midnight
+   */
+  purgeScheduleCron?: string | null;
+
+  /**
+   * Number of days after which storybooks are purged.
+   * @default 30
+   */
+  purgeAfterDays?: number;
 });
 ```
 
-### 2. Update `host.json`
-
-Azure functions use `host.json` in app root to configure the settings for whole functions-app.
-
-Add/update the following setting to make sure there is no (empty) prefix before routes. If left unset, then Azure Functions may add `/api` prefix to routes which is incompatible with Turborepo cache spec.
-
-```json
-{
-  "extensions": {
-    "http": {
-      "routePrefix": ""
-    }
-  }
-}
-```
-
-### 3. Build app
-
-If you are using TypeScript, you can use any bundler to build the functions-app. The official template used `tsc`.
-
-If you wish to use Vite and add verification step (for peace of mind), checkout [Azure Functions Vite plugin](https://www.npmjs.com/package/@azure-utils/functions-vite-plugin).
-
-> The vite plugin should output something similar following to confirm the endpoints are discoverable
->
-> | Type        | Name                  | Options                          |
-> | ----------- | --------------------- | -------------------------------- |
-> | [http-GET]  | health-check          | {"route":"/"}                    |
-> | [http-GET]  | check-service-status  | {"route":"/v8/artifacts/status"} |
-> | [http-GET]  | download-artifact     | {"route":"/v8/artifacts/{hash}"} |
-> | [http-GET]  | openapi-spec          | {"route":"/v8/openapi"}          |
-> | [http-PUT]  | upload-artifact       | {"route":"/v8/artifacts/{hash}"} |
-> | [http-POST] | query-artifacts-info  | {"route":"/v8/artifacts"}        |
-> | [http-POST] | record-usage-events   | {"route":"/v8/artifacts/events"} |
-> | [http-HEAD] | check-artifact-exists | {"route":"/v8/artifacts/{hash}"} |
-
-### 4. Deploy app
+### Deploy app
 
 In order to deploy the app by CLI, CI or Azure plugin, you a need an Azure Functions resource in your Azure subscription.
 
