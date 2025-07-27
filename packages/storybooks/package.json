@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/storybooks",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "description": "Utils to upload and manage Storybooks via Azure Functions and storage.",
   "author": {
@@ -20,7 +20,8 @@
     "access": "public"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "keywords": [
     "azure",

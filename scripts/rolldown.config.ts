@@ -2,7 +2,6 @@ import { defineConfig, type RolldownOptions } from "rolldown";
 import { globSync } from "glob";
 import { execSync } from "node:child_process";
 import { rmSync } from "node:fs";
-import { generateExportFiles, getPackageExports } from "./exports-files.mjs";
 import { readPackageJson } from "./package-common-utils.mjs";
 
 const pkgJson = readPackageJson();
@@ -16,14 +15,9 @@ try {
 } catch {}
 
 // Generate type declarations
-if (!isWatchMode) {
-  execSync("tsc --emitDeclarationOnly", { stdio: "inherit" });
-}
-
-// Generate export files to support older node versions
-if (!isWatchMode) {
-  generateExportFiles(getPackageExports(pkgJson));
-}
+execSync(`tsc --emitDeclarationOnly ${isWatchMode ? "--watch" : ""}`, {
+  stdio: "inherit",
+});
 
 const commonOptions: RolldownOptions = {
   input: globSync("src/**/*.ts", {
@@ -35,26 +29,26 @@ const commonOptions: RolldownOptions = {
     ...Object.keys(pkgJson["dependencies"] || {}),
     ...Object.keys(pkgJson["peerDependencies"] || {}),
   ],
-  output: { dir: "dist", sourcemap: true },
 };
 
 export default defineConfig([
   {
     ...commonOptions,
     output: {
-      ...commonOptions.output,
+      dir: "dist",
+      sourcemap: true,
       format: "esm",
       entryFileNames: "[name].mjs",
       chunkFileNames: "[name]-[hash].mjs",
     },
   },
-  // {
-  //   ...commonOptions,
-  //   output: {
-  //     ...commonOptions.output,
-  //     format: "cjs",
-  //     entryFileNames: "[name].cjs",
-  //     chunkFileNames: "[name]-[hash].cjs",
-  //   },
-  // },
+  {
+    ...commonOptions,
+    output: {
+      dir: "dist",
+      format: "cjs",
+      entryFileNames: "[name].cjs",
+      chunkFileNames: "[name]-[hash].cjs",
+    },
+  },
 ]);

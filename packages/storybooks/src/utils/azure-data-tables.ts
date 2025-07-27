@@ -1,11 +1,9 @@
-import { TableClient, odata } from "@azure/data-tables";
+import { TableClient } from "@azure/data-tables";
 import type { RouterHandlerOptions, StorybookTableEntity } from "./types";
 import type { StorybookMetadata } from "./schemas";
 import type { InvocationContext } from "@azure/functions";
 
 type TableSuffix = "Projects" | "Commits";
-
-export { odata };
 
 export function getAzureTableClient(
   options: RouterHandlerOptions,

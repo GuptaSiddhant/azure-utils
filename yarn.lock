@@ -76,7 +76,7 @@ __metadata:
     "@types/decompress": "npm:^4.2.7"
     "@types/node": "npm:^22.16.5"
     azure-functions-core-tools: "npm:^4.1.0"
-    decompress: "npm:^4.2.1"
+    decompress: "npm:^4.0.0"
     rolldown: "npm:latest"
     typescript: "npm:^5.8.3"
     zod: "npm:^4.0.10"
@@ -2086,7 +2086,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"decompress@npm:^4.2.1":
+"decompress@npm:^4.0.0":
   version: 4.2.1
   resolution: "decompress@npm:4.2.1"
   dependencies:

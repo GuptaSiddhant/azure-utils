@@ -1,3 +1,8 @@
+// @ts-check
+
 import { registerStorybooksRouter } from "./dist/index.mjs";
 
-registerStorybooksRouter();
+/** @type {import("./dist/utils/types.d.ts").RegisterStorybooksRouterOptions} */
+const options = {};
+
+registerStorybooksRouter(options);
