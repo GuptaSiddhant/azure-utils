@@ -46,24 +46,28 @@
       "default": "./dist/index.mjs"
     }
   },
-  "main": "./test.mjs",
+  "main": "./start.mjs",
   "scripts": {
     "azurite": "npx -y azurite --skipApiVersionCheck -s -l ./.azurite",
     "build": "rolldown -c ../../scripts/rolldown.config.ts",
     "bump": "node ../../scripts/bump-version.mjs",
     "dev": "rolldown -c ../../scripts/rolldown.config.ts --watch",
-    "clear": "rm -rf *.cjs *.d.ts coverage dist & true",
+    "clear": "rm -rf coverage dist & true",
     "jsr:publish": "npx -y jsr publish",
     "start": "func start",
+    "test": "xss-scan",
     "verify": "yarn clear; yarn build"
   },
   "dependencies": {
     "@azure/data-tables": "^13.0.0",
     "@azure/functions": "^4.0.0",
     "@azure/storage-blob": "^12.0.0",
-    "decompress": "^4.0.0"
+    "@kitajs/html": "^4.2.9",
+    "decompress": "^4.0.0",
+    "zod-openapi": "^5.3.0"
   },
   "devDependencies": {
+    "@kitajs/ts-html-plugin": "^4.1.1",
     "@types/decompress": "^4.2.7",
     "@types/node": "^22.16.5",
     "azure-functions-core-tools": "^4.1.0",

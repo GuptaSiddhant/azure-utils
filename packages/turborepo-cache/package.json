@@ -41,6 +41,12 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs",
       "default": "./dist/index.mjs"
+    },
+    "./register": {
+      "internal": "./src/register.ts",
+      "types": "./dist/register.d.ts",
+      "require": "./dist/register.cjs",
+      "default": "./dist/register.mjs"
     }
   },
   "main": "./dist/index.cjs",

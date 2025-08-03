@@ -1,6 +1,6 @@
 import { defineConfig, type RolldownOptions } from "rolldown";
 import { globSync } from "glob";
-import { execSync } from "node:child_process";
+import { exec, execSync } from "node:child_process";
 import { rmSync } from "node:fs";
 import { readPackageJson } from "./package-common-utils.mjs";
 
@@ -11,13 +11,20 @@ const isWatchMode =
 
 // Remove the dist directory if it exists
 try {
-  rmSync("dist", { recursive: true, force: true });
+  if (!isWatchMode) {
+    rmSync("dist", { recursive: true, force: true });
+  }
 } catch {}
 
 // Generate type declarations
-execSync(`tsc --emitDeclarationOnly ${isWatchMode ? "--watch" : ""}`, {
-  stdio: "inherit",
-});
+if (isWatchMode) {
+  const p = exec(`tsc --emitDeclarationOnly --watch`);
+  p.on("close", () => {
+    console.log("TSC closed");
+  });
+} else {
+  execSync(`tsc --emitDeclarationOnly`, { stdio: "inherit" });
+}
 
 const commonOptions: RolldownOptions = {
   input: globSync("src/**/*.ts", {
@@ -29,6 +36,9 @@ const commonOptions: RolldownOptions = {
     ...Object.keys(pkgJson["dependencies"] || {}),
     ...Object.keys(pkgJson["peerDependencies"] || {}),
   ],
+  jsx: {
+    jsxImportSource: "@kitajs/html",
+  },
 };
 
 export default defineConfig([

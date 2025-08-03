@@ -86,6 +86,27 @@ registerStorybooksRouter({
 });
 ```
 
+### Update `host.json` (optional)
+
+Azure functions use `host.json` in app root to configure the settings for whole functions-app.
+
+Add/update the following setting to make sure there is no (empty) prefix before routes. If left unset, then Azure Functions may add `/api` prefix to routes which is undesirable for clean routing.
+
+```json
+{
+  "version": "2.0",
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  },
+  "extensions": {
+    "http": {
+      "routePrefix": ""
+    }
+  }
+}
+```
+
 ### Deploy app
 
 In order to deploy the app by CLI, CI or Azure plugin, you a need an Azure Functions resource in your Azure subscription.

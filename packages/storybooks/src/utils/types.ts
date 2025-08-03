@@ -53,6 +53,27 @@ export type RegisterStorybooksRouterOptions = {
    * @default 30
    */
   purgeAfterDays?: number;
+
+  /**
+   * Options to configure OpenAPI schema
+   */
+  openapi?: {
+    /**
+     * Enable or disable openAPI schema endpoint.
+     * @default true
+     */
+    enabled?: boolean;
+    /**
+     * Title of the OpenAPI schema
+     * @default SERVICE_NAME (storybooks)
+     */
+    title?: string;
+    /**
+     * A version visible in the OpenAPI schema.
+     * @default process.env['NODE_ENV']
+     */
+    version?: string;
+  };
 };
 
 /**
@@ -90,6 +111,11 @@ export type StorybooksRouterStorageBlobHandler = (
 export type StorybooksRouterTimerHandler = (
   handlerOptions: RouterHandlerOptions
 ) => TimerHandler;
+
+/** @private */
+export type StorybooksRouterOpenAPIHandler = (
+  handlerOptions: RegisterStorybooksRouterOptions["openapi"]
+) => HttpHandler;
 
 /** @private */
 export type AzureFunctionsStorageBlobTriggerMetadata<

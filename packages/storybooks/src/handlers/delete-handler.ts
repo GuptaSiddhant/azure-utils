@@ -6,9 +6,11 @@ import { purgeStorybookByCommitSha } from "../utils/storage-utils";
 
 export const deleteStorybookHandler: StorybooksRouterHttpHandler =
   (options) => async (request, context) => {
-    const queryParseResult = storybookDeleteQueryParamsSchema.safeParse(
-      Object.fromEntries(request.query.entries())
-    );
+    const queryParams = Object.fromEntries(request.query.entries());
+    context.log({ queryParams });
+
+    const queryParseResult =
+      storybookDeleteQueryParamsSchema.safeParse(queryParams);
     if (!queryParseResult.success) {
       return responseError(queryParseResult.error, context, 400);
     }
@@ -19,7 +21,7 @@ export const deleteStorybookHandler: StorybooksRouterHttpHandler =
         context,
         options,
         data.project,
-        data.commitSha
+        data.commitSha!
       );
 
       return { status: 204 };
@@ -31,9 +33,19 @@ export const deleteStorybookHandler: StorybooksRouterHttpHandler =
       );
       const branchEntities = await listAzureTableEntities(context, options, {
         tableSuffix: "Commits",
-        filter: `(project eq '${data.project}') and (branch eq '${data.branch}')`,
+        filter: `(project eq '${
+          data.project
+        }') and (branch eq '${data.branch!}')`,
         select: ["project", "commitSha"],
       });
+
+      if (branchEntities.length === 0) {
+        return {
+          status: 404,
+          body: `No commits found for branch '${data.branch}'.`,
+        };
+      }
+
       const promises = branchEntities.map((entity) =>
         purgeStorybookByCommitSha(
           context,

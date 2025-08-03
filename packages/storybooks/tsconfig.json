@@ -3,6 +3,10 @@
   "include": ["./src"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
-    "declarationDir": "./dist"
+    "declarationDir": "./dist",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@kitajs/html",
+    "plugins": [{ "name": "@kitajs/ts-html-plugin" }],
+    "types": ["@kitajs/html/htmx.d.ts"]
   }
 }

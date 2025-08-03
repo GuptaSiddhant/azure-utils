@@ -7,7 +7,9 @@
     "*.tsx": "${capture}.spec.*, ${capture}.test.*",
     "*.js": "${capture}.js.map, ${capture}.d.ts",
     "*.cjs": "${capture}.cjs.map, ${capture}.d.ts",
-    "*.mjs": "${capture}.mjs.map, ${capture}.d.ts"
+    "*.mjs": "${capture}.mjs.map, ${capture}.d.ts, ${capture}.cjs, ${capture}.cjs.map"
   },
-  "cSpell.words": ["rolldown", "turborepo", "vite"]
+  "cSpell.words": ["rolldown", "turborepo", "vite"],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

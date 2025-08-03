@@ -9,3 +9,14 @@ export const DEFAULT_PURGE_SCHEDULE_CRON = "0 0 0 * * *";
 export const CACHE_CONTROL_PUBLIC_YEAR = "public, max-age=31536000, immutable";
 
 export const DEFAULT_PURGE_AFTER_DAYS = 30;
+
+export const CONTENT_TYPES = {
+  ANY: "*/*",
+  JSON: "application/json",
+  HTML: "text/html",
+  ZIP: "application/zip",
+};
+export const SUPPORTED_CONTENT_TYPES = Object.values(CONTENT_TYPES);
+export const SUPPORTED_CONTENT_TYPES_MSG = `Only following content-type supported: ${SUPPORTED_CONTENT_TYPES.join(
+  ", "
+)}.`;
