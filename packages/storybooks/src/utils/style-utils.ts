@@ -22,6 +22,7 @@ export function globalStyleSheet() {
       --color-bg-card: #ffffff;
       --color-text-primary: #1d1d1d;
       --color-text-secondary: #444444;
+      --color-text-accent: #0000f0;
     }
 
     * {
@@ -92,6 +93,20 @@ export function globalStyleSheet() {
       text-align: start;
       padding: 0.5rem;
       color: var(--color-text-primary)
+    }
+
+    time {
+      font-family: monospace;
+      font-size: 0.9rem;
+      color: var(--color-text-secondary);
+    }
+
+    a, a:visited {
+      color: var(--color-text-accent);
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
     }
   `;
 }

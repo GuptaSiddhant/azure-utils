@@ -22,3 +22,5 @@ export const SUPPORTED_CONTENT_TYPES = Object.values(CONTENT_TYPES);
 export const SUPPORTED_CONTENT_TYPES_MSG = `Only following content-type supported: ${SUPPORTED_CONTENT_TYPES.join(
   ", "
 )}.`;
+
+export const PROJECTS_TABLE_PARTITION_KEY = "Default";

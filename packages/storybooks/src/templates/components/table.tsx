@@ -26,12 +26,13 @@ export function Table<T extends TableItem>({ columns, data }: TableProps<T>) {
           return (
             <tr>
               {columns.map((col) => {
-                if (col.cell) {
-                  return <td safe>{col.cell(item)}</td>;
-                }
-
-                const value = item[col.id];
+                const value = col.cell?.(item) || item[col.id];
                 if (!value) return <td />;
+
+                if (typeof value === "string") {
+                  const safeValue = value;
+                  return <td>{safeValue}</td>;
+                }
 
                 if (typeof value === "object") {
                   return <td safe>{JSON.stringify(value)}</td>;

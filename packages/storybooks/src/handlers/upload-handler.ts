@@ -9,9 +9,10 @@ import { responseError } from "../utils/error-utils";
 import { storybookMetadataSchema } from "../utils/schemas";
 import type { StorybooksRouterHttpHandler } from "../utils/types";
 import {
+  getAzureTableClient,
   upsertStorybookMetadataToAzureTable,
-  upsertStorybookProjectToAzureTable,
 } from "../utils/azure-data-tables";
+import { PROJECTS_TABLE_PARTITION_KEY } from "../utils/constants";
 
 export const uploadStorybookHandler: StorybooksRouterHttpHandler =
   (options) => async (request, context) => {
@@ -25,6 +26,19 @@ export const uploadStorybookHandler: StorybooksRouterHttpHandler =
         return responseError(queryParseResult.error, context, 400);
       }
       const metadata = queryParseResult.data;
+
+      try {
+        await getAzureTableClient(options, "Projects").getEntity(
+          PROJECTS_TABLE_PARTITION_KEY,
+          metadata.project
+        );
+      } catch {
+        return responseError(
+          `The project '${metadata.project}' does not exist.`,
+          context,
+          400
+        );
+      }
 
       const bodyValidationResponse = validateBody(request, context);
       if (typeof bodyValidationResponse === "object") {
@@ -62,10 +76,7 @@ export const uploadStorybookHandler: StorybooksRouterHttpHandler =
         );
       }
 
-      await Promise.allSettled([
-        upsertStorybookMetadataToAzureTable(options, context, metadata),
-        upsertStorybookProjectToAzureTable(options, context, metadata),
-      ]);
+      await upsertStorybookMetadataToAzureTable(options, context, metadata);
 
       return {
         status: 202,

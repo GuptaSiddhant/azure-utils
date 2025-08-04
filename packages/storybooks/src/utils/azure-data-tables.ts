@@ -6,6 +6,7 @@ import type {
 } from "./types";
 import type { StorybookMetadata, StorybookProject } from "./schemas";
 import type { InvocationContext } from "@azure/functions";
+import { PROJECTS_TABLE_PARTITION_KEY } from "./constants";
 
 type TableSuffix = "Projects" | "Commits";
 
@@ -46,7 +47,7 @@ export async function upsertStorybookProjectToAzureTable(
   options: RouterHandlerOptions,
   context: InvocationContext,
   data: StorybookProject,
-  userId = "default"
+  userId = PROJECTS_TABLE_PARTITION_KEY
 ): Promise<void> {
   context.info("Updating AzureTable with storybook project for", data.id);
   const tableClient = getAzureTableClient(options, "Projects");
