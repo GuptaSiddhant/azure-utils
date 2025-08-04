@@ -6,7 +6,7 @@ import type {
 import { Readable } from "node:stream";
 import { getOrCreateAzureStorageBlobContainerClientOrThrow } from "../utils/azure-storage-blob";
 import { responseError } from "../utils/error-utils";
-import { storybookUploadQueryParamsSchema } from "../utils/schemas";
+import { storybookMetadataSchema } from "../utils/schemas";
 import type { StorybooksRouterHttpHandler } from "../utils/types";
 import {
   upsertStorybookMetadataToAzureTable,
@@ -18,7 +18,7 @@ export const uploadStorybookHandler: StorybooksRouterHttpHandler =
     const { connectionString, containerName } = options;
 
     try {
-      const queryParseResult = storybookUploadQueryParamsSchema.safeParse(
+      const queryParseResult = storybookMetadataSchema.safeParse(
         Object.fromEntries(request.query.entries())
       );
       if (!queryParseResult.success) {

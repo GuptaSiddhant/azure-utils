@@ -31,13 +31,17 @@ export const deleteStorybookHandler: StorybooksRouterHttpHandler =
       context.info(
         `Deleting all Storybooks for project: ${data.project}, branch: ${data.branch}`
       );
-      const branchEntities = await listAzureTableEntities(context, options, {
-        tableSuffix: "Commits",
-        filter: `(project eq '${
-          data.project
-        }') and (branch eq '${data.branch!}')`,
-        select: ["project", "commitSha"],
-      });
+      const branchEntities = await listAzureTableEntities(
+        context,
+        options,
+        "Commits",
+        {
+          filter: `(project eq '${
+            data.project
+          }') and (branch eq '${data.branch!}')`,
+          select: ["project", "commitSha"],
+        }
+      );
 
       if (branchEntities.length === 0) {
         return {

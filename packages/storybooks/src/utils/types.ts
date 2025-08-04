@@ -7,7 +7,7 @@ import type {
   TimerHandler,
 } from "@azure/functions";
 import type { TableEntityResult } from "@azure/data-tables";
-import type { StorybookMetadata } from "./schemas";
+import type { StorybookMetadata, StorybookProject } from "./schemas";
 
 /**
  * Options to register the storybooks router
@@ -153,7 +153,8 @@ export type AzureFunctionsStorageBlobTriggerMetadata<
   };
 } & Record<Params, string>;
 
-export type StorybookTableEntity = TableEntityResult<StorybookMetadata>;
+export type StorybookMetadataTableEntity = TableEntityResult<StorybookMetadata>;
+export type StorybookProjectTableEntity = TableEntityResult<StorybookProject>;
 
 export type ServeFnOptions = {
   context: InvocationContext;

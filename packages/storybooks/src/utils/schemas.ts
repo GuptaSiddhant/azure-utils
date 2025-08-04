@@ -1,8 +1,7 @@
 import { z } from "zod/v4";
 
-export type StorybookMetadata = z.infer<
-  typeof storybookUploadQueryParamsSchema
->;
+export type StorybookMetadata = z.infer<typeof storybookMetadataSchema>;
+export type StorybookProject = z.infer<typeof storybookProjectSchema>;
 
 const projectNameSchema = z
   .string()
@@ -18,20 +17,21 @@ const commitShaSchema = z
 const branchSchema = z
   .string()
   .check(z.minLength(1, "Query-param 'branch' is required."));
+const gitHubRepo = z.string().check(
+  z.minLength(1, "Query-param 'gitHubRepo' is required."),
+  z.refine(
+    (val) => val.split("/").length === 2,
+    "Query-param 'gitHubRepo' should be in the format 'owner/repo'."
+  )
+);
 
-export const storybookUploadQueryParamsSchema = z
+export const storybookMetadataSchema = z
   .object({
     project: projectNameSchema,
     branch: branchSchema,
     commitSha: commitShaSchema,
     title: z.string().check(z.minLength(1, "Query-param 'title' is required.")),
-    gitHubRepo: z.string().check(
-      z.minLength(1, "Query-param 'gitHubRepo' is required."),
-      z.refine(
-        (val) => val.split("/").length === 2,
-        "Query-param 'gitHubRepo' should be in the format 'owner/repo'."
-      )
-    ),
+    gitHubRepo,
     authorName: z.string(),
     authorEmail: z.email().meta({
       description: "Email of the author",
@@ -44,6 +44,7 @@ export const storybookUploadQueryParamsSchema = z
   })
   .meta({
     id: "storybook-metadata",
+    title: "storybook-metadata",
     description: "Metadata of a Storybook",
     examples: [
       {
@@ -52,6 +53,17 @@ export const storybookUploadQueryParamsSchema = z
         branch: "feat/my-feature",
       },
     ],
+  });
+
+export const storybookProjectSchema = z
+  .object({
+    id: z.string().meta({ description: "ID of the project." }),
+    name: z.string().meta({ description: "Name of the project." }),
+    gitHubRepo,
+  })
+  .meta({
+    id: "storybook-project",
+    description: "Storybook project",
   });
 
 export const storybookDeleteQueryParamsSchema = z

@@ -10,7 +10,7 @@ import {
 } from "../utils/azure-data-tables";
 import type { HttpResponseInit } from "@azure/functions";
 import { ProjectsTemplate } from "../templates/projects-template";
-import { CONTENT_TYPES, SUPPORTED_CONTENT_TYPES_MSG } from "../utils/constants";
+import { CONTENT_TYPES } from "../utils/constants";
 import { renderToStream } from "@kitajs/html/suspense";
 
 export const serveStorybookHandler: StorybooksRouterHttpHandler =
@@ -78,19 +78,9 @@ async function serveProjects({
   context.log("Serving all projects...");
   const accept = request.headers.get("accept");
 
-  const projects = await listAzureTableEntities(context, options, {
-    tableSuffix: "Projects",
-  });
+  const projects = await listAzureTableEntities(context, options, "Projects");
 
-  if (
-    !accept ||
-    accept.includes(CONTENT_TYPES.ANY) ||
-    accept.includes(CONTENT_TYPES.JSON)
-  ) {
-    return { status: 200, jsonBody: projects };
-  }
-
-  if (accept.includes(CONTENT_TYPES.HTML)) {
+  if (accept?.includes(CONTENT_TYPES.HTML)) {
     return {
       status: 200,
       headers: { "Content-Type": CONTENT_TYPES.HTML },
@@ -103,7 +93,7 @@ async function serveProjects({
     };
   }
 
-  return { status: 406, body: SUPPORTED_CONTENT_TYPES_MSG };
+  return { status: 200, jsonBody: projects };
 }
 
 async function serveCommits(
@@ -113,33 +103,24 @@ async function serveCommits(
   context.log(`Serving all commits for project '${project}'...`);
   const accept = request.headers.get("accept");
 
-  const commits = await listAzureTableEntities(context, options, {
-    tableSuffix: "Commits",
+  const commits = await listAzureTableEntities(context, options, "Commits", {
     filter: `project eq '${project}'`,
   });
 
-  if (
-    !accept ||
-    accept.includes(CONTENT_TYPES.ANY) ||
-    accept.includes(CONTENT_TYPES.JSON)
-  ) {
-    return { status: 200, jsonBody: commits };
-  }
-
-  if (accept.includes(CONTENT_TYPES.HTML)) {
+  if (accept?.includes(CONTENT_TYPES.HTML)) {
     return {
       status: 200,
       headers: { "Content-Type": CONTENT_TYPES.HTML },
       body: renderToStream(
         <ProjectsTemplate
-          projects={commits}
+          projects={[]}
           basePathname={new URL(request.url).pathname}
         />
       ),
     };
   }
 
-  return { status: 406, body: SUPPORTED_CONTENT_TYPES_MSG };
+  return { status: 200, jsonBody: commits };
 }
 
 async function serveCommit(
@@ -155,15 +136,7 @@ async function serveCommit(
     commitSha
   );
 
-  if (
-    !accept ||
-    accept.includes(CONTENT_TYPES.ANY) ||
-    accept.includes(CONTENT_TYPES.JSON)
-  ) {
-    return { status: 200, jsonBody: commit };
-  }
-
-  if (accept.includes(CONTENT_TYPES.HTML)) {
+  if (accept?.includes(CONTENT_TYPES.HTML)) {
     return {
       status: 200,
       headers: { "Content-Type": CONTENT_TYPES.HTML },
@@ -176,5 +149,5 @@ async function serveCommit(
     };
   }
 
-  return { status: 406, body: SUPPORTED_CONTENT_TYPES_MSG };
+  return { status: 200, jsonBody: commit };
 }

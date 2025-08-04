@@ -1,10 +1,10 @@
-import { css } from "../utils/style-utils";
-import { StorybookTableEntity } from "../utils/types";
+import { StorybookProjectTableEntity } from "../utils/types";
 import { DocumentLayout } from "./components/layout";
+import { Table } from "./components/table";
 
 export interface ProjectsTemplateProps {
   basePathname: string;
-  projects: Array<StorybookTableEntity>;
+  projects: Array<StorybookProjectTableEntity>;
 }
 
 export async function ProjectsTemplate({
@@ -15,59 +15,40 @@ export async function ProjectsTemplate({
 
   return (
     <DocumentLayout title="Projects">
-      <table>
-        <style safe>{templateStylesheet()}</style>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Last modified</th>
-          </tr>
-        </thead>
-        <tbody>
-          {projects.map((project) => {
-            const href = [...basePathname.split("/"), project.rowKey].join("/");
+      <Table
+        data={projects}
+        columns={[
+          {
+            id: "name",
+            header: "Name",
+            cell: (item) => {
+              const href = [...basePathname.split("/"), item.id]
+                .join("/")
+                .replace(/\/+/g, "/");
+              return (
+                <a safe href={href}>
+                  {item.name ?? item.rowKey}
+                </a>
+              );
+            },
+          },
+          {
+            id: "timestamp",
+            header: "Last modified",
+            cell: (item) => {
+              if (!item.timestamp) {
+                return null;
+              }
 
-            return (
-              <tr>
-                <td>
-                  <a safe href={href}>
-                    {project.rowKey}
-                  </a>
-                </td>
-                <td>{"N/A"}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+              return (
+                <time datetime={item.timestamp} safe>
+                  {new Date(item.timestamp).toISOString()}
+                </time>
+              );
+            },
+          },
+        ]}
+      />
     </DocumentLayout>
   );
-}
-
-function templateStylesheet() {
-  return css`
-table {  
-  padding: 0.5rem;
-  width: 100%;  
-  border-radius: 0.25rem;    
-}
-
-thead {
-  background-color: var(--color-bg-base);
-  color: var(--color-text-secondary);
-}
-
-th {
-  color: var(--color-text-secondary)
-  font-weight: medium;
-  text-align: start;
-  padding: 0.25rem 0.5rem;
-  }
-  
-td {
-  text-align: start;
-  padding: 0.5rem;
-  color: var(--color-text-primary)
-}
-  `;
 }

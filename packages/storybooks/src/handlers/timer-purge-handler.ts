@@ -17,10 +17,14 @@ export const timerPurgeHandler: StorybooksRouterTimerHandler =
       JSON.stringify(timer)
     );
 
-    const expiredEntities = await listAzureTableEntities(context, options, {
-      tableSuffix: "Commits",
-      filter: `Timestamp lt '${expiryTime.toISOString()}'`,
-    });
+    const expiredEntities = await listAzureTableEntities(
+      context,
+      options,
+      "Commits",
+      {
+        filter: `Timestamp lt '${expiryTime.toISOString()}'`,
+      }
+    );
 
     await Promise.allSettled(
       expiredEntities.map(async (entity) =>

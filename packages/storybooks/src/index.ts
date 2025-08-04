@@ -5,6 +5,7 @@
  * @module
  */
 
+import path from "node:path";
 import { app } from "@azure/functions";
 import type {
   RegisterStorybooksRouterOptions,
@@ -27,9 +28,11 @@ import { openAPIHandler } from "./handlers/openapi-handler";
 import { registerOpenAPIPath } from "./utils/openapi-utils";
 import {
   storybookDeleteQueryParamsSchema,
-  storybookUploadQueryParamsSchema,
+  storybookMetadataSchema,
+  storybookProjectSchema,
 } from "./utils/schemas";
 import z from "zod";
+import { createProjectHandler } from "./handlers/create-project-handler";
 
 export type { RegisterStorybooksRouterOptions };
 
@@ -71,17 +74,14 @@ export function registerStorybooksRouter(
     purgeAfterDays,
   };
 
-  const entryRoute = route ? (route.endsWith("/") ? route : `${route}/`) : "";
-  const fullRoute = `${entryRoute}{**path}`;
-
-  console.log({ entryRoute });
+  const CATCH_ALL_PATh_PARAM = "{**path}";
 
   app.setup({ enableHttpStream: true });
 
   if (openapi?.enabled !== false) {
     app.http(`${SERVICE_NAME}-openapi`, {
       authLevel,
-      route: `${entryRoute}openapi`,
+      route: path.join(route, "openapi"),
       methods: ["GET"],
       handler: openAPIHandler(openapi),
     });
@@ -89,16 +89,16 @@ export function registerStorybooksRouter(
 
   app.http(`${SERVICE_NAME}-upload`, {
     authLevel,
-    route: entryRoute || "/",
+    route: route || "/",
     methods: ["POST"],
     handler: uploadStorybookHandler(handlerOptions),
   });
-  registerOpenAPIPath(entryRoute, {
+  registerOpenAPIPath(route, {
     post: {
       tags: ["Storybook"],
       summary: "Upload a storybook to a project",
       requestParams: {
-        query: storybookUploadQueryParamsSchema,
+        query: storybookMetadataSchema,
       },
       requestBody: {
         required: true,
@@ -118,7 +118,7 @@ export function registerStorybooksRouter(
               schema: z.object({
                 success: z.boolean(),
                 blobName: z.string(),
-                metadata: storybookUploadQueryParamsSchema,
+                metadata: storybookMetadataSchema,
               }),
             },
           },
@@ -129,20 +129,49 @@ export function registerStorybooksRouter(
     },
   });
 
+  const createProjectsRoute = path.join(route, "projects");
   app.http(`${SERVICE_NAME}-create-project`, {
     authLevel,
-    route: `${entryRoute}projects`,
+    route: createProjectsRoute,
     methods: ["POST"],
-    handler: uploadStorybookHandler(handlerOptions),
+    handler: createProjectHandler(handlerOptions),
+  });
+  registerOpenAPIPath(createProjectsRoute, {
+    post: {
+      tags: ["Projects"],
+      summary: "Create a new Storybook Project",
+      requestBody: {
+        required: true,
+        description: "Data about the project",
+        content: {
+          [CONTENT_TYPES.FORM_ENCODED]: { schema: storybookProjectSchema },
+        },
+      },
+      responses: {
+        202: {
+          description: "Storybook(s) uploaded successfully",
+          content: {
+            [CONTENT_TYPES.JSON]: {
+              schema: z.object({
+                success: z.boolean(),
+                data: storybookProjectSchema,
+              }),
+            },
+          },
+        },
+        400: { description: "Invalid request data" },
+        500: { description: "An unexpected server-error occurred." },
+      },
+    },
   });
 
   app.http(`${SERVICE_NAME}-delete`, {
     authLevel,
-    route: entryRoute || "/",
+    route: route || "/",
     methods: ["DELETE"],
     handler: deleteStorybookHandler(handlerOptions),
   });
-  registerOpenAPIPath(entryRoute, {
+  registerOpenAPIPath(route, {
     delete: {
       tags: ["Storybook"],
       summary: "Delete uploaded storybook(s) by commit SHA or branch-name",
@@ -160,11 +189,11 @@ export function registerStorybooksRouter(
 
   app.http(`${SERVICE_NAME}-serve`, {
     authLevel,
-    route: fullRoute,
+    route: path.join(route, CATCH_ALL_PATh_PARAM),
     methods: ["GET"],
     handler: serveStorybookHandler(handlerOptions),
   });
-  registerOpenAPIPath(entryRoute, {
+  registerOpenAPIPath(route, {
     get: {
       tags: ["Storybook"],
       summary: "List all projects",
@@ -173,7 +202,7 @@ export function registerStorybooksRouter(
           description: "List of projects",
           content: {
             [CONTENT_TYPES.JSON]: {
-              schema: storybookUploadQueryParamsSchema.array(),
+              schema: storybookMetadataSchema.array(),
               example: [{ project: "project-id" }],
             },
             [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
@@ -184,7 +213,7 @@ export function registerStorybooksRouter(
       },
     },
   });
-  registerOpenAPIPath(`${entryRoute}{project}`, {
+  registerOpenAPIPath(path.join(route, "{project}"), {
     get: {
       tags: ["Storybook"],
       summary: "List all storybooks/commits in a project",
@@ -198,7 +227,7 @@ export function registerStorybooksRouter(
           description: "List of storybooks/commits",
           content: {
             [CONTENT_TYPES.JSON]: {
-              schema: storybookUploadQueryParamsSchema.array(),
+              schema: storybookMetadataSchema.array(),
               example: [{ project: "project-id", commitSha: "sd23d1A" }],
             },
             [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
@@ -210,7 +239,7 @@ export function registerStorybooksRouter(
       },
     },
   });
-  registerOpenAPIPath(`${entryRoute}{project}/{commitSha}`, {
+  registerOpenAPIPath(path.join(route, "{project}", "{commitSha}"), {
     get: {
       tags: ["Storybook"],
       summary: "List all storybooks/commits in a project",
@@ -227,7 +256,7 @@ export function registerStorybooksRouter(
           description: "Details about a Storybook",
           content: {
             [CONTENT_TYPES.JSON]: {
-              schema: storybookUploadQueryParamsSchema,
+              schema: storybookMetadataSchema,
               example: { project: "project-id", commitSha: "sd23d1A" },
             },
             [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
@@ -239,29 +268,32 @@ export function registerStorybooksRouter(
       },
     },
   });
-  registerOpenAPIPath(`${entryRoute}{project}/{commitSha}/{**filepath}`, {
-    get: {
-      tags: ["Storybook"],
-      summary: "Serve Storybook file",
-      requestParams: {
-        path: z.object({
-          project: z.string().meta({ description: "ID of the project" }),
-          commitSha: z
-            .string()
-            .meta({ description: "Commit hash for Storybook" }),
-          "**filepath": z
-            .string()
-            .meta({ description: "Path to Storybook file" }),
-        }),
+  registerOpenAPIPath(
+    path.join(route, "{project}", "{commitSha}", "{**filepath}"),
+    {
+      get: {
+        tags: ["Storybook"],
+        summary: "Serve Storybook file",
+        requestParams: {
+          path: z.object({
+            project: z.string().meta({ description: "ID of the project" }),
+            commitSha: z
+              .string()
+              .meta({ description: "Commit hash for Storybook" }),
+            "**filepath": z
+              .string()
+              .meta({ description: "Path to Storybook file" }),
+          }),
+        },
+        responses: {
+          200: { description: "File found and served" },
+          400: { description: "Invalid request data" },
+          404: { description: "Matching storybook(s) file not found." },
+          500: { description: "An unexpected server-error occurred." },
+        },
       },
-      responses: {
-        200: { description: "File found and served" },
-        400: { description: "Invalid request data" },
-        404: { description: "Matching storybook(s) file not found." },
-        500: { description: "An unexpected server-error occurred." },
-      },
-    },
-  });
+    }
+  );
 
   app.storageBlob(`${SERVICE_NAME}-on_uploaded`, {
     connection: storageConnectionStringEnvVar,

@@ -15,6 +15,8 @@ export const CONTENT_TYPES = {
   JSON: "application/json",
   HTML: "text/html",
   ZIP: "application/zip",
+  FORM_MULTIPART: "multipart/form-data",
+  FORM_ENCODED: "application/x-www-form-urlencoded",
 };
 export const SUPPORTED_CONTENT_TYPES = Object.values(CONTENT_TYPES);
 export const SUPPORTED_CONTENT_TYPES_MSG = `Only following content-type supported: ${SUPPORTED_CONTENT_TYPES.join(
