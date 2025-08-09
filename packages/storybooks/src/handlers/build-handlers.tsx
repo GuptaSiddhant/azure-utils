@@ -62,12 +62,26 @@ export async function listBuilds(
 
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
+      const labels = (
+        await listAzureTableEntities(
+          context,
+          getAzureTableClientForProject(
+            options.connectionString,
+            projectId,
+            "Labels"
+          )
+        )
+      ).map((label) => ({
+        id: String(label["id"] ?? label.rowKey ?? ""),
+        value: String(label["value"] ?? ""),
+      }));
+
       return responseHTML(
         <DocumentLayout
           title="All Builds"
           breadcrumbs={["Projects", projectId]}
         >
-          <BuildTable builds={builds} />
+          <BuildTable builds={builds} labels={labels} />
         </DocumentLayout>
       );
     }
@@ -107,9 +121,33 @@ export async function getBuild(
         >
           <>
             <RawDataPreview data={buildDetails} />
-            <a href={urlBuilder.storybookIndexHtml(projectId, buildSHA)}>
-              View Storybook
-            </a>
+            <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
+              <a
+                href={urlBuilder.storybookIndexHtml(projectId, buildSHA)}
+                target="_blank"
+              >
+                View Storybook
+              </a>
+              <a
+                href={urlBuilder.storybookTestReport(projectId, buildSHA)}
+                target="_blank"
+              >
+                View Test Report
+              </a>
+              <a
+                href={urlBuilder.storybookCoverage(projectId, buildSHA)}
+                target="_blank"
+              >
+                View Coverage
+              </a>
+              <a
+                href={urlBuilder.storybookZip(projectId, buildSHA)}
+                download={`storybook-${projectId}-${buildSHA}.zip`}
+                target="_blank"
+              >
+                Download Storybook
+              </a>
+            </div>
           </>
         </DocumentLayout>
       );

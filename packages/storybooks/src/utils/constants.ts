@@ -57,10 +57,38 @@ export const urlBuilder = {
       url
     ).toString();
   },
+  allLabels: (projectId: string) => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(
+      joinUrl(baseRoute, "projects", projectId, "labels"),
+      url
+    ).toString();
+  },
+  label: (projectId: string, labelId: string) => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(
+      joinUrl(baseRoute, "projects", projectId, "labels", labelId),
+      url
+    ).toString();
+  },
   storybookIndexHtml: (projectId: string, sha: string) => {
     const { baseRoute, url } = getRequestStore();
     return new URL(
       joinUrl(baseRoute, "_", projectId, sha, "index.html"),
+      url
+    ).toString();
+  },
+  storybookTestReport: (projectId: string, sha: string) => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(
+      joinUrl(baseRoute, "_", projectId, sha, "report", "index.html"),
+      url
+    ).toString();
+  },
+  storybookCoverage: (projectId: string, sha: string) => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(
+      joinUrl(baseRoute, "_", projectId, sha, "coverage", "index.html"),
       url
     ).toString();
   },

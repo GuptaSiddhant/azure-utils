@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 export type StorybookMetadata = z.infer<typeof storybookMetadataSchema>;
 export type StorybookProject = z.infer<typeof storybookProjectSchema>;
 export type StorybookBuild = z.infer<typeof storybookBuildSchema>;
+export type StorybookLabel = { id: string; value: string };
 
 export const emptyObjectSchema = z.object({});
 

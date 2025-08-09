@@ -1,8 +1,4 @@
-import type {
-  HttpRequest,
-  HttpResponseInit,
-  InvocationContext,
-} from "@azure/functions";
+import type { HttpResponseInit, InvocationContext } from "@azure/functions";
 import { CONTENT_TYPES } from "./constants";
 import { renderToStream } from "@kitajs/html/suspense";
 import { parseErrorMessage } from "./error-utils";

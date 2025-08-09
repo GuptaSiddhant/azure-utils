@@ -1,14 +1,19 @@
 import { getRequestStore } from "../utils/stores";
-import type { StorybookBuild, StorybookProject } from "../utils/schemas";
+import type {
+  StorybookBuild,
+  StorybookLabel,
+  StorybookProject,
+} from "../utils/schemas";
 import { Table } from "./table";
 import { urlBuilder } from "../utils/constants";
 
 export interface BuildTableProps {
   builds: Array<StorybookBuild>;
   project?: StorybookProject;
+  labels: StorybookLabel[];
 }
 
-export async function BuildTable({ builds }: BuildTableProps) {
+export async function BuildTable({ builds, labels }: BuildTableProps) {
   const { locale } = getRequestStore();
 
   return (
@@ -26,8 +31,26 @@ export async function BuildTable({ builds }: BuildTableProps) {
             );
           },
         },
-        { id: "message", header: "Message" },
-        { id: "labels", header: "Labels" },
+
+        {
+          id: "labels",
+          header: "Labels",
+          cell: (item) => {
+            return (
+              <div>
+                {item.labels.split(",").map((labelId, index, arr) => (
+                  <>
+                    <a safe href={urlBuilder.label(item.project, labelId)}>
+                      {labels.find((label) => label.id === labelId)?.value ||
+                        labelId}
+                    </a>
+                    {index < arr.length - 1 ? ", " : ""}
+                  </>
+                ))}
+              </div>
+            );
+          },
+        },
         {
           id: "storybook",
           header: "Storybook",
@@ -50,6 +73,38 @@ export async function BuildTable({ builds }: BuildTableProps) {
               </div>
             );
           },
+        },
+        {
+          id: "test",
+          header: "Tests",
+          cell: (item) => {
+            return (
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <a
+                  href={urlBuilder.storybookTestReport(item.project, item.sha)}
+                  target="_blank"
+                >
+                  Test Report
+                </a>
+                <a
+                  href={urlBuilder.storybookCoverage(item.project, item.sha)}
+                  target="_blank"
+                >
+                  Coverage
+                </a>
+              </div>
+            );
+          },
+        },
+        { id: "message", header: "Message" },
+        {
+          id: "authorName",
+          header: "Author",
+          cell: (item) => (
+            <span safe title={item.authorEmail}>
+              {item.authorName || "Unknown"}
+            </span>
+          ),
         },
         {
           id: "timestamp",

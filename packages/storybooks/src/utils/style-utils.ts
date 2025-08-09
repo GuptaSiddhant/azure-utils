@@ -51,21 +51,27 @@ export function globalStyleSheet() {
 
     body > main {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow: auto;
     }
 
     body > footer {
       margin-bottom: 1rem;
     }
 
-    table {
+    table {      
+      height: 100%;
       width: 100%;
       border-radius: 0.25rem;
+      overflow: hidden;
     }
 
     thead {
       background-color: var(--color-bg-base);
       color: var(--color-text-secondary);
-    }
+    }    
 
     th {
       color: var(--color-text-secondary);
@@ -77,6 +83,7 @@ export function globalStyleSheet() {
 
     td {
       text-align: start;
+      height: max-content;
       padding: 0.5rem 1rem;
       color: var(--color-text-primary);
     }
