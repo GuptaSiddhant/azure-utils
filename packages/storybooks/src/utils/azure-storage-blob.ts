@@ -9,17 +9,21 @@ import {
 } from "@azure/storage-blob";
 import { getMimeType } from "./mime-utils";
 import { parseErrorMessage } from "./error-utils";
-import { RouterHandlerOptions } from "./types";
+
+export function generateAzureStorageContainerName(projectId: string) {
+  return `sb-${projectId.replace(/[^\w\-]+/g, "-")}`.slice(0, 60);
+}
 
 export function getAzureStorageBlobServiceClient(connectionString: string) {
   return BlobServiceClient.fromConnectionString(connectionString);
 }
 export function getAzureStorageBlobContainerClient(
-  options: RouterHandlerOptions
+  connectionString: string,
+  containerName: string
 ) {
   return BlobServiceClient.fromConnectionString(
-    options.connectionString
-  ).getContainerClient(options.containerName);
+    connectionString
+  ).getContainerClient(containerName);
 }
 
 export async function getOrCreateAzureStorageBlobContainerClientOrThrow(
@@ -82,7 +86,7 @@ export async function uploadDirToAzureBlobStorage(
         throw response.errorCode;
       }
     } catch (error) {
-      const errorMessage = parseErrorMessage(error);
+      const { errorMessage } = parseErrorMessage(error);
       context.error(
         `Failed to upload blob '${blobName}'. Error: ${errorMessage}`
       );

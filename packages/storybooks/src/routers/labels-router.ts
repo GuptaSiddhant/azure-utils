@@ -8,7 +8,7 @@ import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
 import { labelSchema, storybookMetadataSchema } from "../utils/schemas";
 import type { RouterOptions } from "../utils/types";
 import z from "zod";
-import { joinUrl } from "../utils/url-join";
+import { joinUrl } from "../utils/url-utils";
 
 const TAG = openAPITags.labels.name;
 

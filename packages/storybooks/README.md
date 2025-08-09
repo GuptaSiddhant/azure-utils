@@ -56,12 +56,6 @@ registerStorybooksRouter({
   authLevel?: HttpTriggerOptions["authLevel"];
 
   /**
-   * Azure Storage Blob Container name.
-   * @default 'storybooks'
-   */
-  storageContainerName?: string;
-
-  /**
    * Name of the Environment variable which stores
    * the connection string to the Azure Storage resource.
    * @default 'AzureWebJobsStorage'
@@ -77,12 +71,6 @@ registerStorybooksRouter({
    * @default "0 0 0 * * *" // Every midnight
    */
   purgeScheduleCron?: string | null;
-
-  /**
-   * Number of days after which storybooks are purged.
-   * @default 30
-   */
-  purgeAfterDays?: number;
 });
 ```
 

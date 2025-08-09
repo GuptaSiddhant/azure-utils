@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 
 export type StorybookMetadata = z.infer<typeof storybookMetadataSchema>;
 export type StorybookProject = z.infer<typeof storybookProjectSchema>;
+export type StorybookBuild = z.infer<typeof storybookBuildSchema>;
 
 export const emptyObjectSchema = z.object({});
 
@@ -39,6 +40,23 @@ const gitHubRepo = z.string().check(
   )
 );
 
+export const storybookBuildSchema = z.object({
+  project: projectIdSchema,
+  labels: z.string(),
+  sha: commitShaSchema,
+  authorName: z.string(),
+  authorEmail: z
+    .string()
+    .refine((val) => val.includes("@"), "Invalid email format")
+    .meta({ description: "Email of the author" }),
+  message: z.optional(z.string()),
+  timestamp: z.string().optional(),
+});
+
+export const storybookBuildUploadSchema = storybookBuildSchema.omit({
+  project: true,
+});
+
 export const storybookMetadataSchema = z
   .object({
     project: projectNameSchema,
@@ -56,6 +74,7 @@ export const storybookMetadataSchema = z
       z.string().regex(/^\d+$/).meta({ description: "GitHub PR number" })
     ),
     jiraKey: z.optional(z.string()),
+    timestamp: z.string().optional(),
   })
   .meta({
     id: "storybook-metadata",
@@ -75,6 +94,7 @@ export const storybookProjectSchema = z
     id: z.string().meta({ description: "ID of the project." }),
     name: z.string().meta({ description: "Name of the project." }),
     gitHubRepo,
+    timestamp: z.string().optional(),
   })
   .meta({
     id: "storybook-project",

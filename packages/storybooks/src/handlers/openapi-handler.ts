@@ -7,7 +7,8 @@ import {
 } from "../utils/constants";
 import type { StorybooksRouterOpenAPIHandler } from "../utils/types";
 import {
-  storybookMetadataSchema,
+  storybookBuildSchema,
+  storybookBuildUploadSchema,
   storybookProjectSchema,
 } from "../utils/schemas";
 import { responseError } from "../utils/response-utils";
@@ -33,8 +34,9 @@ export const openAPIHandler: StorybooksRouterOpenAPIHandler =
         servers,
         components: {
           schemas: {
-            storybookMetadataSchema,
             storybookProjectSchema,
+            storybookBuildSchema,
+            storybookBuildUploadSchema,
           },
           securitySchemes: {},
         },

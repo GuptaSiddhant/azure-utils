@@ -4,11 +4,12 @@ import type {
 } from "../utils/types";
 import { serveFile } from "../utils/serve-file";
 import {
-  getAzureTableClient,
+  getAzureProjectsTableClient,
+  getAzureTableClientForProject,
   listAzureTableEntities,
 } from "../utils/azure-data-tables";
 import type { HttpResponseInit } from "@azure/functions";
-import { ProjectsTemplate } from "../templates/projects-template";
+import { ProjectsTable } from "../templates/projects-table";
 import { CONTENT_TYPES } from "../utils/constants";
 import { responseError, responseHTML } from "../utils/response-utils";
 
@@ -77,15 +78,13 @@ async function serveProjects({
   context.log("Serving all projects...");
   const accept = request.headers.get("accept");
 
-  const projects = await listAzureTableEntities(context, options, "Projects");
+  const projects = await listAzureTableEntities(
+    context,
+    getAzureProjectsTableClient(options.connectionString)
+  );
 
   if (accept?.includes(CONTENT_TYPES.HTML)) {
-    return responseHTML(
-      <ProjectsTemplate
-        projects={projects}
-        basePathname={new URL(request.url).pathname}
-      />
-    );
+    return responseHTML(<ProjectsTable projects={[]} />);
   }
 
   return { status: 200, jsonBody: projects };
@@ -98,17 +97,13 @@ async function serveCommits(
   context.log(`Serving all commits for project '${project}'...`);
   const accept = request.headers.get("accept");
 
-  const commits = await listAzureTableEntities(context, options, "Commits", {
-    filter: `project eq '${project}'`,
-  });
+  const commits = await listAzureTableEntities(
+    context,
+    getAzureTableClientForProject(options.connectionString, project, "Builds")
+  );
 
   if (accept?.includes(CONTENT_TYPES.HTML)) {
-    return responseHTML(
-      <ProjectsTemplate
-        projects={[]}
-        basePathname={new URL(request.url).pathname}
-      />
-    );
+    return responseHTML(<ProjectsTable projects={[]} />);
   }
 
   return { status: 200, jsonBody: commits };
@@ -122,18 +117,14 @@ async function serveCommit(
   context.log(`Serving commit '${commitSha}' for project '${project}'...`);
   const accept = request.headers.get("accept");
 
-  const commit = await getAzureTableClient(options, "Commits").getEntity(
+  const commit = await getAzureTableClientForProject(
+    options.connectionString,
     project,
-    commitSha
-  );
+    "Builds"
+  ).getEntity(project, commitSha);
 
   if (accept?.includes(CONTENT_TYPES.HTML)) {
-    return responseHTML(
-      <ProjectsTemplate
-        projects={[]}
-        basePathname={new URL(request.url).pathname}
-      />
-    );
+    return responseHTML(<ProjectsTable projects={[]} />);
   }
 
   return { status: 200, jsonBody: commit };

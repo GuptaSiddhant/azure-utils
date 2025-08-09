@@ -4,7 +4,7 @@ import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
 import type { RouterOptions } from "../utils/types";
 import z from "zod";
 import { buildSHASchema, projectIdSchema } from "../utils/schemas";
-import { joinUrl } from "../utils/url-join";
+import { joinUrl } from "../utils/url-utils";
 
 const TAG = openAPITags.storybook.name;
 

@@ -16,7 +16,6 @@ import { registerLabelsRouter } from "./routers/labels-router";
 import { registerWebUIRouter } from "./routers/web-ui-router";
 import { registerStorybookRouter } from "./routers/storybook-router";
 import {
-  DEFAULT_CONTAINER_NAME,
   DEFAULT_PURGE_AFTER_DAYS,
   DEFAULT_PURGE_SCHEDULE_CRON,
   DEFAULT_STORAGE_CONN_STR_ENV_VAR,
@@ -26,7 +25,7 @@ import type {
   RegisterStorybooksRouterOptions,
   RouterHandlerOptions,
 } from "./utils/types";
-import { joinUrl } from "./utils/url-join";
+import { joinUrl } from "./utils/url-utils";
 
 export type { RegisterStorybooksRouterOptions };
 
@@ -41,10 +40,9 @@ export function registerStorybooksRouter(
     authLevel,
     route = "",
     storageConnectionStringEnvVar = DEFAULT_STORAGE_CONN_STR_ENV_VAR,
-    storageContainerName = DEFAULT_CONTAINER_NAME,
     purgeScheduleCron,
-    purgeAfterDays = DEFAULT_PURGE_AFTER_DAYS,
     openapi,
+    locale,
   } = options;
 
   const storageConnectionString = process.env[storageConnectionStringEnvVar];
@@ -57,9 +55,8 @@ export function registerStorybooksRouter(
   }
 
   const handlerOptions: RouterHandlerOptions = {
-    containerName: storageContainerName,
     connectionString: storageConnectionString,
-    purgeAfterDays,
+    locale,
   };
 
   const openAPIEnabled = !openapi?.disabled;

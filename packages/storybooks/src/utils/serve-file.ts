@@ -6,11 +6,7 @@ import { Readable } from "stream";
 import { responseError } from "./response-utils";
 
 export async function serveFile(
-  {
-    context,
-    request,
-    options: { connectionString, containerName },
-  }: ServeFnOptions,
+  { context, request, options: { connectionString } }: ServeFnOptions,
   project: string,
   commitSha: string,
   filepath: string
@@ -19,7 +15,7 @@ export async function serveFile(
   context.log(`Serve ${blobName}`);
 
   const blockBlobClient = getAzureStorageBlobServiceClient(connectionString)
-    .getContainerClient(containerName)
+    .getContainerClient("sb-uploads")
     .getBlockBlobClient(blobName);
 
   if (!(await blockBlobClient.exists())) {

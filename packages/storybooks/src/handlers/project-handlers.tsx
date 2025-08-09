@@ -8,7 +8,8 @@ import type {
   StorybookProjectTableEntity,
 } from "../utils/types";
 import {
-  getAzureTableClient,
+  getAzureProjectsTableClient,
+  getAzureTableClientForProject,
   listAzureTableEntities,
   upsertStorybookProjectToAzureTable,
 } from "../utils/azure-data-tables";
@@ -16,32 +17,47 @@ import {
   CONTENT_TYPES,
   PROJECTS_TABLE_PARTITION_KEY,
 } from "../utils/constants";
-import { ProjectsTemplate } from "../templates/projects-template";
+import { ProjectsTable } from "../templates/projects-table";
 import { DocumentLayout } from "../templates/components/layout";
 import { responseError, responseHTML } from "../utils/response-utils";
 import { storybookProjectSchema } from "../utils/schemas";
-import { joinUrl } from "../utils/url-join";
+import { joinUrl } from "../utils/url-utils";
+import { RawDataPreview } from "../templates/components/raw-data";
+import { generateRequestStore, requestStore } from "../utils/stores";
+import {
+  generateAzureStorageContainerName,
+  getAzureStorageBlobServiceClient,
+} from "../utils/azure-storage-blob";
 
 export async function listProjects(
   options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  context.log("Serving all projects...");
+  requestStore.enterWith(generateRequestStore(request, options));
 
-  const projects = await listAzureTableEntities(context, options, "Projects");
+  try {
+    context.log("Serving all projects...");
 
-  const accept = request.headers.get("accept");
-  if (accept?.includes(CONTENT_TYPES.HTML)) {
-    return responseHTML(
-      <ProjectsTemplate
-        projects={projects}
-        basePathname={new URL(request.url).pathname}
-      />
+    const entities = await listAzureTableEntities(
+      context,
+      getAzureProjectsTableClient(options.connectionString)
     );
-  }
+    const projects = storybookProjectSchema.array().parse(entities);
 
-  return { status: 200, jsonBody: projects };
+    const accept = request.headers.get("accept");
+    if (accept?.includes(CONTENT_TYPES.HTML)) {
+      return responseHTML(
+        <DocumentLayout title="Projects">
+          <ProjectsTable projects={projects} />
+        </DocumentLayout>
+      );
+    }
+
+    return { status: 200, jsonBody: projects };
+  } catch (error) {
+    return responseError(error, context, 500);
+  }
 }
 
 export async function getProject(
@@ -49,6 +65,8 @@ export async function getProject(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
+  requestStore.enterWith(generateRequestStore(request, options));
+
   const { projectId } = request.params;
   context.log("Serving project: '%s'...", projectId);
 
@@ -56,19 +74,24 @@ export async function getProject(
     return { status: 400, body: "Missing project ID" };
   }
 
-  const client = getAzureTableClient(options, "Projects");
+  const client = getAzureProjectsTableClient(options.connectionString);
 
   try {
-    const project = await client.getEntity<StorybookProjectTableEntity>(
-      PROJECTS_TABLE_PARTITION_KEY,
-      projectId
+    const project = storybookProjectSchema.parse(
+      await client.getEntity<StorybookProjectTableEntity>(
+        PROJECTS_TABLE_PARTITION_KEY,
+        projectId
+      )
     );
 
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return responseHTML(
-        <DocumentLayout title={project.id}>
-          <pre safe>{JSON.stringify(project, null, 2)}</pre>
+        <DocumentLayout
+          title={project.id}
+          breadcrumbs={[{ label: "Projects", href: "/projects" }]}
+        >
+          <RawDataPreview data={project} />
         </DocumentLayout>
       );
     }
@@ -84,6 +107,8 @@ export async function createProject(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
+  requestStore.enterWith(generateRequestStore(request, options));
+
   try {
     const contentType = request.headers.get("content-type");
     if (!contentType) {
@@ -107,25 +132,140 @@ export async function createProject(
     const data = result.data;
     context.log("Create project: '%s'...", data.id);
 
+    await getAzureStorageBlobServiceClient(
+      options.connectionString
+    ).createContainer(generateAzureStorageContainerName(data.id));
     await upsertStorybookProjectToAzureTable(options, context, data, "Replace");
 
+    const projectUrl = joinUrl(request.url, data.id);
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
-      return {
-        status: 302,
-        headers: { Location: `/projects/${data.id}` },
-      };
+      return { status: 303, headers: { Location: projectUrl } };
     }
 
     return {
-      status: 200,
-      jsonBody: {
-        success: true,
-        data,
-        links: { self: { href: joinUrl(request.url, data.id) } },
-      },
+      status: 201,
+      headers: { Location: projectUrl },
+      jsonBody: { data, links: { self: projectUrl } },
     };
   } catch (error) {
     return responseError(error, context);
+  }
+}
+
+export async function updateProject(
+  options: RouterHandlerOptions,
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  requestStore.enterWith(generateRequestStore(request, options));
+
+  try {
+    const { projectId } = request.params;
+    context.log("Updating project: '%s'...", projectId);
+
+    if (!projectId) {
+      return { status: 400, body: "Missing project ID" };
+    }
+
+    const contentType = request.headers.get("content-type");
+    if (!contentType) {
+      return responseError("Content-Type header is required", context, 400);
+    }
+    if (!contentType.includes(CONTENT_TYPES.FORM_ENCODED)) {
+      return responseError(
+        `Invalid Content-Type, expected ${CONTENT_TYPES.FORM_ENCODED}`,
+        context,
+        415
+      );
+    }
+
+    const result = storybookProjectSchema
+      .partial()
+      .safeParse(Object.fromEntries((await request.formData()).entries()));
+    if (!result.success) {
+      return responseError(result.error, context, 400);
+    }
+
+    const data = result.data;
+
+    const client = getAzureProjectsTableClient(options.connectionString);
+    await client.updateEntity(
+      {
+        ...data,
+        partitionKey: PROJECTS_TABLE_PARTITION_KEY,
+        rowKey: projectId,
+        id: projectId,
+      },
+      "Merge"
+    );
+
+    const accept = request.headers.get("accept");
+    if (accept?.includes(CONTENT_TYPES.HTML)) {
+      return { status: 303, headers: { Location: request.url } };
+    }
+
+    const updatedEntity = await client.getEntity<StorybookProjectTableEntity>(
+      PROJECTS_TABLE_PARTITION_KEY,
+      projectId
+    );
+
+    return {
+      status: 202,
+      headers: { Location: request.url },
+      jsonBody: {
+        data: storybookProjectSchema.parse(updatedEntity),
+        links: { self: request.url },
+      },
+    };
+  } catch (error) {
+    return responseError(error, context, 404);
+  }
+}
+
+export async function deleteProject(
+  options: RouterHandlerOptions,
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  requestStore.enterWith(generateRequestStore(request, options));
+
+  try {
+    const { projectId } = request.params;
+    context.log("Deleting project: '%s'...", projectId);
+
+    if (!projectId) {
+      return { status: 400, body: "Missing project ID" };
+    }
+
+    await Promise.allSettled([
+      getAzureStorageBlobServiceClient(
+        options.connectionString
+      ).deleteContainer(generateAzureStorageContainerName(projectId)),
+      getAzureTableClientForProject(
+        options.connectionString,
+        projectId,
+        "Builds"
+      ).deleteTable(),
+      getAzureTableClientForProject(
+        options.connectionString,
+        projectId,
+        "Labels"
+      ).deleteTable(),
+      getAzureProjectsTableClient(options.connectionString).deleteEntity(
+        PROJECTS_TABLE_PARTITION_KEY,
+        projectId
+      ),
+    ]);
+
+    const projectsUrl = joinUrl(request.url, "..");
+    const accept = request.headers.get("accept");
+    if (accept?.includes(CONTENT_TYPES.HTML)) {
+      return { status: 303, headers: { Location: projectsUrl } };
+    }
+
+    return { status: 204, headers: { Location: projectsUrl } };
+  } catch (error) {
+    return responseError(error, context, 404);
   }
 }

@@ -14,7 +14,7 @@ import type {
 
 export const onStorybookUploadedHandler: StorybooksRouterStorageBlobHandler =
   (options) => async (blob, context) => {
-    const { connectionString, containerName } = options;
+    const { connectionString } = options;
 
     const triggerMetadata =
       context.triggerMetadata as AzureFunctionsStorageBlobTriggerMetadata<
@@ -27,7 +27,7 @@ export const onStorybookUploadedHandler: StorybooksRouterStorageBlobHandler =
 
     const containerClient =
       getAzureStorageBlobServiceClient(connectionString).getContainerClient(
-        containerName
+        "sb-uploads"
       );
 
     const dirpath = fs.mkdtempSync(path.join(os.tmpdir(), "storybook-"));

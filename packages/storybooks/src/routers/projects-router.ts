@@ -9,7 +9,7 @@ import { projectIdSchema, storybookProjectSchema } from "../utils/schemas";
 import z from "zod";
 import type { RouterOptions } from "../utils/types";
 import * as handlers from "../handlers/project-handlers";
-import { joinUrl } from "../utils/url-join";
+import { joinUrl } from "../utils/url-utils";
 
 const TAG = openAPITags.projects.name;
 
@@ -31,15 +31,11 @@ export function registerProjectsRouter(options: RouterOptions) {
   });
   app.patch(`${SERVICE_NAME}-project-update`, {
     route: routeWithProjectId,
-    handler: async () => {
-      return { status: 500 };
-    },
+    handler: handlers.updateProject.bind(null, handlerOptions),
   });
   app.deleteRequest(`${SERVICE_NAME}-project-delete`, {
     route: routeWithProjectId,
-    handler: async () => {
-      return { status: 500 };
-    },
+    handler: handlers.deleteProject.bind(null, handlerOptions),
   });
 
   if (openAPI) {
@@ -81,18 +77,22 @@ export function registerProjectsRouter(options: RouterOptions) {
         requestParams: { path: basePathParamsSchema },
         responses: {
           ...commonErrorResponses,
-          202: {
-            description: "Storybook(s) uploaded successfully",
+          201: {
+            description: "Project created successfully",
             content: {
               [CONTENT_TYPES.JSON]: {
                 schema: z.object({
-                  success: z.boolean(),
                   data: storybookProjectSchema,
-                  links: z.object({ self: z.object({ href: z.url() }) }),
+                  links: z.object({ self: z.url() }),
                 }),
               },
             },
           },
+          303: {
+            description: "Project created, redirecting...",
+            headers: { Location: z.url() },
+          },
+          415: { description: "Unsupported Media Type" },
         },
       },
     });
@@ -133,15 +133,23 @@ export function registerProjectsRouter(options: RouterOptions) {
         },
         responses: {
           ...commonErrorResponses,
-          200: {
+          202: {
             description: "Project updated successfully",
             content: {
               [CONTENT_TYPES.JSON]: {
-                schema: storybookProjectSchema,
+                schema: z.object({
+                  data: storybookProjectSchema,
+                  links: z.object({ self: z.url() }),
+                }),
               },
             },
           },
+          303: {
+            description: "Project updated, redirecting...",
+            headers: { Location: z.url() },
+          },
           404: { description: "Matching project not found." },
+          415: { description: "Unsupported Media Type" },
         },
       },
       delete: {

@@ -7,7 +7,11 @@ import type {
   TimerHandler,
 } from "@azure/functions";
 import type { TableEntityResult } from "@azure/data-tables";
-import type { StorybookMetadata, StorybookProject } from "./schemas";
+import type {
+  StorybookBuild,
+  StorybookMetadata,
+  StorybookProject,
+} from "./schemas";
 import z from "zod";
 
 /**
@@ -27,12 +31,6 @@ export type RegisterStorybooksRouterOptions = {
   authLevel?: HttpTriggerOptions["authLevel"];
 
   /**
-   * Azure Storage Blob Container name.
-   * @default 'storybooks'
-   */
-  storageContainerName?: string;
-
-  /**
    * Name of the Environment variable which stores
    * the connection string to the Azure Storage resource.
    * @default 'AzureWebJobsStorage'
@@ -48,12 +46,6 @@ export type RegisterStorybooksRouterOptions = {
    * @default "0 0 0 * * *" // Every midnight
    */
   purgeScheduleCron?: string | null;
-
-  /**
-   * Number of days after which storybooks are purged.
-   * @default 30
-   */
-  purgeAfterDays?: number;
 
   /**
    * Options to configure OpenAPI schema
@@ -90,6 +82,12 @@ export type RegisterStorybooksRouterOptions = {
       >;
     }>;
   };
+
+  /**
+   * Locale to be used for formatting dates.
+   * @default 'server locale'
+   */
+  locale?: string;
 };
 
 /**
@@ -97,20 +95,8 @@ export type RegisterStorybooksRouterOptions = {
  * Options for linking with Azure Blob Storage
  */
 export interface RouterHandlerOptions {
-  /**
-   * Azure Storage Blob Container name. @default `storybooks`.
-   */
-  containerName: string;
-
-  /**
-   * Azure Storage Connection String. Defaults to `env['AzureWebJobsStorage']`.
-   */
   connectionString: string;
-
-  /**
-   * Number of days after which storybooks are purged.
-   */
-  purgeAfterDays: number;
+  locale: string | undefined;
 }
 
 /**
@@ -192,6 +178,7 @@ export type AzureFunctionsStorageBlobTriggerMetadata<
 
 export type StorybookMetadataTableEntity = TableEntityResult<StorybookMetadata>;
 export type StorybookProjectTableEntity = TableEntityResult<StorybookProject>;
+export type StorybookBuildTableEntity = TableEntityResult<StorybookBuild>;
 
 export type ServeFnOptions = {
   context: InvocationContext;

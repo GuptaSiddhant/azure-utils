@@ -7,7 +7,7 @@ import {
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
 import z from "zod";
 import type { RouterOptions } from "../utils/types";
-import { joinUrl } from "../utils/url-join";
+import { joinUrl } from "../utils/url-utils";
 
 const TAG = openAPITags.webUI.name;
 

@@ -1,13 +1,13 @@
 import type { StorybooksRouterTimerHandler } from "../utils/types";
 import { listAzureTableEntities } from "../utils/azure-data-tables";
 import { purgeStorybookByCommitSha } from "../utils/storage-utils";
+import { DEFAULT_PURGE_AFTER_DAYS } from "../utils/constants";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const purgeAfterDays = DEFAULT_PURGE_AFTER_DAYS;
 
 export const timerPurgeHandler: StorybooksRouterTimerHandler =
   (options) => async (timer, context) => {
-    const { purgeAfterDays } = options;
-
     const expiryTime = new Date(Date.now() - purgeAfterDays * ONE_DAY_MS);
 
     context.log(

@@ -1,29 +1,30 @@
 import type { InvocationContext } from "@azure/functions";
-import { getAzureTableClient } from "./azure-data-tables";
+import { getAzureTableClientForProject } from "./azure-data-tables";
 import {
   deleteBlobsFromAzureStorageContainerOrThrow,
+  generateAzureStorageContainerName,
   getAzureStorageBlobContainerClient,
 } from "./azure-storage-blob";
-import type { RouterHandlerOptions } from "./types";
 
 export async function purgeStorybookByCommitSha(
   context: InvocationContext,
-  options: RouterHandlerOptions,
-  project: string,
-  commitSha: string
+  connectionString: string,
+  projectId: string,
+  buildSHA: string
 ) {
   context.info(
-    `Deleting Storybook for project: ${project}, commit: ${commitSha}`
+    `Deleting Storybook for project: ${projectId}, commit: ${buildSHA}`
   );
 
   try {
-    await getAzureTableClient(options, "Commits").deleteEntity(
-      project,
-      commitSha
-    );
+    await getAzureTableClientForProject(
+      connectionString,
+      projectId,
+      "Builds"
+    ).deleteEntity(projectId, buildSHA);
   } catch (error) {
     context.error(
-      `Failed to delete Storybook entry for ${project}/${commitSha}`,
+      `Failed to delete Storybook entry for ${projectId}/${buildSHA}`,
       error
     );
   }
@@ -31,12 +32,15 @@ export async function purgeStorybookByCommitSha(
   try {
     await deleteBlobsFromAzureStorageContainerOrThrow(
       context,
-      getAzureStorageBlobContainerClient(options),
-      `${project}/${commitSha}/`
+      getAzureStorageBlobContainerClient(
+        connectionString,
+        generateAzureStorageContainerName(projectId)
+      ),
+      `${projectId}/${buildSHA}/`
     );
   } catch (error) {
     context.error(
-      `Failed to delete Storybook blobs for ${project}/${commitSha}`,
+      `Failed to delete Storybook blobs for ${projectId}/${buildSHA}`,
       error
     );
   }

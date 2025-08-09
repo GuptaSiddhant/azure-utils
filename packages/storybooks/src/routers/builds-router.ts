@@ -5,47 +5,38 @@ import {
   SERVICE_NAME,
 } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
-import { buildSHASchema, storybookMetadataSchema } from "../utils/schemas";
+import {
+  buildSHASchema,
+  storybookBuildSchema,
+  storybookBuildUploadSchema,
+} from "../utils/schemas";
 import z from "zod";
 import type { RouterOptions } from "../utils/types";
-import { joinUrl } from "../utils/url-join";
+import { joinUrl } from "../utils/url-utils";
+import * as handlers from "../handlers/build-handlers";
 
 const TAG = openAPITags.builds.name;
 
 export function registerBuildsRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, openAPI } = options;
+  const { baseRoute, basePathParamsSchema, handlerOptions, openAPI } = options;
   const routeWithBuildSHA = joinUrl(baseRoute, "{buildSHA}");
 
   app.get(`${SERVICE_NAME}-builds-list`, {
     route: baseRoute,
-    handler: async () => {
-      return { status: 500 };
-    },
+    handler: handlers.listBuilds.bind(null, handlerOptions),
   });
   app.post(`${SERVICE_NAME}-build-upload`, {
     route: baseRoute,
-    handler: async () => {
-      return { status: 500 };
-    },
+    handler: handlers.uploadBuild.bind(null, handlerOptions),
   });
   app.get(`${SERVICE_NAME}-build-get`, {
     route: routeWithBuildSHA,
-    handler: async () => {
-      return { status: 500 };
-    },
+    handler: handlers.getBuild.bind(null, handlerOptions),
   });
   app.deleteRequest(`${SERVICE_NAME}-build-delete`, {
     route: routeWithBuildSHA,
-    handler: async () => {
-      return { status: 500 };
-    },
+    handler: handlers.deleteBuild.bind(null, handlerOptions),
   });
-
-  // app.storageBlob(`${SERVICE_NAME}-on_uploaded`, {
-  //   connection: storageConnectionStringEnvVar,
-  //   path: `${storageContainerName}/{project}/{sha}/storybook.zip`,
-  //   handler: onStorybookUploadedHandler(handlerOptions),
-  // });
 
   if (openAPI) {
     const buildPathParameterSchema = basePathParamsSchema.extend({
@@ -64,8 +55,8 @@ export function registerBuildsRouter(options: RouterOptions) {
             description: "A list of builds.",
             content: {
               [CONTENT_TYPES.JSON]: {
-                schema: storybookMetadataSchema.array(),
-                example: [{ project: "project-id", buildSha: "s123s14" }],
+                schema: storybookBuildSchema.array(),
+                example: [{ project: "project-id", sha: "s123s14" }],
               },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },
@@ -78,7 +69,7 @@ export function registerBuildsRouter(options: RouterOptions) {
         description: "Uploads a new build with the provided metadata.",
         requestParams: {
           path: basePathParamsSchema,
-          query: storybookMetadataSchema,
+          query: storybookBuildUploadSchema,
         },
         requestBody: {
           required: true,
@@ -97,9 +88,8 @@ export function registerBuildsRouter(options: RouterOptions) {
             content: {
               [CONTENT_TYPES.JSON]: {
                 schema: z.object({
-                  success: z.boolean(),
                   blobName: z.string(),
-                  data: storybookMetadataSchema,
+                  data: storybookBuildSchema,
                 }),
               },
             },
@@ -120,7 +110,7 @@ export function registerBuildsRouter(options: RouterOptions) {
             description: "Build details retrieved successfully",
             content: {
               [CONTENT_TYPES.JSON]: {
-                schema: storybookMetadataSchema,
+                schema: storybookBuildSchema,
               },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },

@@ -13,11 +13,11 @@ export function registerOpenAPIPath(
   if (!path.startsWith("/")) {
     path = `/${path}`;
   }
-  console.log(
-    "Registering OpenAPI path: '%s' (%s)",
-    path,
-    Object.keys(input).join(", ")
-  );
+  // console.log(
+  //   "Registering OpenAPI path: '%s' (%s)",
+  //   path,
+  //   Object.keys(input).join(", ")
+  // );
   const value = openAPIPaths[path];
 
   if (value) {

@@ -1,12 +1,38 @@
+import { RestError } from "@azure/data-tables";
 import { z } from "zod/mini";
 
-export function parseErrorMessage(error: unknown): string {
+export function parseErrorMessage(error: unknown): {
+  errorMessage: string;
+  errorStatus?: number;
+} {
+  console.log(error instanceof RestError);
   return typeof error === "string"
-    ? error
+    ? { errorMessage: error }
+    : error instanceof RestError
+    ? parseAzureRestError(error)
     : error instanceof z.core.$ZodError
-    ? z.prettifyError(error)
+    ? { errorMessage: z.prettifyError(error) }
     : error instanceof Error ||
       (error && typeof error === "object" && "message" in error)
-    ? String(error.message)
-    : String(error);
+    ? { errorMessage: String(error.message) }
+    : { errorMessage: String(error) };
+}
+
+function parseAzureRestError(error: RestError): {
+  errorMessage: string;
+  errorStatus?: number;
+} {
+  const details = (error.details ?? {}) as { [key: string]: unknown };
+  const message =
+    // @ts-expect-error
+    details["odataError"]?.["message"]?.["value"] ??
+    details["errorMessage"] ??
+    error.message;
+
+  return {
+    errorMessage: `${details["errorCode"] ?? error.name} (${
+      error.code ?? error.statusCode
+    }): ${message}`,
+    errorStatus: error.statusCode,
+  };
 }
