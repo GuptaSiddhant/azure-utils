@@ -5,11 +5,12 @@ import type { RouterOptions } from "../utils/types";
 import z from "zod";
 import { buildSHASchema, projectIdSchema } from "../utils/schemas";
 import { joinUrl } from "../utils/url-utils";
+import { serveStorybook } from "../handlers/storybook-handler";
 
 const TAG = openAPITags.storybook.name;
 
 export function registerStorybookRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, openAPI } = options;
+  const { baseRoute, basePathParamsSchema, handlerOptions, openAPI } = options;
 
   const storybookRoute = joinUrl(
     baseRoute,
@@ -20,9 +21,7 @@ export function registerStorybookRouter(options: RouterOptions) {
 
   app.get(`${SERVICE_NAME}-storybook-serve`, {
     route: storybookRoute,
-    handler: async (req) => {
-      return { status: 500, jsonBody: req.params };
-    },
+    handler: serveStorybook.bind(null, handlerOptions),
   });
 
   if (openAPI) {

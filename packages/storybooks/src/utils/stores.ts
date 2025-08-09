@@ -7,6 +7,7 @@ export type RequestStore = {
   locale: string | undefined;
   url: string;
   connectionString: string;
+  baseRoute: string;
 };
 
 export const requestStore = new AsyncLocalStorage<RequestStore>();
@@ -34,6 +35,7 @@ export function generateRequestStore(
     accept,
     locale,
     url: request.url,
+    baseRoute: options.baseRoute,
     connectionString: options.connectionString,
   };
 }

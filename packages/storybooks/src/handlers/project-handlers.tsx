@@ -16,18 +16,19 @@ import {
 import {
   CONTENT_TYPES,
   PROJECTS_TABLE_PARTITION_KEY,
+  urlBuilder,
 } from "../utils/constants";
-import { ProjectsTable } from "../templates/projects-table";
-import { DocumentLayout } from "../templates/components/layout";
+import { ProjectsTable } from "../components/projects-table";
+import { DocumentLayout } from "../components/layout";
 import { responseError, responseHTML } from "../utils/response-utils";
-import { storybookProjectSchema } from "../utils/schemas";
-import { joinUrl } from "../utils/url-utils";
-import { RawDataPreview } from "../templates/components/raw-data";
+import { storybookBuildSchema, storybookProjectSchema } from "../utils/schemas";
+import { RawDataPreview } from "../components/raw-data";
 import { generateRequestStore, requestStore } from "../utils/stores";
 import {
   generateAzureStorageContainerName,
   getAzureStorageBlobServiceClient,
 } from "../utils/azure-storage-blob";
+import { BuildTable } from "../components/builds-table";
 
 export async function listProjects(
   options: RouterHandlerOptions,
@@ -48,7 +49,7 @@ export async function listProjects(
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return responseHTML(
-        <DocumentLayout title="Projects">
+        <DocumentLayout title="All Projects">
           <ProjectsTable projects={projects} />
         </DocumentLayout>
       );
@@ -84,14 +85,27 @@ export async function getProject(
       )
     );
 
+    const builds = await listAzureTableEntities(
+      context,
+      getAzureTableClientForProject(
+        options.connectionString,
+        projectId,
+        "Builds"
+      ),
+      { limit: 10 }
+    );
+
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return responseHTML(
         <DocumentLayout
-          title={project.id}
-          breadcrumbs={[{ label: "Projects", href: "/projects" }]}
+          title={project.name}
+          breadcrumbs={[{ label: "Projects", href: urlBuilder.allProjects() }]}
         >
-          <RawDataPreview data={project} />
+          <>
+            <RawDataPreview data={project} />
+            <BuildTable builds={storybookBuildSchema.array().parse(builds)} />
+          </>
         </DocumentLayout>
       );
     }
@@ -137,7 +151,7 @@ export async function createProject(
     ).createContainer(generateAzureStorageContainerName(data.id));
     await upsertStorybookProjectToAzureTable(options, context, data, "Replace");
 
-    const projectUrl = joinUrl(request.url, data.id);
+    const projectUrl = urlBuilder.projectId(data.id);
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return { status: 303, headers: { Location: projectUrl } };
@@ -258,7 +272,7 @@ export async function deleteProject(
       ),
     ]);
 
-    const projectsUrl = joinUrl(request.url, "..");
+    const projectsUrl = urlBuilder.allProjects();
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return { status: 303, headers: { Location: projectsUrl } };

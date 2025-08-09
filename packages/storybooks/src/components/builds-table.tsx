@@ -1,7 +1,7 @@
 import { getRequestStore } from "../utils/stores";
 import type { StorybookBuild, StorybookProject } from "../utils/schemas";
-import { joinUrl } from "../utils/url-utils";
-import { Table } from "./components/table";
+import { Table } from "./table";
+import { urlBuilder } from "../utils/constants";
 
 export interface BuildTableProps {
   builds: Array<StorybookBuild>;
@@ -9,7 +9,7 @@ export interface BuildTableProps {
 }
 
 export async function BuildTable({ builds }: BuildTableProps) {
-  const { locale, url } = getRequestStore();
+  const { locale } = getRequestStore();
 
   return (
     <Table
@@ -19,9 +19,8 @@ export async function BuildTable({ builds }: BuildTableProps) {
           id: "sha",
           header: "SHA",
           cell: (item) => {
-            const href = joinUrl(url, item.sha);
             return (
-              <a safe href={href}>
+              <a safe href={urlBuilder.buildSHA(item.project, item.sha)}>
                 {item.sha}
               </a>
             );
@@ -29,6 +28,29 @@ export async function BuildTable({ builds }: BuildTableProps) {
         },
         { id: "message", header: "Message" },
         { id: "labels", header: "Labels" },
+        {
+          id: "storybook",
+          header: "Storybook",
+          cell: (item) => {
+            return (
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <a
+                  href={urlBuilder.storybookIndexHtml(item.project, item.sha)}
+                  target="_blank"
+                >
+                  View
+                </a>
+                <a
+                  href={urlBuilder.storybookZip(item.project, item.sha)}
+                  target="_blank"
+                  download={`storybook-${item.project}-${item.sha}.zip`}
+                >
+                  Download
+                </a>
+              </div>
+            );
+          },
+        },
         {
           id: "timestamp",
           header: "Last modified",

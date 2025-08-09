@@ -16,7 +16,6 @@ import { registerLabelsRouter } from "./routers/labels-router";
 import { registerWebUIRouter } from "./routers/web-ui-router";
 import { registerStorybookRouter } from "./routers/storybook-router";
 import {
-  DEFAULT_PURGE_AFTER_DAYS,
   DEFAULT_PURGE_SCHEDULE_CRON,
   DEFAULT_STORAGE_CONN_STR_ENV_VAR,
   SERVICE_NAME,
@@ -57,6 +56,7 @@ export function registerStorybooksRouter(
   const handlerOptions: RouterHandlerOptions = {
     connectionString: storageConnectionString,
     locale,
+    baseRoute: route,
   };
 
   const openAPIEnabled = !openapi?.disabled;

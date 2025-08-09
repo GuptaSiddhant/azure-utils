@@ -1,4 +1,6 @@
 import { ZodOpenApiResponsesObject } from "zod-openapi";
+import { getRequestStore } from "./stores";
+import { joinUrl } from "./url-utils";
 
 export const SERVICE_NAME = "storybooks";
 
@@ -31,3 +33,42 @@ export const commonErrorResponses: ZodOpenApiResponsesObject = {
   403: { description: "Unauthorized access" },
   500: { description: "An unexpected server-error occurred." },
 };
+
+export const urlBuilder = {
+  allProjects: () => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(joinUrl(baseRoute, "projects"), url).toString();
+  },
+  projectId: (projectId: string) => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(joinUrl(baseRoute, "projects", projectId), url).toString();
+  },
+  allBuilds: (projectId: string) => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(
+      joinUrl(baseRoute, "projects", projectId, "builds"),
+      url
+    ).toString();
+  },
+  buildSHA: (projectId: string, sha: string) => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(
+      joinUrl(baseRoute, "projects", projectId, "builds", sha),
+      url
+    ).toString();
+  },
+  storybookIndexHtml: (projectId: string, sha: string) => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(
+      joinUrl(baseRoute, "_", projectId, sha, "index.html"),
+      url
+    ).toString();
+  },
+  storybookZip: (projectId: string, sha: string) => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(
+      joinUrl(baseRoute, "_", projectId, sha, "storybook.zip"),
+      url
+    ).toString();
+  },
+} satisfies Record<string, (...args: any[]) => string>;

@@ -1,14 +1,14 @@
 import { getRequestStore } from "../utils/stores";
 import type { StorybookProject } from "../utils/schemas";
-import { joinUrl } from "../utils/url-utils";
-import { Table } from "./components/table";
+import { Table } from "./table";
+import { urlBuilder } from "../utils/constants";
 
 export interface ProjectsTableProps {
   projects: Array<StorybookProject>;
 }
 
 export async function ProjectsTable({ projects }: ProjectsTableProps) {
-  const { locale, url } = getRequestStore();
+  const { locale } = getRequestStore();
 
   return (
     <Table
@@ -18,9 +18,8 @@ export async function ProjectsTable({ projects }: ProjectsTableProps) {
           id: "id",
           header: "ID",
           cell: (item) => {
-            const href = joinUrl(url, item.id);
             return (
-              <a safe href={href}>
+              <a safe href={urlBuilder.projectId(item.id)}>
                 {item.id}
               </a>
             );

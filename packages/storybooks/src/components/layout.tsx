@@ -1,6 +1,6 @@
-import { getRequestStore } from "../../utils/stores";
-import { globalStyleSheet } from "../../utils/style-utils";
-import { joinUrl } from "../../utils/url-utils";
+import { getRequestStore } from "../utils/stores";
+import { globalStyleSheet } from "../utils/style-utils";
+import { joinUrl } from "../utils/url-utils";
 
 export function DocumentLayout({
   title,

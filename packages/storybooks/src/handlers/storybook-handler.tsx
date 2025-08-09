@@ -1,21 +1,34 @@
-import type { HttpResponseInit } from "@azure/functions";
-import type { ServeFnOptions } from "./types";
-import { getAzureStorageBlobServiceClient } from "./azure-storage-blob";
-import { CACHE_CONTROL_PUBLIC_YEAR } from "./constants";
-import { Readable } from "stream";
-import { responseError } from "./response-utils";
+import type {
+  HttpRequest,
+  HttpResponseInit,
+  InvocationContext,
+} from "@azure/functions";
+import type { RouterHandlerOptions } from "../utils/types";
+import path from "node:path";
+import {
+  generateAzureStorageContainerName,
+  getAzureStorageBlobServiceClient,
+} from "../utils/azure-storage-blob";
+import { responseError } from "../utils/response-utils";
+import { CACHE_CONTROL_PUBLIC_YEAR, urlBuilder } from "../utils/constants";
+import { Readable } from "node:stream";
+import { generateRequestStore, requestStore } from "../utils/stores";
 
-export async function serveFile(
-  { context, request, options: { connectionString } }: ServeFnOptions,
-  project: string,
-  commitSha: string,
-  filepath: string
+export async function serveStorybook(
+  options: RouterHandlerOptions,
+  request: HttpRequest,
+  context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const blobName = `${project}/${commitSha}/${filepath}`;
-  context.log(`Serve ${blobName}`);
+  requestStore.enterWith(generateRequestStore(request, options));
 
-  const blockBlobClient = getAzureStorageBlobServiceClient(connectionString)
-    .getContainerClient("sb-uploads")
+  const { projectId = "", buildSHA = "", filepath = "" } = request.params;
+  const blobName = path.posix.join(buildSHA, filepath);
+  context.log("Serving SB (%s) - %s...", projectId, blobName);
+
+  const blockBlobClient = getAzureStorageBlobServiceClient(
+    options.connectionString
+  )
+    .getContainerClient(generateAzureStorageContainerName(projectId))
     .getBlockBlobClient(blobName);
 
   if (!(await blockBlobClient.exists())) {
@@ -28,10 +41,7 @@ export async function serveFile(
     const bodyWithBackButton = buffer.toString("utf8").replace(
       `</body>`,
       `
-      <div><a id="view-all" href="${request.url.replace(
-        `${commitSha}/${filepath}`,
-        ""
-      )}"
+      <div><a id="view-all" href="${urlBuilder.allBuilds(projectId)}"
         style="position: fixed; bottom: 0.5rem; left: 0.5rem; z-index: 9999; padding: 0.25rem 0.5rem; background-color: black; color: white; border-radius: 0.25rem; text-decoration: none; font-size: 1rem; font-face: sans-serif; font-weight: 400;">
         ← View all
       </a></div></body>`

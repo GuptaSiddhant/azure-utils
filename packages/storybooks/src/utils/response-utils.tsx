@@ -6,7 +6,7 @@ import type {
 import { CONTENT_TYPES } from "./constants";
 import { renderToStream } from "@kitajs/html/suspense";
 import { parseErrorMessage } from "./error-utils";
-import { DocumentLayout } from "../templates/components/layout";
+import { DocumentLayout } from "../components/layout";
 import { getRequestStore } from "./stores";
 import { joinUrl } from "./url-utils";
 
