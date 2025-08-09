@@ -5,42 +5,30 @@
  * @module
  */
 
-import path from "node:path";
 import { app } from "@azure/functions";
-import type {
-  RegisterStorybooksRouterOptions,
-  RouterHandlerOptions,
-} from "./utils/types";
+import z from "zod";
+import { timerPurgeHandler } from "./handlers/timer-purge-handler";
+import { openAPIHandler } from "./handlers/openapi-handler";
+import { registerProjectsRouter } from "./routers/projects-router";
+import { registerBuildsRouter } from "./routers/builds-router";
+import { emptyObjectSchema, projectIdSchema } from "./utils/schemas";
+import { registerLabelsRouter } from "./routers/labels-router";
+import { registerWebUIRouter } from "./routers/web-ui-router";
+import { registerStorybookRouter } from "./routers/storybook-router";
 import {
-  CONTENT_TYPES,
   DEFAULT_CONTAINER_NAME,
   DEFAULT_PURGE_AFTER_DAYS,
   DEFAULT_PURGE_SCHEDULE_CRON,
   DEFAULT_STORAGE_CONN_STR_ENV_VAR,
   SERVICE_NAME,
 } from "./utils/constants";
-import { uploadStorybookHandler } from "./handlers/upload-handler";
-import { onStorybookUploadedHandler } from "./handlers/on-uploaded-handler";
-import { serveStorybookHandler } from "./handlers/serve-handler";
-import { deleteStorybookHandler } from "./handlers/delete-handler";
-import { timerPurgeHandler } from "./handlers/timer-purge-handler";
-import { openAPIHandler } from "./handlers/openapi-handler";
-import { registerOpenAPIPath } from "./utils/openapi-utils";
-import {
-  storybookDeleteQueryParamsSchema,
-  storybookMetadataSchema,
-  storybookProjectSchema,
-} from "./utils/schemas";
-import z from "zod";
-import { createProjectHandler } from "./handlers/create-project-handler";
+import type {
+  RegisterStorybooksRouterOptions,
+  RouterHandlerOptions,
+} from "./utils/types";
+import { joinUrl } from "./utils/url-join";
 
 export type { RegisterStorybooksRouterOptions };
-
-// /**
-//  * OpenAPI Registry for definitions of all routes exposed from Storybooks router.
-//  * Can be use to generate schema.
-//  */
-// export const storybooksOpenAPIRegistry = registry;
 
 /**
  * Function to register all routes required to manage the Storybooks including
@@ -74,232 +62,52 @@ export function registerStorybooksRouter(
     purgeAfterDays,
   };
 
-  const CATCH_ALL_PATh_PARAM = "{**path}";
+  const openAPIEnabled = !openapi?.disabled;
 
   app.setup({ enableHttpStream: true });
 
-  if (openapi?.enabled !== false) {
-    app.http(`${SERVICE_NAME}-openapi`, {
+  registerProjectsRouter({
+    baseRoute: joinUrl(route, "projects"),
+    basePathParamsSchema: emptyObjectSchema,
+    handlerOptions,
+    openAPI: openAPIEnabled,
+  });
+
+  registerBuildsRouter({
+    baseRoute: joinUrl(route, "projects", "{projectId}", "builds"),
+    basePathParamsSchema: z.object({ projectId: projectIdSchema }),
+    handlerOptions,
+    openAPI: openAPIEnabled,
+  });
+
+  registerLabelsRouter({
+    baseRoute: joinUrl(route, "projects", "{projectId}", "labels"),
+    basePathParamsSchema: z.object({ projectId: projectIdSchema }),
+    handlerOptions,
+    openAPI: openAPIEnabled,
+  });
+
+  registerStorybookRouter({
+    baseRoute: joinUrl(route, "_"),
+    basePathParamsSchema: emptyObjectSchema,
+    handlerOptions,
+    openAPI: openAPIEnabled,
+  });
+
+  registerWebUIRouter({
+    baseRoute: route,
+    basePathParamsSchema: emptyObjectSchema,
+    handlerOptions,
+    openAPI: openAPIEnabled,
+  });
+
+  if (openAPIEnabled) {
+    app.get(`${SERVICE_NAME}-openapi`, {
       authLevel,
-      route: path.join(route, "openapi"),
-      methods: ["GET"],
+      route: joinUrl(route, "openapi"),
       handler: openAPIHandler(openapi),
     });
   }
-
-  app.http(`${SERVICE_NAME}-upload`, {
-    authLevel,
-    route: route || "/",
-    methods: ["POST"],
-    handler: uploadStorybookHandler(handlerOptions),
-  });
-  registerOpenAPIPath(route, {
-    post: {
-      tags: ["Storybook"],
-      summary: "Upload a storybook to a project",
-      requestParams: {
-        query: storybookMetadataSchema,
-      },
-      requestBody: {
-        required: true,
-        description: "Compressed zip containing storybook and test results.",
-        content: {
-          [CONTENT_TYPES.ZIP]: {
-            schema: { type: "string", format: "binary" },
-            example: "storybook.zip",
-          },
-        },
-      },
-      responses: {
-        202: {
-          description: "Storybook(s) uploaded successfully",
-          content: {
-            [CONTENT_TYPES.JSON]: {
-              schema: z.object({
-                success: z.boolean(),
-                blobName: z.string(),
-                metadata: storybookMetadataSchema,
-              }),
-            },
-          },
-        },
-        400: { description: "Invalid request data" },
-        500: { description: "An unexpected server-error occurred." },
-      },
-    },
-  });
-
-  const createProjectsRoute = path.join(route, "projects");
-  app.http(`${SERVICE_NAME}-create-project`, {
-    authLevel,
-    route: createProjectsRoute,
-    methods: ["POST"],
-    handler: createProjectHandler(handlerOptions),
-  });
-  registerOpenAPIPath(createProjectsRoute, {
-    post: {
-      tags: ["Projects"],
-      summary: "Create a new Storybook Project",
-      requestBody: {
-        required: true,
-        description: "Data about the project",
-        content: {
-          [CONTENT_TYPES.FORM_ENCODED]: { schema: storybookProjectSchema },
-        },
-      },
-      responses: {
-        202: {
-          description: "Storybook(s) uploaded successfully",
-          content: {
-            [CONTENT_TYPES.JSON]: {
-              schema: z.object({
-                success: z.boolean(),
-                data: storybookProjectSchema,
-              }),
-            },
-          },
-        },
-        400: { description: "Invalid request data" },
-        500: { description: "An unexpected server-error occurred." },
-      },
-    },
-  });
-
-  app.http(`${SERVICE_NAME}-delete`, {
-    authLevel,
-    route: route || "/",
-    methods: ["DELETE"],
-    handler: deleteStorybookHandler(handlerOptions),
-  });
-  registerOpenAPIPath(route, {
-    delete: {
-      tags: ["Storybook"],
-      summary: "Delete uploaded storybook(s) by commit SHA or branch-name",
-      requestParams: {
-        query: storybookDeleteQueryParamsSchema,
-      },
-      responses: {
-        204: { description: "Storybook(s) deleted successfully" },
-        400: { description: "Invalid request data" },
-        404: { description: "Matching storybook(s) not found." },
-        500: { description: "An unexpected server-error occurred." },
-      },
-    },
-  });
-
-  app.http(`${SERVICE_NAME}-serve`, {
-    authLevel,
-    route: path.join(route, CATCH_ALL_PATh_PARAM),
-    methods: ["GET"],
-    handler: serveStorybookHandler(handlerOptions),
-  });
-  registerOpenAPIPath(route, {
-    get: {
-      tags: ["Storybook"],
-      summary: "List all projects",
-      responses: {
-        200: {
-          description: "List of projects",
-          content: {
-            [CONTENT_TYPES.JSON]: {
-              schema: storybookMetadataSchema.array(),
-              example: [{ project: "project-id" }],
-            },
-            [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
-          },
-        },
-        400: { description: "Invalid request data" },
-        500: { description: "An unexpected server-error occurred." },
-      },
-    },
-  });
-  registerOpenAPIPath(path.join(route, "{project}"), {
-    get: {
-      tags: ["Storybook"],
-      summary: "List all storybooks/commits in a project",
-      requestParams: {
-        path: z.object({
-          project: z.string().meta({ description: "ID of the project" }),
-        }),
-      },
-      responses: {
-        200: {
-          description: "List of storybooks/commits",
-          content: {
-            [CONTENT_TYPES.JSON]: {
-              schema: storybookMetadataSchema.array(),
-              example: [{ project: "project-id", commitSha: "sd23d1A" }],
-            },
-            [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
-          },
-        },
-        400: { description: "Invalid request data" },
-        404: { description: "Matching project not found." },
-        500: { description: "An unexpected server-error occurred." },
-      },
-    },
-  });
-  registerOpenAPIPath(path.join(route, "{project}", "{commitSha}"), {
-    get: {
-      tags: ["Storybook"],
-      summary: "List all storybooks/commits in a project",
-      requestParams: {
-        path: z.object({
-          project: z.string().meta({ description: "ID of the project" }),
-          commitSha: z
-            .string()
-            .meta({ description: "Commit hash for Storybook" }),
-        }),
-      },
-      responses: {
-        200: {
-          description: "Details about a Storybook",
-          content: {
-            [CONTENT_TYPES.JSON]: {
-              schema: storybookMetadataSchema,
-              example: { project: "project-id", commitSha: "sd23d1A" },
-            },
-            [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
-          },
-        },
-        400: { description: "Invalid request data" },
-        404: { description: "Matching Storybook not found." },
-        500: { description: "An unexpected server-error occurred." },
-      },
-    },
-  });
-  registerOpenAPIPath(
-    path.join(route, "{project}", "{commitSha}", "{**filepath}"),
-    {
-      get: {
-        tags: ["Storybook"],
-        summary: "Serve Storybook file",
-        requestParams: {
-          path: z.object({
-            project: z.string().meta({ description: "ID of the project" }),
-            commitSha: z
-              .string()
-              .meta({ description: "Commit hash for Storybook" }),
-            "**filepath": z
-              .string()
-              .meta({ description: "Path to Storybook file" }),
-          }),
-        },
-        responses: {
-          200: { description: "File found and served" },
-          400: { description: "Invalid request data" },
-          404: { description: "Matching storybook(s) file not found." },
-          500: { description: "An unexpected server-error occurred." },
-        },
-      },
-    }
-  );
-
-  app.storageBlob(`${SERVICE_NAME}-on_uploaded`, {
-    connection: storageConnectionStringEnvVar,
-    path: `${storageContainerName}/{project}/{sha}/storybook.zip`,
-    handler: onStorybookUploadedHandler(handlerOptions),
-  });
 
   if (purgeScheduleCron !== null) {
     app.timer(`${SERVICE_NAME}-timer_purge`, {

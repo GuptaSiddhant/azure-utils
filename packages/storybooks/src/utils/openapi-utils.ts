@@ -13,6 +13,11 @@ export function registerOpenAPIPath(
   if (!path.startsWith("/")) {
     path = `/${path}`;
   }
+  console.log(
+    "Registering OpenAPI path: '%s' (%s)",
+    path,
+    Object.keys(input).join(", ")
+  );
   const value = openAPIPaths[path];
 
   if (value) {
@@ -21,3 +26,28 @@ export function registerOpenAPIPath(
     openAPIPaths[path] = input;
   }
 }
+
+export const openAPITags = {
+  projects: {
+    name: "Projects",
+    description:
+      "A project manages a single Storybook instance across multiple builds.",
+  },
+  builds: {
+    name: "Builds",
+    description: "A build is a specific version of a Storybook instance.",
+  },
+  labels: {
+    name: "Labels",
+    description:
+      "Labels can be used to manage multiple Storybook instances. Labels can be git-branches or Pull Requests.",
+  },
+  storybook: {
+    name: "Storybook",
+    description: "View storybook files for a specific project and build.",
+  },
+  webUI: {
+    name: "Web UI",
+    description: "Serves static files for web-ui.",
+  },
+} satisfies Record<string, { name: string; description?: string }>;

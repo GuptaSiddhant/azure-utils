@@ -1,9 +1,9 @@
 import type { HttpResponseInit } from "@azure/functions";
 import type { ServeFnOptions } from "./types";
 import { getAzureStorageBlobServiceClient } from "./azure-storage-blob";
-import { responseError } from "./error-utils";
 import { CACHE_CONTROL_PUBLIC_YEAR } from "./constants";
 import { Readable } from "stream";
+import { responseError } from "./response-utils";
 
 export async function serveFile(
   {

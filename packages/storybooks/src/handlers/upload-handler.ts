@@ -5,7 +5,6 @@ import type {
 } from "@azure/functions";
 import { Readable } from "node:stream";
 import { getOrCreateAzureStorageBlobContainerClientOrThrow } from "../utils/azure-storage-blob";
-import { responseError } from "../utils/error-utils";
 import { storybookMetadataSchema } from "../utils/schemas";
 import type { StorybooksRouterHttpHandler } from "../utils/types";
 import {
@@ -13,6 +12,7 @@ import {
   upsertStorybookMetadataToAzureTable,
 } from "../utils/azure-data-tables";
 import { PROJECTS_TABLE_PARTITION_KEY } from "../utils/constants";
+import { responseError } from "../utils/response-utils";
 
 export const uploadStorybookHandler: StorybooksRouterHttpHandler =
   (options) => async (request, context) => {

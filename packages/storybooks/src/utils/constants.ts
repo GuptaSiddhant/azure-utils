@@ -1,3 +1,5 @@
+import { ZodOpenApiResponsesObject } from "zod-openapi";
+
 export const SERVICE_NAME = "storybooks";
 
 export const DEFAULT_CONTAINER_NAME = SERVICE_NAME;
@@ -23,4 +25,11 @@ export const SUPPORTED_CONTENT_TYPES_MSG = `Only following content-type supporte
   ", "
 )}.`;
 
-export const PROJECTS_TABLE_PARTITION_KEY = "Default";
+export const PROJECTS_TABLE_PARTITION_KEY = "projects";
+
+export const commonErrorResponses: ZodOpenApiResponsesObject = {
+  400: { description: "Invalid request data" },
+  401: { description: "Unauthenticated access" },
+  403: { description: "Unauthorized access" },
+  500: { description: "An unexpected server-error occurred." },
+};

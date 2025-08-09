@@ -47,7 +47,7 @@ export async function upsertStorybookProjectToAzureTable(
   options: RouterHandlerOptions,
   context: InvocationContext,
   data: StorybookProject,
-  userId = PROJECTS_TABLE_PARTITION_KEY
+  mode: "Merge" | "Replace" = "Replace"
 ): Promise<void> {
   context.info("Updating AzureTable with storybook project for", data.id);
   const tableClient = getAzureTableClient(options, "Projects");
@@ -56,10 +56,10 @@ export async function upsertStorybookProjectToAzureTable(
   await tableClient.upsertEntity(
     {
       ...data,
-      partitionKey: userId,
+      partitionKey: PROJECTS_TABLE_PARTITION_KEY,
       rowKey: data.id,
     },
-    "Replace"
+    mode
   );
 }
 

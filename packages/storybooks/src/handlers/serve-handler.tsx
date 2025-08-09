@@ -1,4 +1,3 @@
-import { responseError } from "../utils/error-utils";
 import type {
   ServeFnOptions,
   StorybooksRouterHttpHandler,
@@ -11,7 +10,7 @@ import {
 import type { HttpResponseInit } from "@azure/functions";
 import { ProjectsTemplate } from "../templates/projects-template";
 import { CONTENT_TYPES } from "../utils/constants";
-import { renderToStream } from "@kitajs/html/suspense";
+import { responseError, responseHTML } from "../utils/response-utils";
 
 export const serveStorybookHandler: StorybooksRouterHttpHandler =
   (options) => async (request, context) => {
@@ -81,16 +80,12 @@ async function serveProjects({
   const projects = await listAzureTableEntities(context, options, "Projects");
 
   if (accept?.includes(CONTENT_TYPES.HTML)) {
-    return {
-      status: 200,
-      headers: { "Content-Type": CONTENT_TYPES.HTML },
-      body: renderToStream(
-        <ProjectsTemplate
-          projects={projects}
-          basePathname={new URL(request.url).pathname}
-        />
-      ),
-    };
+    return responseHTML(
+      <ProjectsTemplate
+        projects={projects}
+        basePathname={new URL(request.url).pathname}
+      />
+    );
   }
 
   return { status: 200, jsonBody: projects };
@@ -108,16 +103,12 @@ async function serveCommits(
   });
 
   if (accept?.includes(CONTENT_TYPES.HTML)) {
-    return {
-      status: 200,
-      headers: { "Content-Type": CONTENT_TYPES.HTML },
-      body: renderToStream(
-        <ProjectsTemplate
-          projects={[]}
-          basePathname={new URL(request.url).pathname}
-        />
-      ),
-    };
+    return responseHTML(
+      <ProjectsTemplate
+        projects={[]}
+        basePathname={new URL(request.url).pathname}
+      />
+    );
   }
 
   return { status: 200, jsonBody: commits };
@@ -137,16 +128,12 @@ async function serveCommit(
   );
 
   if (accept?.includes(CONTENT_TYPES.HTML)) {
-    return {
-      status: 200,
-      headers: { "Content-Type": CONTENT_TYPES.HTML },
-      body: renderToStream(
-        <ProjectsTemplate
-          projects={[]}
-          basePathname={new URL(request.url).pathname}
-        />
-      ),
-    };
+    return responseHTML(
+      <ProjectsTemplate
+        projects={[]}
+        basePathname={new URL(request.url).pathname}
+      />
+    );
   }
 
   return { status: 200, jsonBody: commit };

@@ -8,6 +8,7 @@ import type {
 } from "@azure/functions";
 import type { TableEntityResult } from "@azure/data-tables";
 import type { StorybookMetadata, StorybookProject } from "./schemas";
+import z from "zod";
 
 /**
  * Options to register the storybooks router
@@ -60,9 +61,9 @@ export type RegisterStorybooksRouterOptions = {
   openapi?: {
     /**
      * Enable or disable openAPI schema endpoint.
-     * @default true
+     * @default false
      */
-    enabled?: boolean;
+    disabled?: boolean;
     /**
      * Title of the OpenAPI schema
      * @default SERVICE_NAME (storybooks)
@@ -73,6 +74,21 @@ export type RegisterStorybooksRouterOptions = {
      * @default process.env['NODE_ENV']
      */
     version?: string;
+    /**
+     * Servers to be included in the OpenAPI schema.
+     */
+    servers?: Array<{
+      url: string;
+      description?: string;
+      variables?: Record<
+        string,
+        {
+          enum?: string[] | boolean[] | number[];
+          default: string | boolean | number;
+          description?: string;
+        }
+      >;
+    }>;
   };
 };
 
@@ -95,6 +111,27 @@ export interface RouterHandlerOptions {
    * Number of days after which storybooks are purged.
    */
   purgeAfterDays: number;
+}
+
+/**
+ * @private
+ * Options for configuring the router
+ */
+export interface RouterOptions {
+  /**
+   * The base route for the router.
+   */
+  baseRoute: string;
+  /**
+   * Enable or disable OpenAPI schema generation.
+   */
+  openAPI: boolean;
+  /**
+   * A base schema for path parameters based on baseRoute.
+   */
+  basePathParamsSchema: z.ZodObject;
+
+  handlerOptions: RouterHandlerOptions;
 }
 
 /** @private */

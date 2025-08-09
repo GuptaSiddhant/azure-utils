@@ -1,13 +1,16 @@
 import { createDocument } from "zod-openapi";
-import { openAPIPaths } from "../utils/openapi-utils";
+import { openAPIPaths, openAPITags } from "../utils/openapi-utils";
 import {
   CONTENT_TYPES,
   SERVICE_NAME,
   SUPPORTED_CONTENT_TYPES_MSG,
 } from "../utils/constants";
 import type { StorybooksRouterOpenAPIHandler } from "../utils/types";
-import { responseError } from "../utils/error-utils";
-import { storybookMetadataSchema } from "../utils/schemas";
+import {
+  storybookMetadataSchema,
+  storybookProjectSchema,
+} from "../utils/schemas";
+import { responseError } from "../utils/response-utils";
 
 export const openAPIHandler: StorybooksRouterOpenAPIHandler =
   (options = {}) =>
@@ -15,6 +18,7 @@ export const openAPIHandler: StorybooksRouterOpenAPIHandler =
     const {
       title = SERVICE_NAME.toUpperCase(),
       version = process.env["NODE_ENV"] || "TEST",
+      servers,
     } = options;
 
     context.log("Serving OpenAPI schema...");
@@ -24,12 +28,15 @@ export const openAPIHandler: StorybooksRouterOpenAPIHandler =
         openapi: "3.1.0",
         info: { title, version },
         security: [],
-        tags: [],
+        tags: Object.values(openAPITags),
         paths: openAPIPaths,
+        servers,
         components: {
           schemas: {
-            storybookUploadQueryParamsSchema: storybookMetadataSchema,
+            storybookMetadataSchema,
+            storybookProjectSchema,
           },
+          securitySchemes: {},
         },
       });
 

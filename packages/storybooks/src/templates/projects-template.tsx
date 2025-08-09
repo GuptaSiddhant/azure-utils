@@ -11,8 +11,6 @@ export async function ProjectsTemplate({
   projects,
   basePathname,
 }: ProjectsTemplateProps) {
-  console.log({ basePathname });
-
   return (
     <DocumentLayout title="Projects">
       <Table
@@ -22,7 +20,7 @@ export async function ProjectsTemplate({
             id: "name",
             header: "Name",
             cell: (item) => {
-              const href = [...basePathname.split("/"), item.id]
+              const href = [...basePathname.split("/"), item.rowKey]
                 .join("/")
                 .replace(/\/+/g, "/");
               return (

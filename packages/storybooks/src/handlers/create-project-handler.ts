@@ -1,7 +1,7 @@
-import { responseError } from "../utils/error-utils";
 import { storybookProjectSchema } from "../utils/schemas";
 import type { StorybooksRouterHttpHandler } from "../utils/types";
 import { upsertStorybookProjectToAzureTable } from "../utils/azure-data-tables";
+import { responseError } from "../utils/response-utils";
 
 export const createProjectHandler: StorybooksRouterHttpHandler =
   (options) => async (request, context) => {

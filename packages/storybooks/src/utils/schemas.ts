@@ -3,6 +3,20 @@ import { z } from "zod/v4";
 export type StorybookMetadata = z.infer<typeof storybookMetadataSchema>;
 export type StorybookProject = z.infer<typeof storybookProjectSchema>;
 
+export const emptyObjectSchema = z.object({});
+
+export const projectIdSchema = z
+  .string()
+  .meta({ id: "projectId", description: "The ID of the project." });
+
+export const buildSHASchema = z
+  .string()
+  .meta({ id: "buildSHA", description: "The SHA of the build." });
+
+export const labelSchema = z
+  .string()
+  .meta({ id: "label", description: "The name of the label." });
+
 const projectNameSchema = z
   .string()
   .check(z.minLength(1, "Query-param 'project' is required."));
@@ -33,9 +47,10 @@ export const storybookMetadataSchema = z
     title: z.string().check(z.minLength(1, "Query-param 'title' is required.")),
     gitHubRepo,
     authorName: z.string(),
-    authorEmail: z.email().meta({
-      description: "Email of the author",
-    }),
+    authorEmail: z
+      .string()
+      .refine((val) => val.includes("@"), "Invalid email format")
+      .meta({ description: "Email of the author" }),
     commitMessage: z.optional(z.string()),
     gitHubPrNumber: z.optional(
       z.string().regex(/^\d+$/).meta({ description: "GitHub PR number" })
