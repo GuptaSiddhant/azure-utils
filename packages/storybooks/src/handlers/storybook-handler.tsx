@@ -3,7 +3,6 @@ import type {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import type { RouterHandlerOptions } from "../utils/types";
 import path from "node:path";
 import {
   generateAzureStorageContainerName,
@@ -12,22 +11,18 @@ import {
 import { responseError } from "../utils/response-utils";
 import { CACHE_CONTROL_PUBLIC_YEAR, urlBuilder } from "../utils/constants";
 import { Readable } from "node:stream";
-import { generateRequestStore, requestStore } from "../utils/stores";
+import { getRequestStore } from "../utils/stores";
 
 export async function serveStorybook(
-  options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  requestStore.enterWith(generateRequestStore(request, options));
-
   const { projectId = "", buildSHA = "", filepath = "" } = request.params;
   const blobName = path.posix.join(buildSHA, filepath);
   context.log("Serving SB (%s) - %s...", projectId, blobName);
 
-  const blockBlobClient = getAzureStorageBlobServiceClient(
-    options.connectionString
-  )
+  const { connectionString } = getRequestStore();
+  const blockBlobClient = getAzureStorageBlobServiceClient(connectionString)
     .getContainerClient(generateAzureStorageContainerName(projectId))
     .getBlockBlobClient(blobName);
 

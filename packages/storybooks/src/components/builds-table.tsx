@@ -10,7 +10,7 @@ import { urlBuilder } from "../utils/constants";
 export interface BuildTableProps {
   builds: Array<StorybookBuild>;
   project?: StorybookProject;
-  labels: StorybookLabel[];
+  labels: StorybookLabel[] | undefined;
 }
 
 export async function BuildTable({ builds, labels }: BuildTableProps) {
@@ -31,26 +31,30 @@ export async function BuildTable({ builds, labels }: BuildTableProps) {
             );
           },
         },
-
-        {
-          id: "labels",
-          header: "Labels",
-          cell: (item) => {
-            return (
-              <div>
-                {item.labels.split(",").map((labelId, index, arr) => (
-                  <>
-                    <a safe href={urlBuilder.label(item.project, labelId)}>
-                      {labels.find((label) => label.id === labelId)?.value ||
-                        labelId}
-                    </a>
-                    {index < arr.length - 1 ? ", " : ""}
-                  </>
-                ))}
-              </div>
-            );
-          },
-        },
+        labels
+          ? {
+              id: "labels",
+              header: "Labels",
+              cell: (item) => {
+                return (
+                  <div>
+                    {item.labels.split(",").map((labelSlug, index, arr) => (
+                      <>
+                        <a
+                          safe
+                          href={urlBuilder.labelSlug(item.project, labelSlug)}
+                        >
+                          {labels.find((label) => label.slug === labelSlug)
+                            ?.value || labelSlug}
+                        </a>
+                        {index < arr.length - 1 ? ", " : ""}
+                      </>
+                    ))}
+                  </div>
+                );
+              },
+            }
+          : undefined,
         {
           id: "storybook",
           header: "Storybook",

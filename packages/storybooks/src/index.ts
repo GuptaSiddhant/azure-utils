@@ -25,6 +25,7 @@ import type {
   RouterHandlerOptions,
 } from "./utils/types";
 import { joinUrl } from "./utils/url-utils";
+import { wrapHttpHandlerWithRequestStore } from "./utils/stores";
 
 export type { RegisterStorybooksRouterOptions };
 
@@ -63,39 +64,44 @@ export function registerStorybooksRouter(
 
   app.setup({ enableHttpStream: true });
 
+  const handlerWrapper = wrapHttpHandlerWithRequestStore.bind(
+    null,
+    handlerOptions
+  );
+
   registerProjectsRouter({
     baseRoute: joinUrl(route, "projects"),
     basePathParamsSchema: emptyObjectSchema,
-    handlerOptions,
     openAPI: openAPIEnabled,
+    handlerWrapper,
   });
 
   registerBuildsRouter({
     baseRoute: joinUrl(route, "projects", "{projectId}", "builds"),
     basePathParamsSchema: z.object({ projectId: projectIdSchema }),
-    handlerOptions,
     openAPI: openAPIEnabled,
+    handlerWrapper,
   });
 
   registerLabelsRouter({
     baseRoute: joinUrl(route, "projects", "{projectId}", "labels"),
     basePathParamsSchema: z.object({ projectId: projectIdSchema }),
-    handlerOptions,
     openAPI: openAPIEnabled,
+    handlerWrapper,
   });
 
   registerStorybookRouter({
     baseRoute: joinUrl(route, "_"),
     basePathParamsSchema: emptyObjectSchema,
-    handlerOptions,
     openAPI: openAPIEnabled,
+    handlerWrapper,
   });
 
   registerWebUIRouter({
     baseRoute: route,
     basePathParamsSchema: emptyObjectSchema,
-    handlerOptions,
     openAPI: openAPIEnabled,
+    handlerWrapper,
   });
 
   if (openAPIEnabled) {

@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import type { HttpRequest } from "@azure/functions";
+import type { HttpHandler, HttpRequest } from "@azure/functions";
 import { RouterHandlerOptions } from "./types";
 
 export type RequestStore = {
@@ -38,4 +38,14 @@ export function generateRequestStore(
     baseRoute: options.baseRoute,
     connectionString: options.connectionString,
   };
+}
+
+export function wrapHttpHandlerWithRequestStore(
+  options: RouterHandlerOptions,
+  handler: HttpHandler
+): HttpHandler {
+  return (request, context) =>
+    requestStore.run(generateRequestStore(request, options), () =>
+      handler(request, context)
+    );
 }

@@ -35,6 +35,10 @@ export const commonErrorResponses: ZodOpenApiResponsesObject = {
 };
 
 export const urlBuilder = {
+  home: () => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(joinUrl(baseRoute), url).toString();
+  },
   allProjects: () => {
     const { baseRoute, url } = getRequestStore();
     return new URL(joinUrl(baseRoute, "projects"), url).toString();
@@ -64,10 +68,10 @@ export const urlBuilder = {
       url
     ).toString();
   },
-  label: (projectId: string, labelId: string) => {
+  labelSlug: (projectId: string, labelSlug: string) => {
     const { baseRoute, url } = getRequestStore();
     return new URL(
-      joinUrl(baseRoute, "projects", projectId, "labels", labelId),
+      joinUrl(baseRoute, "projects", projectId, "labels", labelSlug),
       url
     ).toString();
   },

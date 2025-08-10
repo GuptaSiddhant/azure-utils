@@ -1,3 +1,4 @@
+import { urlBuilder } from "../utils/constants";
 import { getRequestStore } from "../utils/stores";
 import { globalStyleSheet } from "../utils/style-utils";
 import { joinUrl } from "../utils/url-utils";
@@ -49,11 +50,13 @@ export function DocumentLayout({
               <div safe>{title}</div>
             </div>
             <div>
-              <strong>
-                STORY
-                <br />
-                BOOKS
-              </strong>
+              <a href={urlBuilder.home()} title="Home">
+                <strong>
+                  STORY
+                  <br />
+                  BOOKS
+                </strong>
+              </a>
             </div>
           </header>
           <main>{children}</main>

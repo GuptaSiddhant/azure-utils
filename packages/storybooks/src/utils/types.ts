@@ -118,7 +118,11 @@ export interface RouterOptions {
    */
   basePathParamsSchema: z.ZodObject;
 
-  handlerOptions: RouterHandlerOptions;
+  /**
+   * A wrapper function for the HTTP handler.
+   * It adds request-specific context to the handler.
+   */
+  handlerWrapper: (handler: HttpHandler) => HttpHandler;
 }
 
 /** @private */

@@ -5,47 +5,42 @@ import {
   SERVICE_NAME,
 } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
-import { labelSchema, storybookMetadataSchema } from "../utils/schemas";
+import { labelSlugSchema, storybookMetadataSchema } from "../utils/schemas";
 import type { RouterOptions } from "../utils/types";
 import z from "zod";
 import { joinUrl } from "../utils/url-utils";
+import * as handlers from "../handlers/label-handlers";
 
 const TAG = openAPITags.labels.name;
 
 export function registerLabelsRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, openAPI } = options;
-  const routeWithLabel = joinUrl(baseRoute, "{label}");
+  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
+  const routeWithLabel = joinUrl(baseRoute, "{labelSlug}");
 
   app.get(`${SERVICE_NAME}-labels-list`, {
     route: baseRoute,
-    handler: async () => {
-      return { status: 500 };
-    },
+    handler: handlerWrapper(handlers.listLabels),
   });
   app.get(`${SERVICE_NAME}-label-get`, {
     route: routeWithLabel,
-    handler: async () => {
-      return { status: 500 };
-    },
+    handler: handlerWrapper(handlers.getLabel),
   });
   app.deleteRequest(`${SERVICE_NAME}-label-delete`, {
     route: routeWithLabel,
-    handler: async () => {
-      return { status: 500 };
-    },
+    handler: handlerWrapper(handlers.deleteLabel),
   });
 
   const routeWithLabelLatest = joinUrl(routeWithLabel, "latest");
   app.get(`${SERVICE_NAME}-label-latest`, {
     route: routeWithLabelLatest,
-    handler: async () => {
+    handler: handlerWrapper(async () => {
       return { status: 308 };
-    },
+    }),
   });
 
   if (openAPI) {
     const labelPathParameterSchema = basePathParamsSchema.extend({
-      label: labelSchema,
+      label: labelSlugSchema,
     });
 
     registerOpenAPIPath(baseRoute, {

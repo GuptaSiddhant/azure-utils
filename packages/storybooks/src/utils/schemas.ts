@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 export type StorybookMetadata = z.infer<typeof storybookMetadataSchema>;
 export type StorybookProject = z.infer<typeof storybookProjectSchema>;
 export type StorybookBuild = z.infer<typeof storybookBuildSchema>;
-export type StorybookLabel = { id: string; value: string };
+export type StorybookLabel = z.infer<typeof storybookLabelSchema>;
 
 export const emptyObjectSchema = z.object({});
 
@@ -15,9 +15,9 @@ export const buildSHASchema = z
   .string()
   .meta({ id: "buildSHA", description: "The SHA of the build." });
 
-export const labelSchema = z
+export const labelSlugSchema = z
   .string()
-  .meta({ id: "label", description: "The name of the label." });
+  .meta({ id: "labelSlug", description: "The slug of the label." });
 
 const projectNameSchema = z
   .string()
@@ -57,6 +57,14 @@ export const storybookBuildSchema = z.object({
 export const storybookBuildUploadSchema = storybookBuildSchema.omit({
   project: true,
 });
+
+export const storybookLabelSchema = z
+  .object({
+    slug: labelSlugSchema,
+    value: z.string().meta({ description: "The value of the label." }),
+    timestamp: z.string().optional(),
+  })
+  .meta({ id: "storybook-label", description: "A Storybook label." });
 
 export const storybookMetadataSchema = z
   .object({

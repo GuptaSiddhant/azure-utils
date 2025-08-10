@@ -14,28 +14,28 @@ import { joinUrl } from "../utils/url-utils";
 const TAG = openAPITags.projects.name;
 
 export function registerProjectsRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, handlerOptions, openAPI } = options;
+  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
   const routeWithProjectId = joinUrl(baseRoute, "{projectId}");
 
   app.get(`${SERVICE_NAME}-projects-list`, {
     route: baseRoute,
-    handler: handlers.listProjects.bind(null, handlerOptions),
+    handler: handlerWrapper(handlers.listProjects),
   });
   app.post(`${SERVICE_NAME}-project-create`, {
     route: baseRoute,
-    handler: handlers.createProject.bind(null, handlerOptions),
+    handler: handlerWrapper(handlers.createProject),
   });
   app.get(`${SERVICE_NAME}-project-get`, {
     route: routeWithProjectId,
-    handler: handlers.getProject.bind(null, handlerOptions),
+    handler: handlerWrapper(handlers.getProject),
   });
   app.patch(`${SERVICE_NAME}-project-update`, {
     route: routeWithProjectId,
-    handler: handlers.updateProject.bind(null, handlerOptions),
+    handler: handlerWrapper(handlers.updateProject),
   });
   app.deleteRequest(`${SERVICE_NAME}-project-delete`, {
     route: routeWithProjectId,
-    handler: handlers.deleteProject.bind(null, handlerOptions),
+    handler: handlerWrapper(handlers.deleteProject),
   });
 
   if (openAPI) {

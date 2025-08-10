@@ -6,7 +6,6 @@ import type {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import type { RouterHandlerOptions } from "../utils/types";
 import { responseError, responseHTML } from "../utils/response-utils";
 import {
   getAzureProjectsTableClient,
@@ -19,6 +18,7 @@ import {
   StorybookBuild,
   storybookBuildSchema,
   storybookBuildUploadSchema,
+  storybookLabelSchema,
 } from "../utils/schemas";
 import {
   CONTENT_TYPES,
@@ -27,7 +27,7 @@ import {
 } from "../utils/constants";
 import { DocumentLayout } from "../components/layout";
 import { RawDataPreview } from "../components/raw-data";
-import { generateRequestStore, requestStore } from "../utils/stores";
+import { getRequestStore } from "../utils/stores";
 import { urlSearchParamsToObject } from "../utils/url-utils";
 import { BuildTable } from "../components/builds-table";
 import {
@@ -40,23 +40,17 @@ import { Readable } from "node:stream";
 import { once } from "node:events";
 
 export async function listBuilds(
-  options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  requestStore.enterWith(generateRequestStore(request, options));
-
   const { projectId = "" } = request.params;
   context.log("Serving all builds for project '%s'...", projectId);
 
   try {
+    const { connectionString } = getRequestStore();
     const entities = await listAzureTableEntities(
       context,
-      getAzureTableClientForProject(
-        options.connectionString,
-        projectId,
-        "Builds"
-      )
+      getAzureTableClientForProject(connectionString, projectId, "Builds")
     );
     const builds = storybookBuildSchema.array().parse(entities);
 
@@ -65,16 +59,9 @@ export async function listBuilds(
       const labels = (
         await listAzureTableEntities(
           context,
-          getAzureTableClientForProject(
-            options.connectionString,
-            projectId,
-            "Labels"
-          )
+          getAzureTableClientForProject(connectionString, projectId, "Labels")
         )
-      ).map((label) => ({
-        id: String(label["id"] ?? label.rowKey ?? ""),
-        value: String(label["value"] ?? ""),
-      }));
+      ).map((label) => storybookLabelSchema.parse(label));
 
       return responseHTML(
         <DocumentLayout
@@ -93,18 +80,16 @@ export async function listBuilds(
 }
 
 export async function getBuild(
-  options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  requestStore.enterWith(generateRequestStore(request, options));
-
   const { projectId = "", buildSHA = "" } = request.params;
   context.log("Getting build '%s' for project '%s'...", buildSHA, projectId);
 
   try {
+    const { connectionString } = getRequestStore();
     const client = getAzureTableClientForProject(
-      options.connectionString,
+      connectionString,
       projectId,
       "Builds"
     );
@@ -160,18 +145,16 @@ export async function getBuild(
 }
 
 export async function deleteBuild(
-  options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  requestStore.enterWith(generateRequestStore(request, options));
-
   const { projectId = "", buildSHA = "" } = request.params;
   context.log("Deleting build '%s' for project '%s'...", buildSHA, projectId);
 
   try {
+    const { connectionString } = getRequestStore();
     const client = getAzureTableClientForProject(
-      options.connectionString,
+      connectionString,
       projectId,
       "Builds"
     );
@@ -190,15 +173,14 @@ export async function deleteBuild(
 }
 
 export async function uploadBuild(
-  options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  requestStore.enterWith(generateRequestStore(request, options));
-
   const { projectId = "" } = request.params;
+  const { connectionString } = getRequestStore();
+
   try {
-    await getAzureProjectsTableClient(options.connectionString).getEntity(
+    await getAzureProjectsTableClient(connectionString).getEntity(
       PROJECTS_TABLE_PARTITION_KEY,
       projectId
     );
@@ -229,14 +211,14 @@ export async function uploadBuild(
     const blobName = await uploadZipWithDecompressed(
       context,
       request,
-      options.connectionString,
+      connectionString,
       projectId,
       buildData.sha
     );
 
-    const labelIds = await upsertStorybookLabelsToAzureTable(
-      options,
+    const labelSlugs = await upsertStorybookLabelsToAzureTable(
       context,
+      connectionString,
       projectId,
       buildData.labels
     );
@@ -244,10 +226,10 @@ export async function uploadBuild(
     const data: StorybookBuild = {
       ...buildData,
       project: projectId,
-      labels: labelIds.join(","),
+      labels: labelSlugs.join(","),
     };
 
-    await upsertStorybookBuildToAzureTable(options, context, data);
+    await upsertStorybookBuildToAzureTable(context, connectionString, data);
 
     return { status: 202, jsonBody: { blobName, data } };
   } catch (error) {

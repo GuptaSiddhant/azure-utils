@@ -18,24 +18,24 @@ import * as handlers from "../handlers/build-handlers";
 const TAG = openAPITags.builds.name;
 
 export function registerBuildsRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, handlerOptions, openAPI } = options;
+  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
   const routeWithBuildSHA = joinUrl(baseRoute, "{buildSHA}");
 
   app.get(`${SERVICE_NAME}-builds-list`, {
     route: baseRoute,
-    handler: handlers.listBuilds.bind(null, handlerOptions),
+    handler: handlerWrapper(handlers.listBuilds),
   });
   app.post(`${SERVICE_NAME}-build-upload`, {
     route: baseRoute,
-    handler: handlers.uploadBuild.bind(null, handlerOptions),
+    handler: handlerWrapper(handlers.uploadBuild),
   });
   app.get(`${SERVICE_NAME}-build-get`, {
     route: routeWithBuildSHA,
-    handler: handlers.getBuild.bind(null, handlerOptions),
+    handler: handlerWrapper(handlers.getBuild),
   });
   app.deleteRequest(`${SERVICE_NAME}-build-delete`, {
     route: routeWithBuildSHA,
-    handler: handlers.deleteBuild.bind(null, handlerOptions),
+    handler: handlerWrapper(handlers.deleteBuild),
   });
 
   if (openAPI) {

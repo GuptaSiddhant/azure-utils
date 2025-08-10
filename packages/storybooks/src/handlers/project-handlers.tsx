@@ -3,10 +3,7 @@ import type {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import type {
-  RouterHandlerOptions,
-  StorybookProjectTableEntity,
-} from "../utils/types";
+import type { StorybookProjectTableEntity } from "../utils/types";
 import {
   getAzureProjectsTableClient,
   getAzureTableClientForProject,
@@ -23,26 +20,24 @@ import { DocumentLayout } from "../components/layout";
 import { responseError, responseHTML } from "../utils/response-utils";
 import { storybookBuildSchema, storybookProjectSchema } from "../utils/schemas";
 import { RawDataPreview } from "../components/raw-data";
-import { generateRequestStore, requestStore } from "../utils/stores";
 import {
   generateAzureStorageContainerName,
   getAzureStorageBlobServiceClient,
 } from "../utils/azure-storage-blob";
 import { BuildTable } from "../components/builds-table";
+import { getRequestStore } from "../utils/stores";
 
 export async function listProjects(
-  options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  requestStore.enterWith(generateRequestStore(request, options));
-
+  context.log("Serving all projects...");
   try {
-    context.log("Serving all projects...");
+    const { connectionString } = getRequestStore();
 
     const entities = await listAzureTableEntities(
       context,
-      getAzureProjectsTableClient(options.connectionString)
+      getAzureProjectsTableClient(connectionString)
     );
     const projects = storybookProjectSchema.array().parse(entities);
 
@@ -62,20 +57,18 @@ export async function listProjects(
 }
 
 export async function getProject(
-  options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  requestStore.enterWith(generateRequestStore(request, options));
-
   const { projectId } = request.params;
   context.log("Serving project: '%s'...", projectId);
+  const { connectionString } = getRequestStore();
 
   if (!projectId) {
     return { status: 400, body: "Missing project ID" };
   }
 
-  const client = getAzureProjectsTableClient(options.connectionString);
+  const client = getAzureProjectsTableClient(connectionString);
 
   try {
     const project = storybookProjectSchema.parse(
@@ -87,11 +80,7 @@ export async function getProject(
 
     const builds = await listAzureTableEntities(
       context,
-      getAzureTableClientForProject(
-        options.connectionString,
-        projectId,
-        "Builds"
-      ),
+      getAzureTableClientForProject(connectionString, projectId, "Builds"),
       { limit: 10 }
     );
 
@@ -104,7 +93,10 @@ export async function getProject(
         >
           <>
             <RawDataPreview data={project} />
-            <BuildTable builds={storybookBuildSchema.array().parse(builds)} />
+            <BuildTable
+              builds={storybookBuildSchema.array().parse(builds)}
+              labels={undefined}
+            />
           </>
         </DocumentLayout>
       );
@@ -117,13 +109,12 @@ export async function getProject(
 }
 
 export async function createProject(
-  options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  requestStore.enterWith(generateRequestStore(request, options));
-
   try {
+    const { connectionString } = getRequestStore();
+
     const contentType = request.headers.get("content-type");
     if (!contentType) {
       return responseError("Content-Type header is required", context, 400);
@@ -146,10 +137,15 @@ export async function createProject(
     const data = result.data;
     context.log("Create project: '%s'...", data.id);
 
-    await getAzureStorageBlobServiceClient(
-      options.connectionString
-    ).createContainer(generateAzureStorageContainerName(data.id));
-    await upsertStorybookProjectToAzureTable(options, context, data, "Replace");
+    await getAzureStorageBlobServiceClient(connectionString).createContainer(
+      generateAzureStorageContainerName(data.id)
+    );
+    await upsertStorybookProjectToAzureTable(
+      context,
+      connectionString,
+      data,
+      "Replace"
+    );
 
     const projectUrl = urlBuilder.projectId(data.id);
     const accept = request.headers.get("accept");
@@ -168,15 +164,13 @@ export async function createProject(
 }
 
 export async function updateProject(
-  options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  requestStore.enterWith(generateRequestStore(request, options));
-
   try {
     const { projectId } = request.params;
     context.log("Updating project: '%s'...", projectId);
+    const { connectionString } = getRequestStore();
 
     if (!projectId) {
       return { status: 400, body: "Missing project ID" };
@@ -203,7 +197,7 @@ export async function updateProject(
 
     const data = result.data;
 
-    const client = getAzureProjectsTableClient(options.connectionString);
+    const client = getAzureProjectsTableClient(connectionString);
     await client.updateEntity(
       {
         ...data,
@@ -238,35 +232,33 @@ export async function updateProject(
 }
 
 export async function deleteProject(
-  options: RouterHandlerOptions,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  requestStore.enterWith(generateRequestStore(request, options));
-
   try {
     const { projectId } = request.params;
     context.log("Deleting project: '%s'...", projectId);
+    const { connectionString } = getRequestStore();
 
     if (!projectId) {
       return { status: 400, body: "Missing project ID" };
     }
 
     await Promise.allSettled([
-      getAzureStorageBlobServiceClient(
-        options.connectionString
-      ).deleteContainer(generateAzureStorageContainerName(projectId)),
+      getAzureStorageBlobServiceClient(connectionString).deleteContainer(
+        generateAzureStorageContainerName(projectId)
+      ),
       getAzureTableClientForProject(
-        options.connectionString,
+        connectionString,
         projectId,
         "Builds"
       ).deleteTable(),
       getAzureTableClientForProject(
-        options.connectionString,
+        connectionString,
         projectId,
         "Labels"
       ).deleteTable(),
-      getAzureProjectsTableClient(options.connectionString).deleteEntity(
+      getAzureProjectsTableClient(connectionString).deleteEntity(
         PROJECTS_TABLE_PARTITION_KEY,
         projectId
       ),

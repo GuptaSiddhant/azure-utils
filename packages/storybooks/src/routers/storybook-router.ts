@@ -10,7 +10,7 @@ import { serveStorybook } from "../handlers/storybook-handler";
 const TAG = openAPITags.storybook.name;
 
 export function registerStorybookRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, handlerOptions, openAPI } = options;
+  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
 
   const storybookRoute = joinUrl(
     baseRoute,
@@ -21,7 +21,7 @@ export function registerStorybookRouter(options: RouterOptions) {
 
   app.get(`${SERVICE_NAME}-storybook-serve`, {
     route: storybookRoute,
-    handler: serveStorybook.bind(null, handlerOptions),
+    handler: handlerWrapper(serveStorybook),
   });
 
   if (openAPI) {

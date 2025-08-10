@@ -2,7 +2,7 @@ export type TableItem = Record<string, unknown>;
 
 export type TableProps<T extends TableItem> = {
   data: T[];
-  columns: TableColumn<NoInfer<T>>[];
+  columns: (TableColumn<NoInfer<T>> | undefined)[];
 };
 
 export type TableColumn<T extends TableItem> = {
@@ -12,11 +12,13 @@ export type TableColumn<T extends TableItem> = {
 };
 
 export function Table<T extends TableItem>({ columns, data }: TableProps<T>) {
+  const cols = columns.filter(Boolean) as TableColumn<T>[];
+
   return (
     <table>
       <thead>
         <tr>
-          {columns.map((col) => (
+          {cols.map((col) => (
             <th safe>{String(col.header || col.id)}</th>
           ))}
         </tr>
@@ -25,7 +27,7 @@ export function Table<T extends TableItem>({ columns, data }: TableProps<T>) {
         {data.map((item) => {
           return (
             <tr>
-              {columns.map((col) => {
+              {cols.map((col) => {
                 const value = col.cell?.(item) || item[col.id];
                 if (!value) return <td />;
 

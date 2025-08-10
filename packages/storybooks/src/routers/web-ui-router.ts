@@ -3,6 +3,7 @@ import {
   commonErrorResponses,
   CONTENT_TYPES,
   SERVICE_NAME,
+  urlBuilder,
 } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
 import z from "zod";
@@ -12,47 +13,47 @@ import { joinUrl } from "../utils/url-utils";
 const TAG = openAPITags.webUI.name;
 
 export function registerWebUIRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, openAPI } = options;
+  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
 
   app.get(`${SERVICE_NAME}-root`, {
     route: joinUrl(baseRoute),
-    handler: async () => {
-      return { status: 200 };
-    },
+    handler: handlerWrapper(async () => {
+      return { status: 303, headers: { Location: urlBuilder.allProjects() } };
+    }),
   });
 
   // Account
   const accountRoute = joinUrl(baseRoute, "account");
   app.get(`${SERVICE_NAME}-account-details`, {
     route: accountRoute,
-    handler: async () => {
+    handler: handlerWrapper(async () => {
       return { status: 500 };
-    },
+    }),
   });
 
   const logoutRoute = joinUrl(baseRoute, "logout");
   app.get(`${SERVICE_NAME}-account-logout`, {
     route: logoutRoute,
-    handler: async () => {
+    handler: handlerWrapper(async () => {
       return { status: 500 };
-    },
+    }),
   });
 
   // Health check
   const healthRoute = joinUrl(baseRoute, "health");
   app.get(`${SERVICE_NAME}-health-check`, {
     route: healthRoute,
-    handler: async () => {
+    handler: handlerWrapper(async () => {
       return { status: 200 };
-    },
+    }),
   });
 
   const staticFIleRoute = joinUrl(baseRoute, "**filepath");
   app.get(`${SERVICE_NAME}-static-files`, {
     route: staticFIleRoute,
-    handler: async () => {
+    handler: handlerWrapper(async () => {
       return { status: 404 };
-    },
+    }),
   });
 
   if (openAPI) {

@@ -3,8 +3,11 @@ import {
   TableEntityResult,
   TableEntityResultPage,
 } from "@azure/data-tables";
-import type { RouterHandlerOptions } from "./types";
-import type { StorybookBuild, StorybookProject } from "./schemas";
+import type {
+  StorybookBuild,
+  StorybookLabel,
+  StorybookProject,
+} from "./schemas";
 import type { InvocationContext } from "@azure/functions";
 import { PROJECTS_TABLE_PARTITION_KEY, SERVICE_NAME } from "./constants";
 
@@ -32,8 +35,8 @@ export function getAzureTableClientForProject(
 }
 
 export async function upsertStorybookBuildToAzureTable(
-  options: RouterHandlerOptions,
   context: InvocationContext,
+  connectionString: string,
   data: StorybookBuild
 ): Promise<void> {
   context.info(
@@ -42,7 +45,7 @@ export async function upsertStorybookBuildToAzureTable(
     data.sha
   );
   const tableClient = getAzureTableClientForProject(
-    options.connectionString,
+    connectionString,
     data.project,
     "Builds"
   );
@@ -59,8 +62,8 @@ export async function upsertStorybookBuildToAzureTable(
 }
 
 export async function upsertStorybookLabelsToAzureTable(
-  options: RouterHandlerOptions,
   context: InvocationContext,
+  connectionString: string,
   projectId: string,
   labelStr: string
 ): Promise<string[]> {
@@ -70,40 +73,40 @@ export async function upsertStorybookLabelsToAzureTable(
     labelStr
   );
   const tableClient = getAzureTableClientForProject(
-    options.connectionString,
+    connectionString,
     projectId,
     "Labels"
   );
   await tableClient.createTable();
 
-  const labels = labelStr.split(",").map((label) => {
+  const labels: StorybookLabel[] = labelStr.split(",").map((label) => {
     const value = label.trim();
-    const id = value.toLowerCase().replace(/\s+/g, "_").replace(/\W+/g, "-");
-    return { id, value };
+    const slug = value.toLowerCase().replace(/\s+/g, "_").replace(/\W+/g, "-");
+    return { slug, value };
   });
 
   await Promise.allSettled(
     labels.map((label) => {
       return tableClient.upsertEntity({
         partitionKey: projectId,
-        rowKey: label.id,
+        rowKey: label.slug,
         project: projectId,
         ...label,
       });
     })
   );
 
-  return labels.map((label) => label.id);
+  return labels.map((label) => label.slug);
 }
 
 export async function upsertStorybookProjectToAzureTable(
-  options: RouterHandlerOptions,
   context: InvocationContext,
+  connectionString: string,
   data: StorybookProject,
   mode: "Merge" | "Replace" = "Replace"
 ): Promise<void> {
   context.info("Updating AzureTable with storybook project for", data.id);
-  const tableClient = getAzureProjectsTableClient(options.connectionString);
+  const tableClient = getAzureProjectsTableClient(connectionString);
   await tableClient.createTable();
   await tableClient.upsertEntity(
     {
