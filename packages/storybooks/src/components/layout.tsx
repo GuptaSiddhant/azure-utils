@@ -7,10 +7,12 @@ export function DocumentLayout({
   title,
   breadcrumbs = [],
   children,
+  footer,
 }: {
   title: string;
   breadcrumbs?: string[] | Array<{ label: string; href?: string }>;
   children: JSX.Element;
+  footer?: JSX.Element;
 }) {
   const safeStylesheet = globalStyleSheet();
   const store = getRequestStore();
@@ -60,7 +62,7 @@ export function DocumentLayout({
             </div>
           </header>
           <main>{children}</main>
-          <footer></footer>
+          {footer ? <footer>{footer}</footer> : null}
         </body>
       </html>
     </>

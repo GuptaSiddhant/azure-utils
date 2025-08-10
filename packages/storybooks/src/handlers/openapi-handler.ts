@@ -1,16 +1,16 @@
 import { createDocument } from "zod-openapi";
-import { openAPIPaths, openAPITags } from "../utils/openapi-utils";
+import {
+  openAPIPaths,
+  openAPISchemas,
+  openAPISecuritySchemas,
+  openAPITags,
+} from "../utils/openapi-utils";
 import {
   CONTENT_TYPES,
   SERVICE_NAME,
   SUPPORTED_CONTENT_TYPES_MSG,
 } from "../utils/constants";
 import type { StorybooksRouterOpenAPIHandler } from "../utils/types";
-import {
-  storybookBuildSchema,
-  storybookBuildUploadSchema,
-  storybookProjectSchema,
-} from "../utils/schemas";
 import { responseError } from "../utils/response-utils";
 
 export const openAPIHandler: StorybooksRouterOpenAPIHandler =
@@ -29,16 +29,12 @@ export const openAPIHandler: StorybooksRouterOpenAPIHandler =
         openapi: "3.1.0",
         info: { title, version },
         security: [],
+        servers,
         tags: Object.values(openAPITags),
         paths: openAPIPaths,
-        servers,
         components: {
-          schemas: {
-            storybookProjectSchema,
-            storybookBuildSchema,
-            storybookBuildUploadSchema,
-          },
-          securitySchemes: {},
+          schemas: openAPISchemas,
+          securitySchemes: openAPISecuritySchemas,
         },
       });
 

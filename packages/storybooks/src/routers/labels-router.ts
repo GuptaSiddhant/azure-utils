@@ -5,7 +5,7 @@ import {
   SERVICE_NAME,
 } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
-import { labelSlugSchema, storybookMetadataSchema } from "../utils/schemas";
+import { labelSlugSchema, storybookLabelSchema } from "../utils/schemas";
 import type { RouterOptions } from "../utils/types";
 import z from "zod";
 import { joinUrl } from "../utils/url-utils";
@@ -33,14 +33,12 @@ export function registerLabelsRouter(options: RouterOptions) {
   const routeWithLabelLatest = joinUrl(routeWithLabel, "latest");
   app.get(`${SERVICE_NAME}-label-latest`, {
     route: routeWithLabelLatest,
-    handler: handlerWrapper(async () => {
-      return { status: 308 };
-    }),
+    handler: handlerWrapper(handlers.getLabelLatestBuild),
   });
 
   if (openAPI) {
     const labelPathParameterSchema = basePathParamsSchema.extend({
-      label: labelSlugSchema,
+      labelSlug: labelSlugSchema,
     });
 
     registerOpenAPIPath(baseRoute, {
@@ -55,8 +53,8 @@ export function registerLabelsRouter(options: RouterOptions) {
             description: "A list of labels.",
             content: {
               [CONTENT_TYPES.JSON]: {
-                schema: storybookMetadataSchema.array(),
-                example: [{ project: "project-id", buildSha: "s123s14" }],
+                schema: storybookLabelSchema.array(),
+                example: [{ slug: "label-slug", value: "label/slug" }],
               },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },
@@ -77,9 +75,7 @@ export function registerLabelsRouter(options: RouterOptions) {
           200: {
             description: "Label details retrieved successfully",
             content: {
-              [CONTENT_TYPES.JSON]: {
-                schema: storybookMetadataSchema,
-              },
+              [CONTENT_TYPES.JSON]: { schema: storybookLabelSchema },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },
           },
@@ -118,7 +114,7 @@ export function registerLabelsRouter(options: RouterOptions) {
               },
             },
           },
-          404: { description: "Matching label not found." },
+          404: { description: "Matching label or build not found." },
         },
       },
     });

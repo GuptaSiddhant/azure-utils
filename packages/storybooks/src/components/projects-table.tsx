@@ -12,6 +12,7 @@ export async function ProjectsTable({ projects }: ProjectsTableProps) {
 
   return (
     <Table
+      caption={"Projects"}
       data={projects}
       columns={[
         {
@@ -40,6 +41,27 @@ export async function ProjectsTable({ projects }: ProjectsTableProps) {
               >
                 {item.gitHubRepo}
               </a>
+            );
+          },
+        },
+        {
+          id: "build",
+          header: "Latest build",
+          cell: (item) => {
+            if (!item.buildSHA) {
+              return <span class="description">No build available</span>;
+            }
+
+            return (
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                <span safe style={{ fontFamily: "monospace" }}>
+                  [{item.buildSHA.slice(0, 7)}]
+                </span>
+                <a href={urlBuilder.buildSHA(item.id, item.buildSHA)}>Build</a>
+                <a href={urlBuilder.storybookIndexHtml(item.id, item.buildSHA)}>
+                  Storybook
+                </a>
+              </div>
             );
           },
         },

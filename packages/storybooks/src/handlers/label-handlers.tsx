@@ -5,10 +5,15 @@ import type {
 } from "@azure/functions";
 import { responseError, responseHTML } from "../utils/response-utils";
 import {
+  deleteAzureTableEntities,
   getAzureTableClientForProject,
   listAzureTableEntities,
 } from "../utils/azure-data-tables";
-import { storybookBuildSchema, storybookLabelSchema } from "../utils/schemas";
+import {
+  StorybookBuild,
+  storybookBuildSchema,
+  storybookLabelSchema,
+} from "../utils/schemas";
 import { CONTENT_TYPES, urlBuilder } from "../utils/constants";
 import { DocumentLayout } from "../components/layout";
 import { RawDataPreview } from "../components/raw-data";
@@ -34,10 +39,7 @@ export async function listLabels(
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return responseHTML(
-        <DocumentLayout
-          title="All Labels"
-          breadcrumbs={["Projects", projectId]}
-        >
+        <DocumentLayout title="All Labels" breadcrumbs={[projectId]}>
           <LabelsTable labels={labels} projectId={projectId} />
         </DocumentLayout>
       );
@@ -72,28 +74,28 @@ export async function getLabel(
       projectId,
       "Builds"
     );
-    const builds = storybookBuildSchema
-      .array()
-      .parse(
-        await listAzureTableEntities(context, buildsClient, { limit: 10 })
-      );
+    const builds = storybookBuildSchema.array().parse(
+      await listAzureTableEntities<StorybookBuild>(context, buildsClient, {
+        filter: (build) => build.labels.split(",").includes(labelSlug),
+      })
+    );
 
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return responseHTML(
         <DocumentLayout
           title={labelDetails.value}
-          breadcrumbs={["Projects", projectId, "Labels"]}
+          breadcrumbs={[projectId, "Labels"]}
         >
           <>
-            <RawDataPreview data={labelDetails} />
+            <RawDataPreview data={labelDetails} summary={"Label details"} />
             <BuildTable builds={builds} labels={undefined} />
           </>
         </DocumentLayout>
       );
     }
 
-    return { status: 200, jsonBody: labelDetails };
+    return { status: 200, jsonBody: { ...labelDetails, builds } };
   } catch (error) {
     return responseError(error, context);
   }
@@ -108,12 +110,18 @@ export async function deleteLabel(
 
   try {
     const { connectionString } = getRequestStore();
-    const client = getAzureTableClientForProject(
+
+    await deleteAzureTableEntities<StorybookBuild>(
+      context,
+      getAzureTableClientForProject(connectionString, projectId, "Builds"),
+      { filter: (build) => build.labels.split(",").includes(labelSlug) }
+    );
+
+    await getAzureTableClientForProject(
       connectionString,
       projectId,
       "Labels"
-    );
-    await client.deleteEntity(projectId, labelSlug);
+    ).deleteEntity(projectId, labelSlug);
 
     const buildsUrl = urlBuilder.allBuilds(projectId);
     const accept = request.headers.get("accept");
@@ -122,6 +130,47 @@ export async function deleteLabel(
     }
 
     return { status: 204, headers: { Location: buildsUrl } };
+  } catch (error) {
+    return responseError(error, context);
+  }
+}
+
+export async function getLabelLatestBuild(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const { projectId = "", labelSlug = "" } = request.params;
+  context.log(
+    "Getting latest build for label '%s' in project '%s'...",
+    labelSlug,
+    projectId
+  );
+
+  try {
+    const { connectionString } = getRequestStore();
+
+    const client = getAzureTableClientForProject(
+      connectionString,
+      projectId,
+      "Labels"
+    );
+    const labelDetails = storybookLabelSchema.parse(
+      await client.getEntity(projectId, labelSlug)
+    );
+
+    const latestBuildSHA = labelDetails.buildSHA;
+
+    if (!latestBuildSHA) {
+      return {
+        status: 404,
+        jsonBody: { error: "No builds found for this label." },
+      };
+    }
+
+    return {
+      status: 303,
+      headers: { Location: urlBuilder.buildSHA(projectId, latestBuildSHA) },
+    };
   } catch (error) {
     return responseError(error, context);
   }

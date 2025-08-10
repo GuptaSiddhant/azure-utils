@@ -181,6 +181,5 @@ export type AzureFunctionsStorageBlobTriggerMetadata<
   };
 } & Record<Params, string>;
 
-export type StorybookMetadataTableEntity = TableEntityResult<StorybookMetadata>;
 export type StorybookProjectTableEntity = TableEntityResult<StorybookProject>;
 export type StorybookBuildTableEntity = TableEntityResult<StorybookBuild>;

@@ -18,7 +18,12 @@ import {
 import { ProjectsTable } from "../components/projects-table";
 import { DocumentLayout } from "../components/layout";
 import { responseError, responseHTML } from "../utils/response-utils";
-import { storybookBuildSchema, storybookProjectSchema } from "../utils/schemas";
+import {
+  storybookBuildSchema,
+  storybookLabelSchema,
+  storybookProjectCreateSchema,
+  storybookProjectSchema,
+} from "../utils/schemas";
 import { RawDataPreview } from "../components/raw-data";
 import {
   generateAzureStorageContainerName,
@@ -26,6 +31,7 @@ import {
 } from "../utils/azure-storage-blob";
 import { BuildTable } from "../components/builds-table";
 import { getRequestStore } from "../utils/stores";
+import { LabelsTable } from "../components/labels-table";
 
 export async function listProjects(
   request: HttpRequest,
@@ -78,11 +84,23 @@ export async function getProject(
       )
     );
 
-    const builds = await listAzureTableEntities(
-      context,
-      getAzureTableClientForProject(connectionString, projectId, "Builds"),
-      { limit: 10 }
-    );
+    const builds = storybookBuildSchema
+      .array()
+      .parse(
+        await listAzureTableEntities(
+          context,
+          getAzureTableClientForProject(connectionString, projectId, "Builds"),
+          { limit: 25 }
+        )
+      );
+    const labels = storybookLabelSchema
+      .array()
+      .parse(
+        await listAzureTableEntities(
+          context,
+          getAzureTableClientForProject(connectionString, projectId, "Labels")
+        )
+      );
 
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
@@ -92,17 +110,36 @@ export async function getProject(
           breadcrumbs={[{ label: "Projects", href: urlBuilder.allProjects() }]}
         >
           <>
-            <RawDataPreview data={project} />
+            <RawDataPreview data={project} summary={"Project details"} />
+            <LabelsTable
+              caption={
+                <span>
+                  Labels (<a href={urlBuilder.allLabels(projectId)}>View all</a>
+                  )
+                </span>
+              }
+              labels={labels}
+              projectId={projectId}
+            />
             <BuildTable
-              builds={storybookBuildSchema.array().parse(builds)}
-              labels={undefined}
+              caption={
+                <span>
+                  Latest builds (
+                  <a href={urlBuilder.allBuilds(projectId)}>View all</a>)
+                </span>
+              }
+              builds={builds}
+              labels={labels}
             />
           </>
         </DocumentLayout>
       );
     }
 
-    return { status: 200, jsonBody: project };
+    return {
+      status: 200,
+      jsonBody: { ...project, latestBuilds: builds, labels },
+    };
   } catch (error) {
     return responseError(error, context, 404);
   }
@@ -127,7 +164,7 @@ export async function createProject(
       );
     }
 
-    const result = storybookProjectSchema.safeParse(
+    const result = storybookProjectCreateSchema.safeParse(
       Object.fromEntries((await request.formData()).entries())
     );
     if (!result.success) {

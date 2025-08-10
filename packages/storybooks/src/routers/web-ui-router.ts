@@ -27,7 +27,7 @@ export function registerWebUIRouter(options: RouterOptions) {
   app.get(`${SERVICE_NAME}-account-details`, {
     route: accountRoute,
     handler: handlerWrapper(async () => {
-      return { status: 500 };
+      return { status: 501 };
     }),
   });
 
@@ -35,7 +35,7 @@ export function registerWebUIRouter(options: RouterOptions) {
   app.get(`${SERVICE_NAME}-account-logout`, {
     route: logoutRoute,
     handler: handlerWrapper(async () => {
-      return { status: 500 };
+      return { status: 501 };
     }),
   });
 

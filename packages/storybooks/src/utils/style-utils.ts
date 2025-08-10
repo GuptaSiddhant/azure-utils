@@ -68,6 +68,13 @@ export function globalStyleSheet() {
       overflow: hidden;
     }
 
+    table caption {
+      font-weight: bold;
+      font-size: 1.25rem;
+      padding: 0.5rem 1rem;            
+      text-align: start;
+    }
+
     thead {
       background-color: var(--color-bg-base);
       color: var(--color-text-secondary);
@@ -144,6 +151,11 @@ export function globalStyleSheet() {
       color: inherit;
       margin: 0 0.5rem;
       opacity: 0.5;
+    }
+
+    .description {
+      color: var(--color-text-secondary);
+      font-size: 0.9rem;
     }
   `.replace(/\s+/g, " ");
 }

@@ -75,6 +75,13 @@ export const urlBuilder = {
       url
     ).toString();
   },
+  labelSlugLatest: (projectId: string, labelSlug: string) => {
+    const { baseRoute, url } = getRequestStore();
+    return new URL(
+      joinUrl(baseRoute, "projects", projectId, "labels", labelSlug, "latest"),
+      url
+    ).toString();
+  },
   storybookIndexHtml: (projectId: string, sha: string) => {
     const { baseRoute, url } = getRequestStore();
     return new URL(

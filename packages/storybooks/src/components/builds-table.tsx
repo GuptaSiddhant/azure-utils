@@ -8,16 +8,22 @@ import { Table } from "./table";
 import { urlBuilder } from "../utils/constants";
 
 export interface BuildTableProps {
+  caption?: JSX.Element;
   builds: Array<StorybookBuild>;
   project?: StorybookProject;
   labels: StorybookLabel[] | undefined;
 }
 
-export async function BuildTable({ builds, labels }: BuildTableProps) {
+export async function BuildTable({
+  caption = "Builds",
+  builds,
+  labels,
+}: BuildTableProps) {
   const { locale } = getRequestStore();
 
   return (
     <Table
+      caption={caption}
       data={builds}
       columns={[
         {

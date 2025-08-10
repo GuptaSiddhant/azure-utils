@@ -5,6 +5,7 @@ import { parseErrorMessage } from "./error-utils";
 import { DocumentLayout } from "../components/layout";
 import { getRequestStore } from "./stores";
 import { joinUrl } from "./url-utils";
+import { ErrorMessage } from "../components/error-message";
 
 export function responseHTML(html: JSX.Element): HttpResponseInit {
   return {
@@ -38,11 +39,7 @@ export function responseError(
           title={`Error ${status}`}
           breadcrumbs={[{ label: "< Back", href: joinUrl(store.url, "..") }]}
         >
-          <pre class="error-message raw-data">
-            {errorMessage.includes("{")
-              ? JSON.stringify(JSON.parse(errorMessage), null, 2)
-              : errorMessage}
-          </pre>
+          <ErrorMessage>{errorMessage}</ErrorMessage>
         </DocumentLayout>
       ),
     };

@@ -5,7 +5,11 @@ import {
   SERVICE_NAME,
 } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
-import { projectIdSchema, storybookProjectSchema } from "../utils/schemas";
+import {
+  projectIdSchema,
+  storybookProjectCreateSchema,
+  storybookProjectSchema,
+} from "../utils/schemas";
 import z from "zod";
 import type { RouterOptions } from "../utils/types";
 import * as handlers from "../handlers/project-handlers";
@@ -71,7 +75,9 @@ export function registerProjectsRouter(options: RouterOptions) {
           required: true,
           description: "Data about the project",
           content: {
-            [CONTENT_TYPES.FORM_ENCODED]: { schema: storybookProjectSchema },
+            [CONTENT_TYPES.FORM_ENCODED]: {
+              schema: storybookProjectCreateSchema,
+            },
           },
         },
         requestParams: { path: basePathParamsSchema },

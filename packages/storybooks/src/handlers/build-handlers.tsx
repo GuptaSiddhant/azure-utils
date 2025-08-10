@@ -1,6 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
-import os from "node:os";
 import type {
   HttpRequest,
   HttpResponseInit,
@@ -30,14 +27,8 @@ import { RawDataPreview } from "../components/raw-data";
 import { getRequestStore } from "../utils/stores";
 import { urlSearchParamsToObject } from "../utils/url-utils";
 import { BuildTable } from "../components/builds-table";
-import {
-  generateAzureStorageContainerName,
-  getOrCreateAzureStorageBlobContainerClientOrThrow,
-  uploadDirToAzureBlobStorage,
-} from "../utils/azure-storage-blob";
-import decompress from "decompress";
-import { Readable } from "node:stream";
-import { once } from "node:events";
+import { validateBuildUploadBody } from "../utils/validators";
+import { uploadZipWithDecompressed } from "../utils/upload-utils";
 
 export async function listBuilds(
   request: HttpRequest,
@@ -64,10 +55,7 @@ export async function listBuilds(
       ).map((label) => storybookLabelSchema.parse(label));
 
       return responseHTML(
-        <DocumentLayout
-          title="All Builds"
-          breadcrumbs={["Projects", projectId]}
-        >
+        <DocumentLayout title="All Builds" breadcrumbs={[projectId]}>
           <BuildTable builds={builds} labels={labels} />
         </DocumentLayout>
       );
@@ -101,11 +89,15 @@ export async function getBuild(
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return responseHTML(
         <DocumentLayout
-          title={buildSHA}
-          breadcrumbs={["Projects", projectId, "Builds"]}
+          title={
+            buildDetails.message
+              ? `[${buildSHA.slice(0, 7)}] ${buildDetails.message}`
+              : buildSHA.slice(0, 7)
+          }
+          breadcrumbs={[projectId, "Builds"]}
         >
           <>
-            <RawDataPreview data={buildDetails} />
+            <RawDataPreview data={buildDetails} summary={"Build details"} />
             <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
               <a
                 href={urlBuilder.storybookIndexHtml(projectId, buildSHA)}
@@ -220,7 +212,8 @@ export async function uploadBuild(
       context,
       connectionString,
       projectId,
-      buildData.labels
+      buildData.labels,
+      buildData.sha
     );
 
     const data: StorybookBuild = {
@@ -231,107 +224,17 @@ export async function uploadBuild(
 
     await upsertStorybookBuildToAzureTable(context, connectionString, data);
 
+    await getAzureProjectsTableClient(connectionString).updateEntity(
+      {
+        partitionKey: PROJECTS_TABLE_PARTITION_KEY,
+        rowKey: projectId,
+        buildSHA: buildData.sha,
+      },
+      "Merge"
+    );
+
     return { status: 202, jsonBody: { blobName, data } };
   } catch (error) {
     return responseError(error, context);
   }
-}
-
-function validateBuildUploadBody(
-  request: HttpRequest,
-  context: InvocationContext
-): HttpResponseInit | undefined {
-  const body = request.body;
-  if (!body) {
-    return responseError("Request body is required", context, 400);
-  }
-  const contentLength = request.headers.get("Content-Length");
-  if (!contentLength) {
-    return responseError("Content-Length header is required", context, 411);
-  }
-  if (parseInt(contentLength, 10) === 0) {
-    return responseError("Request body should have length > 0", context, 400);
-  }
-  if (request.headers.get("content-type") !== "application/zip") {
-    return responseError(
-      "Invalid content type, expected application/zip",
-      context,
-      415
-    );
-  }
-
-  return undefined;
-}
-
-async function uploadZipWithDecompressed(
-  context: InvocationContext,
-  request: HttpRequest,
-  connectionString: string,
-  projectId: string,
-  buildSHA: string
-) {
-  const tmpDir = os.tmpdir();
-  const dirpath = fs.mkdtempSync(path.join(tmpDir, "storybook-"));
-  const zipFilePath = path.join(
-    dirpath,
-    `${projectId}-${buildSHA}-storybook.zip`
-  );
-
-  try {
-    await writeStreamToFile(Readable.fromWeb(request.body!), zipFilePath);
-    await decompress(zipFilePath, dirpath);
-
-    const containerClient =
-      await getOrCreateAzureStorageBlobContainerClientOrThrow(
-        context,
-        connectionString,
-        generateAzureStorageContainerName(projectId)
-      );
-    const blobName = `${buildSHA}/storybook.zip`;
-
-    context.debug(
-      `Uploading stream to blob: ${blobName} (container: ${containerClient.containerName})`
-    );
-
-    const uploadResponse = await containerClient
-      .getBlockBlobClient(blobName)
-      .uploadFile(zipFilePath, {
-        blobHTTPHeaders: {
-          blobContentType: "application/zip",
-          blobContentEncoding: "utf8",
-          blobCacheControl: "public, max-age=31536000",
-        },
-      });
-
-    if (uploadResponse.errorCode) {
-      return responseError(
-        "Failed to upload Storybook.",
-        context,
-        uploadResponse._response.status
-      );
-    }
-
-    await uploadDirToAzureBlobStorage(
-      context,
-      containerClient,
-      dirpath,
-      (blobName) => path.join(buildSHA, blobName)
-    );
-
-    return blobName;
-  } finally {
-    fs.rmSync(dirpath, { recursive: true, force: true });
-  }
-}
-
-async function writeStreamToFile(readable: Readable, filePath: string) {
-  const writable = fs.createWriteStream(filePath);
-  for await (const chunk of readable) {
-    if (!writable.write(chunk)) {
-      // Wait if backpressure is applied
-      await once(writable, "drain");
-    }
-  }
-  writable.end();
-  await once(writable, "finish");
 }
