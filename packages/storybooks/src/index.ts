@@ -20,14 +20,45 @@ import {
   DEFAULT_STORAGE_CONN_STR_ENV_VAR,
   SERVICE_NAME,
 } from "./utils/constants";
-import type {
-  RegisterStorybooksRouterOptions,
-  RouterHandlerOptions,
-} from "./utils/types";
+import type { OpenAPIOptions } from "./utils/types";
 import { joinUrl } from "./utils/url-utils";
 import { wrapHttpHandlerWithRequestStore } from "./utils/stores";
 
-export type { RegisterStorybooksRouterOptions };
+export type { OpenAPIOptions };
+
+/**
+ * Options to register the storybooks router
+ */
+export type RegisterStorybooksRouterOptions = {
+  /**
+   * Define the route on which all router is placed.
+   *
+   * @default 'storybooks/'
+   */
+  route?: string;
+
+  /**
+   * Name of the Environment variable which stores
+   * the connection string to the Azure Storage resource.
+   * @default 'AzureWebJobsStorage'
+   */
+  storageConnectionStringEnvVar?: string;
+
+  /**
+   * Modify the cron-schedule of timer function
+   * which purge outdated storybooks.
+   *
+   * Pass `null` to disable auto-purge functionality.
+   *
+   * @default "0 0 0 * * *" // Every midnight
+   */
+  purgeScheduleCron?: string | null;
+
+  /**
+   * Options to configure OpenAPI schema
+   */
+  openapi?: OpenAPIOptions;
+};
 
 /**
  * Function to register all routes required to manage the Storybooks including
@@ -37,12 +68,10 @@ export function registerStorybooksRouter(
   options: RegisterStorybooksRouterOptions = {}
 ) {
   const {
-    authLevel,
     route = "",
     storageConnectionStringEnvVar = DEFAULT_STORAGE_CONN_STR_ENV_VAR,
     purgeScheduleCron,
     openapi,
-    locale,
   } = options;
 
   const storageConnectionString = process.env[storageConnectionStringEnvVar];
@@ -54,20 +83,14 @@ export function registerStorybooksRouter(
     );
   }
 
-  const handlerOptions: RouterHandlerOptions = {
-    connectionString: storageConnectionString,
-    locale,
-    baseRoute: route,
-  };
-
   const openAPIEnabled = !openapi?.disabled;
 
   app.setup({ enableHttpStream: true });
 
-  const handlerWrapper = wrapHttpHandlerWithRequestStore.bind(
-    null,
-    handlerOptions
-  );
+  const handlerWrapper = wrapHttpHandlerWithRequestStore.bind(null, {
+    connectionString: storageConnectionString,
+    baseRoute: route,
+  });
 
   registerProjectsRouter({
     baseRoute: joinUrl(route, "projects"),
@@ -106,17 +129,16 @@ export function registerStorybooksRouter(
 
   if (openAPIEnabled) {
     app.get(`${SERVICE_NAME}-openapi`, {
-      authLevel,
       route: joinUrl(route, "openapi"),
-      handler: openAPIHandler(openapi),
+      handler: handlerWrapper(openAPIHandler(openapi)),
     });
   }
 
   if (purgeScheduleCron !== null) {
     app.timer(`${SERVICE_NAME}-timer_purge`, {
       schedule: purgeScheduleCron || DEFAULT_PURGE_SCHEDULE_CRON,
-      runOnStartup: true,
-      handler: timerPurgeHandler(handlerOptions),
+      runOnStartup: process.env["NODE_ENV"]?.toLowerCase() === "production",
+      handler: timerPurgeHandler(storageConnectionString),
     });
   }
 }

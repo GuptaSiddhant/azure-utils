@@ -12,6 +12,8 @@ export const CACHE_CONTROL_PUBLIC_YEAR = "public, max-age=31536000, immutable";
 
 export const DEFAULT_PURGE_AFTER_DAYS = 30;
 
+export const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
+
 export const CONTENT_TYPES = {
   ANY: "*/*",
   JSON: "application/json",

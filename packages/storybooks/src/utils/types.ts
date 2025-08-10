@@ -1,94 +1,40 @@
-import type {
-  HttpHandler,
-  HttpRequest,
-  HttpTriggerOptions,
-  InvocationContext,
-  StorageBlobHandler,
-  TimerHandler,
-} from "@azure/functions";
+import type { HttpHandler, TimerHandler } from "@azure/functions";
 import type { TableEntityResult } from "@azure/data-tables";
-import type {
-  StorybookBuild,
-  StorybookMetadata,
-  StorybookProject,
-} from "./schemas";
+import type { StorybookBuild, StorybookProject } from "./schemas";
 import z from "zod";
 
-/**
- * Options to register the storybooks router
- */
-export type RegisterStorybooksRouterOptions = {
+export interface OpenAPIOptions {
   /**
-   * Define the route on which all router is placed.
-   *
-   * @default 'storybooks/'
+   * Enable or disable openAPI schema endpoint.
+   * @default false
    */
-  route?: string;
-
+  disabled?: boolean;
   /**
-   * The function HTTP authorization level Defaults to 'anonymous' if not specified.
+   * Title of the OpenAPI schema
+   * @default SERVICE_NAME (storybooks)
    */
-  authLevel?: HttpTriggerOptions["authLevel"];
-
+  title?: string;
   /**
-   * Name of the Environment variable which stores
-   * the connection string to the Azure Storage resource.
-   * @default 'AzureWebJobsStorage'
+   * A version visible in the OpenAPI schema.
+   * @default process.env['NODE_ENV']
    */
-  storageConnectionStringEnvVar?: string;
-
+  version?: string;
   /**
-   * Modify the cron-schedule of timer function
-   * which purge outdated storybooks.
-   *
-   * Pass `null` to disable auto-purge functionality.
-   *
-   * @default "0 0 0 * * *" // Every midnight
+   * Servers to be included in the OpenAPI schema.
    */
-  purgeScheduleCron?: string | null;
-
-  /**
-   * Options to configure OpenAPI schema
-   */
-  openapi?: {
-    /**
-     * Enable or disable openAPI schema endpoint.
-     * @default false
-     */
-    disabled?: boolean;
-    /**
-     * Title of the OpenAPI schema
-     * @default SERVICE_NAME (storybooks)
-     */
-    title?: string;
-    /**
-     * A version visible in the OpenAPI schema.
-     * @default process.env['NODE_ENV']
-     */
-    version?: string;
-    /**
-     * Servers to be included in the OpenAPI schema.
-     */
-    servers?: Array<{
-      url: string;
-      description?: string;
-      variables?: Record<
-        string,
-        {
-          enum?: string[] | boolean[] | number[];
-          default: string | boolean | number;
-          description?: string;
-        }
-      >;
-    }>;
-  };
-
-  /**
-   * Locale to be used for formatting dates.
-   * @default 'server locale'
-   */
-  locale?: string;
-};
+  servers?: Array<{
+    url: string;
+    description?: string;
+    variables?: Record<
+      string,
+      {
+        enum?: string[] | boolean[] | number[];
+        default: string | boolean | number;
+        description?: string;
+      }
+    >;
+  }>;
+}
 
 /**
  * @private
@@ -96,7 +42,6 @@ export type RegisterStorybooksRouterOptions = {
  */
 export interface RouterHandlerOptions {
   connectionString: string;
-  locale: string | undefined;
   baseRoute: string;
 }
 
@@ -126,23 +71,8 @@ export interface RouterOptions {
 }
 
 /** @private */
-export type StorybooksRouterHttpHandler = (
-  options: RouterHandlerOptions
-) => HttpHandler;
-
-/** @private */
-export type StorybooksRouterStorageBlobHandler = (
-  handlerOptions: RouterHandlerOptions
-) => StorageBlobHandler;
-
-/** @private */
-export type StorybooksRouterTimerHandler = (
-  handlerOptions: RouterHandlerOptions
-) => TimerHandler;
-
-/** @private */
 export type StorybooksRouterOpenAPIHandler = (
-  handlerOptions: RegisterStorybooksRouterOptions["openapi"]
+  options?: OpenAPIOptions
 ) => HttpHandler;
 
 /** @private */

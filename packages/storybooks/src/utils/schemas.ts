@@ -58,6 +58,10 @@ export const storybookProjectSchema = z
       )
     ),
     buildSHA: buildSHASchema.optional(),
+    purgeBuildsAfterDays: z.number().min(1).optional().meta({
+      description:
+        "Days after which the builds in the project should be purged.",
+    }),
     timestamp: z.string().optional(),
   })
   .meta({

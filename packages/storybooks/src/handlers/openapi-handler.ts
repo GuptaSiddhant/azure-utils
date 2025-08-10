@@ -10,12 +10,12 @@ import {
   SERVICE_NAME,
   SUPPORTED_CONTENT_TYPES_MSG,
 } from "../utils/constants";
-import type { StorybooksRouterOpenAPIHandler } from "../utils/types";
+import type { OpenAPIOptions } from "../utils/types";
 import { responseError } from "../utils/response-utils";
+import type { HttpHandler } from "@azure/functions";
 
-export const openAPIHandler: StorybooksRouterOpenAPIHandler =
-  (options = {}) =>
-  (request, context) => {
+export function openAPIHandler(options: OpenAPIOptions = {}): HttpHandler {
+  return (request, context) => {
     const {
       title = SERVICE_NAME.toUpperCase(),
       version = process.env["NODE_ENV"] || "TEST",
@@ -54,7 +54,24 @@ export const openAPIHandler: StorybooksRouterOpenAPIHandler =
       }
 
       if (accept.includes(CONTENT_TYPES.HTML)) {
-        const html = /* html */ `
+        const html = generateSwaggerUI(title, openAPISpec);
+
+        return {
+          status: 200,
+          headers: { "Content-Type": CONTENT_TYPES.HTML },
+          body: html,
+        };
+      }
+
+      return { status: 406, body: SUPPORTED_CONTENT_TYPES_MSG };
+    } catch (error) {
+      return responseError(error, context);
+    }
+  };
+}
+
+function generateSwaggerUI(title: string, openAPISpec: object) {
+  return /* html */ `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,11 +80,11 @@ export const openAPIHandler: StorybooksRouterOpenAPIHandler =
     <meta name="description" content="${title} SwaggerUI" />
     <title>${title}</title>
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
-    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js" crossorigin></script>          
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js" crossorigin></script>
 </head>
 <body style="position: relative;">
   <div id="swagger-ui"></div>
-  <div style="position: absolute; top: 0; right: 0; padding-right: 16px; display: flex; gap: 0.5rem;"> 
+  <div style="position: absolute; top: 0; right: 0; padding-right: 16px; display: flex; gap: 0.5rem;">
     <form>
       <input type="hidden" name="download" value="json" />
       <button type="submit">Download</button>
@@ -82,16 +99,4 @@ export const openAPIHandler: StorybooksRouterOpenAPIHandler =
   </script>
 </body>
 </html>`;
-
-        return {
-          status: 200,
-          headers: { "Content-Type": CONTENT_TYPES.HTML },
-          body: html,
-        };
-      }
-
-      return { status: 406, body: SUPPORTED_CONTENT_TYPES_MSG };
-    } catch (error) {
-      return responseError(error, context);
-    }
-  };
+}
