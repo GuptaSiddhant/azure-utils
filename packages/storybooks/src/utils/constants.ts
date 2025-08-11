@@ -2,6 +2,7 @@ import { ZodOpenApiResponsesObject } from "zod-openapi";
 import { getStore } from "./store";
 import { joinUrl } from "./url-utils";
 import type { CheckPermissionCallback } from "./types";
+import { StorybookProject } from "./schemas";
 
 export const DEFAULT_SERVICE_NAME = "storybooks";
 
@@ -45,9 +46,9 @@ export const commonErrorResponses: ZodOpenApiResponsesObject = {
  * URL builder for the Storybooks router.
  */
 export const urlBuilder = {
-  home: () => {
+  home: (...pathnames: string[]) => {
     const { baseRoute, url } = getStore();
-    return new URL(joinUrl(baseRoute), url).toString();
+    return new URL(joinUrl(baseRoute, ...pathnames), url).toString();
   },
   staticFile: (filepath: string) => {
     const { baseRoute, url } = getStore();
@@ -122,6 +123,12 @@ export const urlBuilder = {
     return new URL(
       joinUrl(baseRoute, "_", projectId, sha, "storybook.zip"),
       url
+    ).toString();
+  },
+  gitHub: (project: StorybookProject, ...pathnames: string[]) => {
+    return new URL(
+      joinUrl(project.gitHubRepo, ...pathnames),
+      "https://github.com"
     ).toString();
   },
 } satisfies Record<string, (...args: any[]) => string>;

@@ -10,7 +10,7 @@ import { urlBuilder } from "../utils/constants";
 export interface BuildTableProps {
   caption?: JSX.Element;
   builds: Array<StorybookBuild>;
-  project?: StorybookProject;
+  project: StorybookProject;
   labels: StorybookLabel[] | undefined;
 }
 
@@ -18,6 +18,7 @@ export async function BuildTable({
   caption = "Builds",
   builds,
   labels,
+  project,
 }: BuildTableProps) {
   const { locale } = getStore();
 
@@ -32,7 +33,7 @@ export async function BuildTable({
           cell: (item) => {
             return (
               <a safe href={urlBuilder.buildSHA(item.project, item.sha)}>
-                {item.sha}
+                {item.sha.slice(0, 7)}
               </a>
             );
           },
@@ -101,6 +102,22 @@ export async function BuildTable({
                   target="_blank"
                 >
                   Coverage
+                </a>
+              </div>
+            );
+          },
+        },
+        {
+          id: "gitHub",
+          header: "GitHub",
+          cell: (item) => {
+            return (
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <a
+                  href={urlBuilder.gitHub(project, "commit", item.sha)}
+                  target="_blank"
+                >
+                  Commit
                 </a>
               </div>
             );

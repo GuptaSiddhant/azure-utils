@@ -12,7 +12,7 @@ export async function ProjectsTable({
   caption = "Projects",
   projects,
 }: ProjectsTableProps) {
-  const { locale } = getStore();
+  const { locale, defaultGitHubBranch } = getStore();
 
   return (
     <Table
@@ -32,17 +32,16 @@ export async function ProjectsTable({
         },
         { id: "name", header: "Name" },
         {
-          id: "gitHubRepo",
+          id: "gitHub",
           header: "GitHub",
           cell: (item) => {
-            const href = new URL(item.gitHubRepo, "https://github.com");
+            const pathnames = item.gitHubPath
+              ? ["tree", defaultGitHubBranch, item.gitHubPath]
+              : [];
+            const href = urlBuilder.gitHub(item, ...pathnames);
+
             return (
-              <a
-                safe
-                href={href.toString()}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a safe href={href} target="_blank" rel="noopener noreferrer">
                 {item.gitHubRepo}
               </a>
             );

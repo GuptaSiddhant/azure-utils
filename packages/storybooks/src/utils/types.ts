@@ -36,7 +36,12 @@ export type Permission = {
 /**
  * Type of possible resources to check permissions for
  */
-export type PermissionResource = "project" | "build" | "label";
+export type PermissionResource =
+  | "project"
+  | "build"
+  | "label"
+  | "openapi"
+  | "ui";
 /**
  * Type of possible actions to check permissions for
  */
@@ -86,6 +91,7 @@ export interface RouterHandlerOptions {
   staticDirs: string[];
   openapi: OpenAPIOptions | undefined;
   checkPermission: CheckPermissionCallback;
+  defaultGitHubBranch: string;
 }
 
 /**
@@ -116,7 +122,7 @@ export interface RouterOptions {
    */
   handlerWrapper: (
     handler: HttpHandler,
-    permission?: Permission
+    permission: Permission | undefined
   ) => HttpHandler;
 }
 

@@ -20,25 +20,34 @@ export function registerWebUIRouter(options: RouterOptions) {
 
   app.get(`${serviceName}-root`, {
     route: joinUrl(baseRoute),
-    handler: handlerWrapper(rootHandler),
+    handler: handlerWrapper(rootHandler, {
+      resource: "ui",
+      action: "read",
+    }),
   });
 
   const healthRoute = joinUrl(baseRoute, "health");
   app.get(`${serviceName}-health-check`, {
     route: healthRoute,
-    handler: handlerWrapper(() => ({ status: 200 })),
+    handler: handlerWrapper(() => ({ status: 200 }), undefined),
   });
 
   const staticFileRoute = joinUrl(baseRoute, "{**filepath}");
   app.get(`${serviceName}-static-files`, {
     route: staticFileRoute,
-    handler: handlerWrapper(staticFileHandler),
+    handler: handlerWrapper(staticFileHandler, {
+      resource: "ui",
+      action: "read",
+    }),
   });
 
   if (openAPIEnabled) {
     app.get(`${serviceName}-openapi`, {
       route: joinUrl(baseRoute, "openapi"),
-      handler: handlerWrapper(openAPIHandler),
+      handler: handlerWrapper(openAPIHandler, {
+        resource: "openapi",
+        action: "read",
+      }),
     });
 
     registerOpenAPIPath(baseRoute, {

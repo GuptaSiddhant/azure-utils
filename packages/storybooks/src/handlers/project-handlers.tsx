@@ -132,6 +132,7 @@ export async function getProject(
                   <a href={urlBuilder.allBuilds(projectId)}>View all</a>)
                 </span>
               }
+              project={project}
               builds={builds}
               labels={labels}
             />

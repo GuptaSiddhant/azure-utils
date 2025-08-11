@@ -6,6 +6,7 @@ import type {
 import { responseError, responseHTML } from "../utils/response-utils";
 import {
   deleteAzureTableEntities,
+  getAzureProjectsTableClient,
   getAzureTableClientForProject,
   listAzureTableEntities,
 } from "../utils/azure-data-tables";
@@ -13,8 +14,13 @@ import {
   StorybookBuild,
   storybookBuildSchema,
   storybookLabelSchema,
+  storybookProjectSchema,
 } from "../utils/schemas";
-import { CONTENT_TYPES, urlBuilder } from "../utils/constants";
+import {
+  CONTENT_TYPES,
+  PROJECTS_TABLE_PARTITION_KEY,
+  urlBuilder,
+} from "../utils/constants";
 import { DocumentLayout } from "../components/layout";
 import { RawDataPreview } from "../components/raw-data";
 import { getStore } from "../utils/store";
@@ -85,6 +91,10 @@ export async function getLabel(
     );
 
     const accept = request.headers.get("accept");
+    const project = await getAzureProjectsTableClient(
+      connectionString
+    ).getEntity(PROJECTS_TABLE_PARTITION_KEY, projectId);
+
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return responseHTML(
         <DocumentLayout
@@ -97,6 +107,7 @@ export async function getLabel(
               caption={`Builds (${builds.length})`}
               builds={builds}
               labels={undefined}
+              project={storybookProjectSchema.parse(project)}
             />
           </>
         </DocumentLayout>

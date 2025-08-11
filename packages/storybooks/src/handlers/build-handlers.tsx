@@ -16,6 +16,7 @@ import {
   storybookBuildSchema,
   storybookBuildUploadSchema,
   storybookLabelSchema,
+  storybookProjectSchema,
 } from "../utils/schemas";
 import {
   CONTENT_TYPES,
@@ -47,6 +48,9 @@ export async function listBuilds(
 
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
+      const project = await getAzureProjectsTableClient(
+        connectionString
+      ).getEntity(PROJECTS_TABLE_PARTITION_KEY, projectId);
       const labels = (
         await listAzureTableEntities(
           context,
@@ -59,6 +63,7 @@ export async function listBuilds(
           <BuildTable
             builds={builds}
             labels={labels}
+            project={storybookProjectSchema.parse(project)}
             caption={`Builds (${builds.length})`}
           />
         </DocumentLayout>
@@ -101,7 +106,11 @@ export async function getBuild(
           breadcrumbs={[projectId, "Builds"]}
         >
           <>
-            <RawDataPreview data={buildDetails} summary={"Build details"} />
+            <RawDataPreview
+              data={buildDetails}
+              summary={"Build details"}
+              open
+            />
             <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
               <a
                 href={urlBuilder.storybookIndexHtml(projectId, buildSHA)}

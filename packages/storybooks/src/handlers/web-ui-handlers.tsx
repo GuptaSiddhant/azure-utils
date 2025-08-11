@@ -8,13 +8,42 @@ import { getStore } from "../utils/store";
 import path from "node:path";
 import fs from "node:fs";
 import { getMimeType } from "../utils/mime-utils";
+import { responseHTML } from "../utils/response-utils";
+import { DocumentLayout } from "../components/layout";
+import { ProjectsTable } from "../components/projects-table";
+import {
+  getAzureProjectsTableClient,
+  listAzureTableEntities,
+} from "../utils/azure-data-tables";
+import { storybookProjectSchema } from "../utils/schemas";
 
 export async function rootHandler(
   _request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   context.log("Serving SB root...");
-  return { status: 303, headers: { Location: urlBuilder.allProjects() } };
+  const { connectionString, openapi } = getStore();
+
+  const entities = await listAzureTableEntities(
+    context,
+    getAzureProjectsTableClient(connectionString)
+  );
+  const projects = storybookProjectSchema.array().parse(entities);
+
+  return responseHTML(
+    <DocumentLayout
+      title="Home"
+      header={
+        !openapi?.disabled ? (
+          <a href={urlBuilder.home("openapi")} target="_blank">
+            OpenAPI
+          </a>
+        ) : null
+      }
+    >
+      <ProjectsTable projects={projects} />
+    </DocumentLayout>
+  );
 }
 
 export async function staticFileHandler(

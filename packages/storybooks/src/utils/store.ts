@@ -33,7 +33,7 @@ export function getStore(throwError?: boolean) {
 export function wrapHttpHandlerWithStore(
   options: RouterHandlerOptions,
   handler: HttpHandler,
-  permission?: Permission
+  permission: Permission | undefined
 ): HttpHandler {
   return function (request, context) {
     const locale = request.headers.get("accept-language")?.split(",")[0];

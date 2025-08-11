@@ -84,6 +84,12 @@ export type RegisterStorybooksRouterOptions = {
    * - `HttpResponse` - returns the specified HTTP response
    */
   checkPermission?: CheckPermissionCallback;
+
+  /**
+   * Default branch to use for GitHub repositories.
+   * @default 'main'
+   */
+  defaultGitHubBranch?: string;
 };
 
 /**
@@ -102,6 +108,7 @@ export function registerStorybooksRouter(
     purgeScheduleCron,
     openapi,
     checkPermission = DEFAULT_CHECK_PERMISSIONS_CALLBACK,
+    defaultGitHubBranch = "main",
   } = options;
 
   const storageConnectionString = process.env[storageConnectionStringEnvVar];
@@ -124,6 +131,7 @@ export function registerStorybooksRouter(
     openapi,
     staticDirs: options.staticDirs || ["./public"],
     checkPermission,
+    defaultGitHubBranch,
   });
 
   const normalisedServiceName = serviceName.toLowerCase().replace(/\s+/g, "_");
@@ -177,6 +185,7 @@ export function registerStorybooksRouter(
   /**
    * Register an HTTP function.
    * The correct baseRoute is automatically added.
+   * The route is unauthenticated by default.
    *
    * @param name unique name for the HTTP function
    * @param options Options for Azure HTTP function
@@ -185,7 +194,7 @@ export function registerStorybooksRouter(
     app.http(`${normalisedServiceName}-${name}`, {
       ...options,
       route: joinUrl(baseRoute, options.route || name),
-      handler: handlerWrapper(options.handler),
+      handler: handlerWrapper(options.handler, undefined),
       methods: options.methods || ["GET"],
     });
   }

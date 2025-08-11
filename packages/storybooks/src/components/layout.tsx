@@ -7,11 +7,13 @@ export function DocumentLayout({
   breadcrumbs = [],
   children,
   footer,
+  header,
 }: {
   title: string;
   breadcrumbs?: string[] | Array<{ label: string; href?: string }>;
   children: JSX.Element;
-  footer?: JSX.Element;
+  footer?: JSX.Element | null;
+  header?: JSX.Element | null;
 }) {
   const safeStylesheet = globalStyleSheet();
   const store = getStore();
@@ -57,7 +59,7 @@ export function DocumentLayout({
               </a>
             </div>
 
-            <div class="page-heading">
+            <div class="page-heading" style={{ flex: 1 }}>
               {breadcrumbs.length > 0 ? (
                 <ul>
                   {breadcrumbs.map((crumb, i, arr) => {
@@ -81,6 +83,8 @@ export function DocumentLayout({
               ) : null}
               <div safe>{title}</div>
             </div>
+
+            {header ? <div>{header}</div> : null}
           </header>
           <main>{children}</main>
           {footer ? <footer>{footer}</footer> : null}
@@ -146,8 +150,7 @@ function globalStyleSheet() {
     }
 
     body > header {
-      margin-top: 1rem;
-      font-weight: bold;
+      margin-top: 1rem;      
       display: flex;
       align-items: center;      
       gap: 1rem;
@@ -163,6 +166,12 @@ function globalStyleSheet() {
 
     body > footer {
       margin-bottom: 1rem;
+    }
+
+    hr {
+      color: var(--color-border);
+      background: var(--color-border);
+      border-color: var(--color-border);
     }
 
     table {      
@@ -230,6 +239,7 @@ function globalStyleSheet() {
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
+      font-weight: bold;
     }
 
     .page-heading > ul {

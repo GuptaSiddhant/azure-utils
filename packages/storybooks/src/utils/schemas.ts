@@ -41,6 +41,7 @@ export const storybookLabelSchema = z
   .object({
     slug: labelSlugSchema,
     value: z.string().meta({ description: "The value of the label." }),
+    type: z.enum(["branch", "pr"]).optional(),
     buildSHA: buildSHASchema.optional(),
     timestamp: z.string().optional(),
   })
@@ -50,6 +51,10 @@ export const storybookProjectSchema = z
   .object({
     id: z.string().meta({ description: "ID of the project." }),
     name: z.string().meta({ description: "Name of the project." }),
+    purgeBuildsAfterDays: z.number().min(1).optional().meta({
+      description:
+        "Days after which the builds in the project should be purged.",
+    }),
     gitHubRepo: z.string().check(
       z.minLength(1, "Query-param 'gitHubRepo' is required."),
       z.refine(
@@ -57,11 +62,11 @@ export const storybookProjectSchema = z
         "Query-param 'gitHubRepo' should be in the format 'owner/repo'."
       )
     ),
-    buildSHA: buildSHASchema.optional(),
-    purgeBuildsAfterDays: z.number().min(1).optional().meta({
+    gitHubPath: z.string().optional().meta({
       description:
-        "Days after which the builds in the project should be purged.",
+        "Path to the storybook instance with respect to repository root.",
     }),
+    buildSHA: buildSHASchema.optional(),
     timestamp: z.string().optional(),
   })
   .meta({
