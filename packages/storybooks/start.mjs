@@ -1,5 +1,5 @@
 // @ts-check
 
-import { registerStorybooksRouter } from "@azure-utils/storybooks";
+import { registerStorybooksRouter } from "./dist";
 
 registerStorybooksRouter({});

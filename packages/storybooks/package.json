@@ -70,6 +70,7 @@
     "@kitajs/ts-html-plugin": "^4.1.1",
     "@types/decompress": "^4.2.7",
     "@types/node": "^22.16.5",
+    "glob": "^10.0.0",
     "rolldown": "latest",
     "typescript": "^5.8.3",
     "zod": "^4.0.10"
