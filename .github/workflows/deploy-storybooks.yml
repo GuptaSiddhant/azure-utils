@@ -34,12 +34,17 @@ jobs:
         working-directory: packages/storybooks
         run: yarn build
 
+      - name: Install dependencies
+        working-directory: packages/storybooks
+        run: yarn workspaces focus --production
+
       - name: Zip
         run: |
           cd packages/storybooks
           zip -r ../../deploy.zip ./**/*
           cd ../../
           zip -r deploy.zip ./node_modules/**/*
+          du -sh deploy.zip
 
       - name: "Deploy to Azure Functions"
         id: deploy

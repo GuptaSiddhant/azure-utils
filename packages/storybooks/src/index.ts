@@ -120,6 +120,8 @@ export function registerStorybooksRouter(
     );
   }
 
+  console.log("Registering Storybooks Router");
+
   const openAPIEnabled = !openapi?.disabled;
 
   app.setup({ enableHttpStream: true });
