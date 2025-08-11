@@ -1,9 +1,5 @@
 import { app } from "@azure/functions";
-import {
-  commonErrorResponses,
-  CONTENT_TYPES,
-  SERVICE_NAME,
-} from "../utils/constants";
+import { commonErrorResponses, CONTENT_TYPES } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
 import {
   projectIdSchema,
@@ -18,31 +14,52 @@ import { joinUrl } from "../utils/url-utils";
 const TAG = openAPITags.projects.name;
 
 export function registerProjectsRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
+  const {
+    baseRoute,
+    basePathParamsSchema,
+    handlerWrapper,
+    openAPIEnabled,
+    serviceName,
+  } = options;
   const routeWithProjectId = joinUrl(baseRoute, "{projectId}");
 
-  app.get(`${SERVICE_NAME}-projects-list`, {
+  app.get(`${serviceName}-projects-list`, {
     route: baseRoute,
-    handler: handlerWrapper(handlers.listProjects),
+    handler: handlerWrapper(handlers.listProjects, {
+      resource: "project",
+      action: "read",
+    }),
   });
-  app.post(`${SERVICE_NAME}-project-create`, {
+  app.post(`${serviceName}-project-create`, {
     route: baseRoute,
-    handler: handlerWrapper(handlers.createProject),
+    handler: handlerWrapper(handlers.createProject, {
+      resource: "project",
+      action: "create",
+    }),
   });
-  app.get(`${SERVICE_NAME}-project-get`, {
+  app.get(`${serviceName}-project-get`, {
     route: routeWithProjectId,
-    handler: handlerWrapper(handlers.getProject),
+    handler: handlerWrapper(handlers.getProject, {
+      resource: "project",
+      action: "read",
+    }),
   });
-  app.patch(`${SERVICE_NAME}-project-update`, {
+  app.patch(`${serviceName}-project-update`, {
     route: routeWithProjectId,
-    handler: handlerWrapper(handlers.updateProject),
+    handler: handlerWrapper(handlers.updateProject, {
+      resource: "project",
+      action: "update",
+    }),
   });
-  app.deleteRequest(`${SERVICE_NAME}-project-delete`, {
+  app.deleteRequest(`${serviceName}-project-delete`, {
     route: routeWithProjectId,
-    handler: handlerWrapper(handlers.deleteProject),
+    handler: handlerWrapper(handlers.deleteProject, {
+      resource: "project",
+      action: "delete",
+    }),
   });
 
-  if (openAPI) {
+  if (openAPIEnabled) {
     const projectPathParameterSchema = basePathParamsSchema.extend({
       projectId: projectIdSchema,
     });

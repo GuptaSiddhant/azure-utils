@@ -1,18 +1,22 @@
-import { getRequestStore } from "../utils/stores";
+import { getStore } from "../utils/store";
 import type { StorybookProject } from "../utils/schemas";
 import { Table } from "./table";
 import { urlBuilder } from "../utils/constants";
 
 export interface ProjectsTableProps {
+  caption?: string;
   projects: Array<StorybookProject>;
 }
 
-export async function ProjectsTable({ projects }: ProjectsTableProps) {
-  const { locale } = getRequestStore();
+export async function ProjectsTable({
+  caption = "Projects",
+  projects,
+}: ProjectsTableProps) {
+  const { locale } = getStore();
 
   return (
     <Table
-      caption={"Projects"}
+      caption={caption}
       data={projects}
       columns={[
         {

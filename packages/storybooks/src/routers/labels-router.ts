@@ -1,9 +1,5 @@
 import { app } from "@azure/functions";
-import {
-  commonErrorResponses,
-  CONTENT_TYPES,
-  SERVICE_NAME,
-} from "../utils/constants";
+import { commonErrorResponses, CONTENT_TYPES } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
 import { labelSlugSchema, storybookLabelSchema } from "../utils/schemas";
 import type { RouterOptions } from "../utils/types";
@@ -14,29 +10,48 @@ import * as handlers from "../handlers/label-handlers";
 const TAG = openAPITags.labels.name;
 
 export function registerLabelsRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
-  const routeWithLabel = joinUrl(baseRoute, "{labelSlug}");
+  const {
+    baseRoute,
+    basePathParamsSchema,
+    handlerWrapper,
+    openAPIEnabled,
+    serviceName,
+  } = options;
 
-  app.get(`${SERVICE_NAME}-labels-list`, {
+  app.get(`${serviceName}-labels-list`, {
     route: baseRoute,
-    handler: handlerWrapper(handlers.listLabels),
+    handler: handlerWrapper(handlers.listLabels, {
+      resource: "label",
+      action: "read",
+    }),
   });
-  app.get(`${SERVICE_NAME}-label-get`, {
+
+  const routeWithLabel = joinUrl(baseRoute, "{labelSlug}");
+  app.get(`${serviceName}-label-get`, {
     route: routeWithLabel,
-    handler: handlerWrapper(handlers.getLabel),
+    handler: handlerWrapper(handlers.getLabel, {
+      resource: "label",
+      action: "read",
+    }),
   });
-  app.deleteRequest(`${SERVICE_NAME}-label-delete`, {
+  app.deleteRequest(`${serviceName}-label-delete`, {
     route: routeWithLabel,
-    handler: handlerWrapper(handlers.deleteLabel),
+    handler: handlerWrapper(handlers.deleteLabel, {
+      resource: "label",
+      action: "delete",
+    }),
   });
 
   const routeWithLabelLatest = joinUrl(routeWithLabel, "latest");
-  app.get(`${SERVICE_NAME}-label-latest`, {
+  app.get(`${serviceName}-label-latest`, {
     route: routeWithLabelLatest,
-    handler: handlerWrapper(handlers.getLabelLatestBuild),
+    handler: handlerWrapper(handlers.getLabelLatestBuild, {
+      resource: "label",
+      action: "read",
+    }),
   });
 
-  if (openAPI) {
+  if (openAPIEnabled) {
     const labelPathParameterSchema = basePathParamsSchema.extend({
       labelSlug: labelSlugSchema,
     });

@@ -24,7 +24,7 @@ import {
 } from "../utils/constants";
 import { DocumentLayout } from "../components/layout";
 import { RawDataPreview } from "../components/raw-data";
-import { getRequestStore } from "../utils/stores";
+import { getStore } from "../utils/store";
 import { urlSearchParamsToObject } from "../utils/url-utils";
 import { BuildTable } from "../components/builds-table";
 import { validateBuildUploadBody } from "../utils/validators";
@@ -38,7 +38,7 @@ export async function listBuilds(
   context.log("Serving all builds for project '%s'...", projectId);
 
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
     const entities = await listAzureTableEntities(
       context,
       getAzureTableClientForProject(connectionString, projectId, "Builds")
@@ -56,7 +56,11 @@ export async function listBuilds(
 
       return responseHTML(
         <DocumentLayout title="All Builds" breadcrumbs={[projectId]}>
-          <BuildTable builds={builds} labels={labels} />
+          <BuildTable
+            builds={builds}
+            labels={labels}
+            caption={`Builds (${builds.length})`}
+          />
         </DocumentLayout>
       );
     }
@@ -75,7 +79,7 @@ export async function getBuild(
   context.log("Getting build '%s' for project '%s'...", buildSHA, projectId);
 
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
     const client = getAzureTableClientForProject(
       connectionString,
       projectId,
@@ -144,7 +148,7 @@ export async function deleteBuild(
   context.log("Deleting build '%s' for project '%s'...", buildSHA, projectId);
 
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
     const client = getAzureTableClientForProject(
       connectionString,
       projectId,
@@ -169,7 +173,7 @@ export async function uploadBuild(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   const { projectId = "" } = request.params;
-  const { connectionString } = getRequestStore();
+  const { connectionString } = getStore();
 
   try {
     await getAzureProjectsTableClient(connectionString).getEntity(
@@ -194,12 +198,12 @@ export async function uploadBuild(
   }
 
   const buildData = queryParseResult.data;
-  try {
-    const bodyValidationResponse = validateBuildUploadBody(request, context);
-    if (typeof bodyValidationResponse === "object") {
-      return bodyValidationResponse;
-    }
+  const bodyValidationResponse = validateBuildUploadBody(request, context);
+  if (typeof bodyValidationResponse === "object") {
+    return bodyValidationResponse;
+  }
 
+  try {
     const blobName = await uploadZipWithDecompressed(
       context,
       request,

@@ -1,7 +1,46 @@
-import type { HttpHandler, TimerHandler } from "@azure/functions";
+import type {
+  HttpHandler,
+  HttpRequest,
+  HttpResponse,
+  HttpResponseInit,
+  InvocationContext,
+} from "@azure/functions";
 import type { TableEntityResult } from "@azure/data-tables";
 import type { StorybookBuild, StorybookProject } from "./schemas";
-import z from "zod";
+import type z from "zod";
+
+/**
+ * Type for the callback function to check permissions.
+ *
+ * Return true to allow access, or following to deny:
+ * - false - returns 403 response
+ * - HttpResponse - returns the specified HTTP response
+ */
+export type CheckPermissionCallback = (
+  permission: Permission,
+  context: InvocationContext,
+  request: HttpRequest
+) =>
+  | boolean
+  | HttpResponse
+  | HttpResponseInit
+  | Promise<boolean | HttpResponse | HttpResponseInit>;
+/**
+ * Type of permission to check
+ */
+export type Permission = {
+  resource: PermissionResource;
+  action: PermissionAction;
+  projectId?: string;
+};
+/**
+ * Type of possible resources to check permissions for
+ */
+export type PermissionResource = "project" | "build" | "label";
+/**
+ * Type of possible actions to check permissions for
+ */
+export type PermissionAction = "create" | "read" | "update" | "delete";
 
 export interface OpenAPIOptions {
   /**
@@ -41,8 +80,12 @@ export interface OpenAPIOptions {
  * Options for linking with Azure Blob Storage
  */
 export interface RouterHandlerOptions {
+  serviceName: string;
   connectionString: string;
   baseRoute: string;
+  staticDirs: string[];
+  openapi: OpenAPIOptions | undefined;
+  checkPermission: CheckPermissionCallback;
 }
 
 /**
@@ -51,13 +94,17 @@ export interface RouterHandlerOptions {
  */
 export interface RouterOptions {
   /**
+   * Name of the service
+   */
+  serviceName: string;
+  /**
    * The base route for the router.
    */
   baseRoute: string;
   /**
    * Enable or disable OpenAPI schema generation.
    */
-  openAPI: boolean;
+  openAPIEnabled: boolean;
   /**
    * A base schema for path parameters based on baseRoute.
    */
@@ -67,7 +114,10 @@ export interface RouterOptions {
    * A wrapper function for the HTTP handler.
    * It adds request-specific context to the handler.
    */
-  handlerWrapper: (handler: HttpHandler) => HttpHandler;
+  handlerWrapper: (
+    handler: HttpHandler,
+    permission?: Permission
+  ) => HttpHandler;
 }
 
 /** @private */

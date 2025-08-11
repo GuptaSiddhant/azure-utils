@@ -1,8 +1,5 @@
 // @ts-check
 
-import { registerStorybooksRouter } from "./dist/index.mjs";
+import { registerStorybooksRouter } from "@azure-utils/storybooks";
 
-/** @type {import("./dist/utils/types").RegisterStorybooksRouterOptions} */
-const options = {};
-
-registerStorybooksRouter(options);
+registerStorybooksRouter({});

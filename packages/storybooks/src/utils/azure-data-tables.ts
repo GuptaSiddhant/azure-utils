@@ -9,7 +9,10 @@ import type {
   StorybookProject,
 } from "./schemas";
 import type { InvocationContext } from "@azure/functions";
-import { PROJECTS_TABLE_PARTITION_KEY, SERVICE_NAME } from "./constants";
+import {
+  PROJECTS_TABLE_PARTITION_KEY,
+  DEFAULT_SERVICE_NAME,
+} from "./constants";
 
 type TableSuffix = "Builds" | "Labels";
 
@@ -18,7 +21,7 @@ export function getAzureProjectsTableClient(
 ): TableClient {
   return TableClient.fromConnectionString(
     connectionString,
-    `${SERVICE_NAME}Projects`
+    `${DEFAULT_SERVICE_NAME}Projects`
   );
 }
 export function getAzureTableClientForProject(
@@ -28,7 +31,7 @@ export function getAzureTableClientForProject(
 ): TableClient {
   return TableClient.fromConnectionString(
     connectionString,
-    `${SERVICE_NAME}${projectId
+    `${DEFAULT_SERVICE_NAME}${projectId
       .replace(/\W+/g, "")
       .toUpperCase()}${tableSuffix}`
   );

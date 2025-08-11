@@ -5,10 +5,9 @@
  * @module
  */
 
-import { app } from "@azure/functions";
+import { app, type HttpFunctionOptions } from "@azure/functions";
 import z from "zod";
 import { timerPurgeHandler } from "./handlers/timer-purge-handler";
-import { openAPIHandler } from "./handlers/openapi-handler";
 import { registerProjectsRouter } from "./routers/projects-router";
 import { registerBuildsRouter } from "./routers/builds-router";
 import { emptyObjectSchema, projectIdSchema } from "./utils/schemas";
@@ -16,26 +15,35 @@ import { registerLabelsRouter } from "./routers/labels-router";
 import { registerWebUIRouter } from "./routers/web-ui-router";
 import { registerStorybookRouter } from "./routers/storybook-router";
 import {
+  DEFAULT_CHECK_PERMISSIONS_CALLBACK,
   DEFAULT_PURGE_SCHEDULE_CRON,
   DEFAULT_STORAGE_CONN_STR_ENV_VAR,
-  SERVICE_NAME,
+  DEFAULT_SERVICE_NAME,
 } from "./utils/constants";
-import type { OpenAPIOptions } from "./utils/types";
+import type { CheckPermissionCallback, OpenAPIOptions } from "./utils/types";
 import { joinUrl } from "./utils/url-utils";
-import { wrapHttpHandlerWithRequestStore } from "./utils/stores";
+import { wrapHttpHandlerWithStore } from "./utils/store";
 
-export type { OpenAPIOptions };
+export type { CheckPermissionCallback, OpenAPIOptions };
+
+export { urlBuilder } from "./utils/constants";
 
 /**
  * Options to register the storybooks router
  */
 export type RegisterStorybooksRouterOptions = {
   /**
-   * Define the route on which all router is placed.
-   *
-   * @default 'storybooks/'
+   * Name of the service. @default "storybooks"
    */
-  route?: string;
+  serviceName?: string;
+
+  /**
+   * Define the route on which all router is placed.
+   * Can be a sub-path of the main API route.
+   *
+   * @default ''
+   */
+  baseRoute?: string;
 
   /**
    * Name of the Environment variable which stores
@@ -58,20 +66,42 @@ export type RegisterStorybooksRouterOptions = {
    * Options to configure OpenAPI schema
    */
   openapi?: OpenAPIOptions;
+
+  /**
+   * Directories to serve static files from relative to project root (package.json)
+   * @default './public'
+   */
+  staticDirs?: string[];
+
+  /**
+   * Callback function to check permissions. The function receives following params
+   * @param permission - object containing resource and action to permit
+   * @param context - Invocation context of Azure Function
+   * @param request - the HTTP request object
+   *
+   * @return `true` to allow access, or following to deny:
+   * - `false` - returns 403 response
+   * - `HttpResponse` - returns the specified HTTP response
+   */
+  checkPermission?: CheckPermissionCallback;
 };
 
 /**
  * Function to register all routes required to manage the Storybooks including
  * GET, POST and DELETE methods.
+ *
+ * @returns a function to register additional HTTP handlers for the service.
  */
 export function registerStorybooksRouter(
   options: RegisterStorybooksRouterOptions = {}
 ) {
   const {
-    route = "",
+    serviceName = DEFAULT_SERVICE_NAME,
+    baseRoute = "",
     storageConnectionStringEnvVar = DEFAULT_STORAGE_CONN_STR_ENV_VAR,
     purgeScheduleCron,
     openapi,
+    checkPermission = DEFAULT_CHECK_PERMISSIONS_CALLBACK,
   } = options;
 
   const storageConnectionString = process.env[storageConnectionStringEnvVar];
@@ -87,58 +117,78 @@ export function registerStorybooksRouter(
 
   app.setup({ enableHttpStream: true });
 
-  const handlerWrapper = wrapHttpHandlerWithRequestStore.bind(null, {
+  const handlerWrapper = wrapHttpHandlerWithStore.bind(null, {
+    serviceName,
+    baseRoute,
     connectionString: storageConnectionString,
-    baseRoute: route,
+    openapi,
+    staticDirs: options.staticDirs || ["./public"],
+    checkPermission,
   });
 
+  const normalisedServiceName = serviceName.toLowerCase().replace(/\s+/g, "_");
   registerProjectsRouter({
-    baseRoute: joinUrl(route, "projects"),
+    serviceName: normalisedServiceName,
+    baseRoute: joinUrl(baseRoute, "projects"),
     basePathParamsSchema: emptyObjectSchema,
-    openAPI: openAPIEnabled,
+    openAPIEnabled,
     handlerWrapper,
   });
 
   registerBuildsRouter({
-    baseRoute: joinUrl(route, "projects", "{projectId}", "builds"),
+    serviceName: normalisedServiceName,
+    baseRoute: joinUrl(baseRoute, "projects", "{projectId}", "builds"),
     basePathParamsSchema: z.object({ projectId: projectIdSchema }),
-    openAPI: openAPIEnabled,
+    openAPIEnabled,
     handlerWrapper,
   });
 
   registerLabelsRouter({
-    baseRoute: joinUrl(route, "projects", "{projectId}", "labels"),
+    serviceName: normalisedServiceName,
+    baseRoute: joinUrl(baseRoute, "projects", "{projectId}", "labels"),
     basePathParamsSchema: z.object({ projectId: projectIdSchema }),
-    openAPI: openAPIEnabled,
+    openAPIEnabled,
     handlerWrapper,
   });
 
   registerStorybookRouter({
-    baseRoute: joinUrl(route, "_"),
+    serviceName: normalisedServiceName,
+    baseRoute: joinUrl(baseRoute, "_"),
     basePathParamsSchema: emptyObjectSchema,
-    openAPI: openAPIEnabled,
+    openAPIEnabled,
     handlerWrapper,
   });
 
   registerWebUIRouter({
-    baseRoute: route,
+    serviceName: normalisedServiceName,
+    baseRoute,
     basePathParamsSchema: emptyObjectSchema,
-    openAPI: openAPIEnabled,
+    openAPIEnabled,
     handlerWrapper,
   });
 
-  if (openAPIEnabled) {
-    app.get(`${SERVICE_NAME}-openapi`, {
-      route: joinUrl(route, "openapi"),
-      handler: handlerWrapper(openAPIHandler(openapi)),
-    });
-  }
-
   if (purgeScheduleCron !== null) {
-    app.timer(`${SERVICE_NAME}-timer_purge`, {
+    app.timer(`${normalisedServiceName}-timer_purge`, {
       schedule: purgeScheduleCron || DEFAULT_PURGE_SCHEDULE_CRON,
-      runOnStartup: process.env["NODE_ENV"]?.toLowerCase() === "production",
       handler: timerPurgeHandler(storageConnectionString),
     });
   }
+
+  /**
+   * Register an HTTP function.
+   * The correct baseRoute is automatically added.
+   *
+   * @param name unique name for the HTTP function
+   * @param options Options for Azure HTTP function
+   */
+  function registerRoute(name: string, options: HttpFunctionOptions) {
+    app.http(`${normalisedServiceName}-${name}`, {
+      ...options,
+      route: joinUrl(baseRoute, options.route || name),
+      handler: handlerWrapper(options.handler),
+      methods: options.methods || ["GET"],
+    });
+  }
+
+  return registerRoute;
 }

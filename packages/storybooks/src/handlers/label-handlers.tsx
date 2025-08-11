@@ -17,7 +17,7 @@ import {
 import { CONTENT_TYPES, urlBuilder } from "../utils/constants";
 import { DocumentLayout } from "../components/layout";
 import { RawDataPreview } from "../components/raw-data";
-import { getRequestStore } from "../utils/stores";
+import { getStore } from "../utils/store";
 import { BuildTable } from "../components/builds-table";
 import { LabelsTable } from "../components/labels-table";
 
@@ -29,7 +29,7 @@ export async function listLabels(
   context.log("Serving all labels for project '%s'...", projectId);
 
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
     const entities = await listAzureTableEntities(
       context,
       getAzureTableClientForProject(connectionString, projectId, "Labels")
@@ -40,7 +40,11 @@ export async function listLabels(
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return responseHTML(
         <DocumentLayout title="All Labels" breadcrumbs={[projectId]}>
-          <LabelsTable labels={labels} projectId={projectId} />
+          <LabelsTable
+            labels={labels}
+            projectId={projectId}
+            caption={`Labels (${labels.length})`}
+          />
         </DocumentLayout>
       );
     }
@@ -59,7 +63,7 @@ export async function getLabel(
   context.log("Getting label '%s' for project '%s'...", labelSlug, projectId);
 
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
     const client = getAzureTableClientForProject(
       connectionString,
       projectId,
@@ -89,7 +93,11 @@ export async function getLabel(
         >
           <>
             <RawDataPreview data={labelDetails} summary={"Label details"} />
-            <BuildTable builds={builds} labels={undefined} />
+            <BuildTable
+              caption={`Builds (${builds.length})`}
+              builds={builds}
+              labels={undefined}
+            />
           </>
         </DocumentLayout>
       );
@@ -109,7 +117,7 @@ export async function deleteLabel(
   context.log("Deleting label '%s' for project '%s'...", labelSlug, projectId);
 
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
 
     await deleteAzureTableEntities<StorybookBuild>(
       context,
@@ -147,7 +155,7 @@ export async function getLabelLatestBuild(
   );
 
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
 
     const client = getAzureTableClientForProject(
       connectionString,

@@ -40,9 +40,9 @@ registerStorybooksRouter();
 
 ```ts
 // index.js
-import { registerStorybooksRouter } from "@azure-utils/storybooks";
+import { registerStorybooksRouter, getStore } from "@azure-utils/storybooks";
 
-registerStorybooksRouter({
+const registerRoute = registerStorybooksRouter({
    /**
    * Define the route on which all router is placed.
    *
@@ -72,6 +72,16 @@ registerStorybooksRouter({
    */
   purgeScheduleCron?: string | null;
 });
+
+// Register additional routes on the service
+registerRoute("account", {
+  route: "account",
+  methods: ["GET","POST"],
+  handler: (request, context) => {
+    return { statue: 200 }
+  }
+})
+
 ```
 
 ### Update `host.json` (optional)

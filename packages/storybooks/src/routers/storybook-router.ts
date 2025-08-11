@@ -1,5 +1,5 @@
 import { app } from "@azure/functions";
-import { commonErrorResponses, SERVICE_NAME } from "../utils/constants";
+import { commonErrorResponses } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
 import type { RouterOptions } from "../utils/types";
 import z from "zod";
@@ -10,7 +10,13 @@ import { serveStorybook } from "../handlers/storybook-handler";
 const TAG = openAPITags.storybook.name;
 
 export function registerStorybookRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
+  const {
+    baseRoute,
+    basePathParamsSchema,
+    handlerWrapper,
+    openAPIEnabled,
+    serviceName,
+  } = options;
 
   const storybookRoute = joinUrl(
     baseRoute,
@@ -19,12 +25,15 @@ export function registerStorybookRouter(options: RouterOptions) {
     "{**filepath}"
   );
 
-  app.get(`${SERVICE_NAME}-storybook-serve`, {
+  app.get(`${serviceName}-storybook-serve`, {
     route: storybookRoute,
-    handler: handlerWrapper(serveStorybook),
+    handler: handlerWrapper(serveStorybook, {
+      resource: "build",
+      action: "read",
+    }),
   });
 
-  if (openAPI) {
+  if (openAPIEnabled) {
     registerOpenAPIPath(storybookRoute, {
       get: {
         tags: [TAG],

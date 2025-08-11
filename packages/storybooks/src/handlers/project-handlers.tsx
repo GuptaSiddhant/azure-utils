@@ -1,7 +1,7 @@
-import type {
-  HttpRequest,
-  HttpResponseInit,
-  InvocationContext,
+import {
+  type HttpRequest,
+  type HttpResponseInit,
+  type InvocationContext,
 } from "@azure/functions";
 import type { StorybookProjectTableEntity } from "../utils/types";
 import {
@@ -30,7 +30,7 @@ import {
   getAzureStorageBlobServiceClient,
 } from "../utils/azure-storage-blob";
 import { BuildTable } from "../components/builds-table";
-import { getRequestStore } from "../utils/stores";
+import { getStore } from "../utils/store";
 import { LabelsTable } from "../components/labels-table";
 
 export async function listProjects(
@@ -38,8 +38,9 @@ export async function listProjects(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   context.log("Serving all projects...");
+
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
 
     const entities = await listAzureTableEntities(
       context,
@@ -51,7 +52,10 @@ export async function listProjects(
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return responseHTML(
         <DocumentLayout title="All Projects">
-          <ProjectsTable projects={projects} />
+          <ProjectsTable
+            projects={projects}
+            caption={`Projects (${projects.length})`}
+          />
         </DocumentLayout>
       );
     }
@@ -68,7 +72,7 @@ export async function getProject(
 ): Promise<HttpResponseInit> {
   const { projectId } = request.params;
   context.log("Serving project: '%s'...", projectId);
-  const { connectionString } = getRequestStore();
+  const { connectionString } = getStore();
 
   if (!projectId) {
     return { status: 400, body: "Missing project ID" };
@@ -150,7 +154,7 @@ export async function createProject(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
 
     const contentType = request.headers.get("content-type");
     if (!contentType) {
@@ -207,7 +211,8 @@ export async function updateProject(
   try {
     const { projectId } = request.params;
     context.log("Updating project: '%s'...", projectId);
-    const { connectionString } = getRequestStore();
+
+    const { connectionString } = getStore();
 
     if (!projectId) {
       return { status: 400, body: "Missing project ID" };
@@ -274,12 +279,13 @@ export async function deleteProject(
 ): Promise<HttpResponseInit> {
   try {
     const { projectId } = request.params;
-    context.log("Deleting project: '%s'...", projectId);
-    const { connectionString } = getRequestStore();
-
     if (!projectId) {
       return { status: 400, body: "Missing project ID" };
     }
+
+    context.log("Deleting project: '%s'...", projectId);
+
+    const { connectionString } = getStore();
 
     await Promise.allSettled([
       getAzureStorageBlobServiceClient(connectionString).deleteContainer(

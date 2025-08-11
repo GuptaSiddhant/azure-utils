@@ -1,3 +1,8 @@
+import type {
+  HttpRequest,
+  HttpResponseInit,
+  InvocationContext,
+} from "@azure/functions";
 import { createDocument } from "zod-openapi";
 import {
   openAPIPaths,
@@ -5,69 +10,66 @@ import {
   openAPISecuritySchemas,
   openAPITags,
 } from "../utils/openapi-utils";
-import {
-  CONTENT_TYPES,
-  SERVICE_NAME,
-  SUPPORTED_CONTENT_TYPES_MSG,
-} from "../utils/constants";
-import type { OpenAPIOptions } from "../utils/types";
+import { CONTENT_TYPES, SUPPORTED_CONTENT_TYPES_MSG } from "../utils/constants";
 import { responseError } from "../utils/response-utils";
-import type { HttpHandler } from "@azure/functions";
+import { getStore } from "../utils/store";
 
-export function openAPIHandler(options: OpenAPIOptions = {}): HttpHandler {
-  return (request, context) => {
-    const {
-      title = SERVICE_NAME.toUpperCase(),
-      version = process.env["NODE_ENV"] || "TEST",
+export async function openAPIHandler(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const { openapi, serviceName } = getStore();
+  const {
+    title = serviceName.toUpperCase(),
+    version = process.env["NODE_ENV"] || "TEST",
+    servers,
+  } = openapi || {};
+
+  context.log("Serving OpenAPI schema...");
+
+  try {
+    const openAPISpec = createDocument({
+      openapi: "3.1.0",
+      info: { title, version },
+      security: [],
       servers,
-    } = options;
+      tags: Object.values(openAPITags),
+      paths: openAPIPaths,
+      components: {
+        schemas: openAPISchemas,
+        securitySchemes: openAPISecuritySchemas,
+      },
+    });
 
-    context.log("Serving OpenAPI schema...");
-
-    try {
-      const openAPISpec = createDocument({
-        openapi: "3.1.0",
-        info: { title, version },
-        security: [],
-        servers,
-        tags: Object.values(openAPITags),
-        paths: openAPIPaths,
-        components: {
-          schemas: openAPISchemas,
-          securitySchemes: openAPISecuritySchemas,
-        },
+    const { searchParams } = new URL(request.url);
+    const isDownloadJSON = searchParams.get("download") === "json";
+    if (isDownloadJSON) {
+      const headers = new Headers({
+        "Content-Disposition": `attachment; filename="${title}_${version}_openapi.json"`,
       });
-
-      const { searchParams } = new URL(request.url);
-      const isDownloadJSON = searchParams.get("download") === "json";
-      if (isDownloadJSON) {
-        const headers = new Headers({
-          "Content-Disposition": `attachment; filename="${title}_${version}_openapi.json"`,
-        });
-        return { status: 200, jsonBody: openAPISpec, headers };
-      }
-
-      const accept = request.headers.get("accept");
-
-      if (!accept || accept.includes(CONTENT_TYPES.JSON)) {
-        return { status: 200, jsonBody: openAPISpec };
-      }
-
-      if (accept.includes(CONTENT_TYPES.HTML)) {
-        const html = generateSwaggerUI(title, openAPISpec);
-
-        return {
-          status: 200,
-          headers: { "Content-Type": CONTENT_TYPES.HTML },
-          body: html,
-        };
-      }
-
-      return { status: 406, body: SUPPORTED_CONTENT_TYPES_MSG };
-    } catch (error) {
-      return responseError(error, context);
+      return { status: 200, jsonBody: openAPISpec, headers };
     }
-  };
+
+    const accept = request.headers.get("accept");
+
+    if (!accept || accept.includes(CONTENT_TYPES.JSON)) {
+      return { status: 200, jsonBody: openAPISpec };
+    }
+
+    if (accept.includes(CONTENT_TYPES.HTML)) {
+      const html = generateSwaggerUI(title, openAPISpec);
+
+      return {
+        status: 200,
+        headers: { "Content-Type": CONTENT_TYPES.HTML },
+        body: html,
+      };
+    }
+
+    return { status: 406, body: SUPPORTED_CONTENT_TYPES_MSG };
+  } catch (error) {
+    return responseError(error, context);
+  }
 }
 
 function generateSwaggerUI(title: string, openAPISpec: object) {

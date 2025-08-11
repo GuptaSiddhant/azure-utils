@@ -1,125 +1,63 @@
 import { app } from "@azure/functions";
-import {
-  commonErrorResponses,
-  CONTENT_TYPES,
-  SERVICE_NAME,
-  urlBuilder,
-} from "../utils/constants";
+import { commonErrorResponses, CONTENT_TYPES } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
 import z from "zod";
 import type { RouterOptions } from "../utils/types";
 import { joinUrl } from "../utils/url-utils";
+import { openAPIHandler } from "../handlers/openapi-handler";
+import { rootHandler, staticFileHandler } from "../handlers/web-ui-handlers";
 
 const TAG = openAPITags.webUI.name;
 
 export function registerWebUIRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
+  const {
+    baseRoute,
+    basePathParamsSchema,
+    handlerWrapper,
+    openAPIEnabled,
+    serviceName,
+  } = options;
 
-  app.get(`${SERVICE_NAME}-root`, {
+  app.get(`${serviceName}-root`, {
     route: joinUrl(baseRoute),
-    handler: handlerWrapper(async () => {
-      return { status: 303, headers: { Location: urlBuilder.allProjects() } };
-    }),
+    handler: handlerWrapper(rootHandler),
   });
 
-  // Account
-  const accountRoute = joinUrl(baseRoute, "account");
-  app.get(`${SERVICE_NAME}-account-details`, {
-    route: accountRoute,
-    handler: handlerWrapper(async () => {
-      return { status: 501 };
-    }),
-  });
-
-  const logoutRoute = joinUrl(baseRoute, "logout");
-  app.get(`${SERVICE_NAME}-account-logout`, {
-    route: logoutRoute,
-    handler: handlerWrapper(async () => {
-      return { status: 501 };
-    }),
-  });
-
-  // Health check
   const healthRoute = joinUrl(baseRoute, "health");
-  app.get(`${SERVICE_NAME}-health-check`, {
+  app.get(`${serviceName}-health-check`, {
     route: healthRoute,
-    handler: handlerWrapper(async () => {
-      return { status: 200 };
-    }),
+    handler: handlerWrapper(() => ({ status: 200 })),
   });
 
-  const staticFIleRoute = joinUrl(baseRoute, "**filepath");
-  app.get(`${SERVICE_NAME}-static-files`, {
-    route: staticFIleRoute,
-    handler: handlerWrapper(async () => {
-      return { status: 404 };
-    }),
+  const staticFileRoute = joinUrl(baseRoute, "{**filepath}");
+  app.get(`${serviceName}-static-files`, {
+    route: staticFileRoute,
+    handler: handlerWrapper(staticFileHandler),
   });
 
-  if (openAPI) {
+  if (openAPIEnabled) {
+    app.get(`${serviceName}-openapi`, {
+      route: joinUrl(baseRoute, "openapi"),
+      handler: handlerWrapper(openAPIHandler),
+    });
+
     registerOpenAPIPath(baseRoute, {
       get: {
         tags: [TAG],
         summary: "Render homepage",
         requestParams: { path: basePathParamsSchema },
         responses: {
+          ...commonErrorResponses,
           200: {
             description: "Root endpoint",
             content: { [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" } },
           },
-        },
-      },
-    });
-
-    registerOpenAPIPath(staticFIleRoute, {
-      get: {
-        tags: [TAG],
-        summary: "Serve static files",
-        requestParams: {
-          path: basePathParamsSchema.extend({ "**filepath": z.string() }),
-        },
-        responses: {
-          200: { description: "Static file served successfully." },
-          404: { description: "File not found." },
-        },
-      },
-    });
-
-    registerOpenAPIPath(accountRoute, {
-      get: {
-        tags: [TAG],
-        summary: "Logged in user details",
-        description: "Retrieves the details of the logged-in user.",
-        requestParams: { path: basePathParamsSchema },
-        responses: {
-          ...commonErrorResponses,
-          200: {
-            description: "User details retrieved successfully.",
-            content: {
-              [CONTENT_TYPES.JSON]: {
-                schema: z.object({ username: z.string() }),
-              },
-              [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
-            },
-          },
-        },
-      },
-    });
-    registerOpenAPIPath(logoutRoute, {
-      get: {
-        tags: [TAG],
-        summary: "Logged out user",
-        description: "Logs out the current user.",
-        requestParams: { path: basePathParamsSchema },
-        responses: {
-          ...commonErrorResponses,
-          200: { description: "User logged out successfully." },
-          302: {
-            description: "Logged out, redirecting to home.",
+          303: {
+            description: "Redirects to all projects",
             headers: {
               Location: {
-                description: "Redirects to the home page after logout.",
-                schema: z.string(),
+                description: "The URL to redirect to",
+                schema: { type: "string", format: "uri" },
               },
             },
           },
@@ -139,4 +77,18 @@ export function registerWebUIRouter(options: RouterOptions) {
       },
     });
   }
+
+  registerOpenAPIPath(staticFileRoute, {
+    get: {
+      tags: [TAG],
+      summary: "Serve static files",
+      requestParams: {
+        path: basePathParamsSchema.extend({ "**filepath": z.string() }),
+      },
+      responses: {
+        200: { description: "Static file served successfully." },
+        404: { description: "File not found." },
+      },
+    },
+  });
 }

@@ -1,11 +1,10 @@
 import type { HttpResponseInit, InvocationContext } from "@azure/functions";
-import { CONTENT_TYPES } from "./constants";
 import { renderToStream } from "@kitajs/html/suspense";
-import { parseErrorMessage } from "./error-utils";
 import { DocumentLayout } from "../components/layout";
-import { getRequestStore } from "./stores";
-import { joinUrl } from "./url-utils";
 import { ErrorMessage } from "../components/error-message";
+import { CONTENT_TYPES } from "./constants";
+import { parseErrorMessage } from "./error-utils";
+import { getStore } from "./store";
 
 export function responseHTML(html: JSX.Element): HttpResponseInit {
   return {
@@ -21,13 +20,13 @@ export function responseError(
   init?: ResponseInit | number
 ): HttpResponseInit {
   const { errorMessage, errorStatus } = parseErrorMessage(error);
-  context.error(errorMessage, error instanceof Error ? error.stack : undefined);
+  context.error(errorMessage, error instanceof Error ? error.stack : "");
 
   const status =
     errorStatus ?? (typeof init === "number" ? init : init?.status ?? 500);
   const headers = new Headers(typeof init === "number" ? {} : init?.headers);
 
-  const store = getRequestStore(false);
+  const store = getStore(false);
   if (store?.accept?.includes(CONTENT_TYPES.HTML)) {
     headers.set("Content-Type", CONTENT_TYPES.HTML);
 
@@ -37,7 +36,7 @@ export function responseError(
       body: renderToStream(
         <DocumentLayout
           title={`Error ${status}`}
-          breadcrumbs={[{ label: "< Back", href: joinUrl(store.url, "..") }]}
+          breadcrumbs={[{ label: "< Back", href: "javascript:history.back()" }]}
         >
           <ErrorMessage>{errorMessage}</ErrorMessage>
         </DocumentLayout>

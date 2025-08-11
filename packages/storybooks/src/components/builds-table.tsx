@@ -1,4 +1,4 @@
-import { getRequestStore } from "../utils/stores";
+import { getStore } from "../utils/store";
 import type {
   StorybookBuild,
   StorybookLabel,
@@ -19,7 +19,7 @@ export async function BuildTable({
   builds,
   labels,
 }: BuildTableProps) {
-  const { locale } = getRequestStore();
+  const { locale } = getStore();
 
   return (
     <Table

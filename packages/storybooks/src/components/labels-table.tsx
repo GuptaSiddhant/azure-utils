@@ -1,7 +1,7 @@
 import type { StorybookLabel } from "../utils/schemas";
 import { Table } from "./table";
 import { urlBuilder } from "../utils/constants";
-import { getRequestStore } from "../utils/stores";
+import { getStore } from "../utils/store";
 
 export interface LabelsTableProps {
   caption?: JSX.Element;
@@ -14,7 +14,7 @@ export async function LabelsTable({
   projectId,
   caption = "Labels",
 }: LabelsTableProps) {
-  const { locale } = getRequestStore();
+  const { locale } = getStore();
 
   return (
     <Table

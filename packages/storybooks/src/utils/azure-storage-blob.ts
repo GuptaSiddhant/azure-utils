@@ -9,9 +9,13 @@ import {
 } from "@azure/storage-blob";
 import { getMimeType } from "./mime-utils";
 import { parseErrorMessage } from "./error-utils";
+import { DEFAULT_SERVICE_NAME } from "./constants";
 
 export function generateAzureStorageContainerName(projectId: string) {
-  return `sb-${projectId.replace(/[^\w\-]+/g, "-")}`.slice(0, 60);
+  return `${DEFAULT_SERVICE_NAME}-${projectId.replace(/[^\w\-]+/g, "-")}`.slice(
+    0,
+    60
+  );
 }
 
 export function getAzureStorageBlobServiceClient(connectionString: string) {
