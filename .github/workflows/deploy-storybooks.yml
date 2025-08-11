@@ -1,0 +1,43 @@
+name: Deploy functions
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    name: Build+Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read #This is required for actions/checkout
+
+    environment:
+      name: "Production"
+      url: ${{ steps.deploy.outputs.app-url }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install deps
+        working-directory: apps/storybooks-manager-app
+        run: yarn workspaces focus
+
+      - name: Build
+        working-directory: apps/storybooks-manager-app
+        run: yarn build
+
+      - name: "Deploy to Azure Functions"
+        id: deploy
+        uses: azure/functions-action@v1
+        with:
+          app-name: "storybooks-manager"
+          slot-name: "production"
+          package: apps/storybooks-manager-app
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BA1F912C7A4D4E1EB5A2C63EE65421CC }}
+          respect-funcignore: true
+          sku: "consumption"
