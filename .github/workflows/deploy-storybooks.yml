@@ -6,8 +6,7 @@ on:
     branches:
       - main
     paths:
-      - apps/storybooks-manager-app/**
-      - packages/storybooks
+      - packages/storybooks/**
       - .github/workflows/deploy-storybooks.yml
 
 jobs:
