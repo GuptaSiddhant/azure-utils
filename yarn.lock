@@ -65,7 +65,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@azure-utils/storybooks@npm:*, @azure-utils/storybooks@workspace:packages/storybooks":
+"@azure-utils/storybooks@workspace:packages/storybooks":
   version: 0.0.0-use.local
   resolution: "@azure-utils/storybooks@workspace:packages/storybooks"
   dependencies:
@@ -4013,14 +4013,6 @@ __metadata:
   checksum: 10c0/4a6f9218aef3f41046c3c7ecf1f98df00b30a07f4f35c6d47b28329bc2531eef820828951c7d7b39a1c5eb19ad8a46e3ddfc7deb28f0a2f3ceebee11bab7ba50
   languageName: node
   linkType: hard
-
-"storybooks-manager-app@workspace:apps/storybooks-manager-app":
-  version: 0.0.0-use.local
-  resolution: "storybooks-manager-app@workspace:apps/storybooks-manager-app"
-  dependencies:
-    "@azure-utils/storybooks": "npm:*"
-  languageName: unknown
-  linkType: soft
 
 "string-width-cjs@npm:string-width@^4.2.0, string-width@npm:^4.1.0, string-width@npm:^4.2.0, string-width@npm:^4.2.3":
   version: 4.2.3
