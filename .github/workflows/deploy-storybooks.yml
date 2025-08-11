@@ -28,19 +28,18 @@ jobs:
 
       - name: Install dependencies
         working-directory: packages/storybooks
-        run: npm install
+        run: yarn workspaces focus
 
       - name: Build
         working-directory: packages/storybooks
         run: yarn build
 
-      - name: Prune deps
-        working-directory: packages/storybooks
-        run: npm prune --omit=dev
-
       - name: Zip
-        working-directory: packages/storybooks
-        run: zip -r ../../deploy.zip ./**/*
+        run: |
+          cd packages/storybooks
+          zip -r ../../deploy.zip ./**/*
+          cd ../../
+          zip -r deploy.zip ./node_modules/**/*
 
       - name: "Deploy to Azure Functions"
         id: deploy
