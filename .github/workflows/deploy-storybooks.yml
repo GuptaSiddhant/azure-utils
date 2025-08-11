@@ -34,10 +34,6 @@ jobs:
         working-directory: packages/storybooks
         run: yarn build
 
-      - name: Prune deps
-        working-directory: packages/storybooks
-        run: yarn --production
-
       - name: Zip
         working-directory: packages/storybooks
         run: zip -r ../../deploy.zip ./**/*
