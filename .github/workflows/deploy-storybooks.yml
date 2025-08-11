@@ -28,11 +28,15 @@ jobs:
 
       - name: Install dependencies
         working-directory: packages/storybooks
-        run: yarn
+        run: npm install
 
       - name: Build
         working-directory: packages/storybooks
         run: yarn build
+
+      - name: Prune deps
+        working-directory: packages/storybooks
+        run: npm prune --omit=dev
 
       - name: Zip
         working-directory: packages/storybooks
