@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: packages/storybooks
-        run: yarn workspaces focus
+        run: yarn
 
       - name: Build
         working-directory: packages/storybooks
@@ -36,7 +36,11 @@ jobs:
 
       - name: Prune deps
         working-directory: packages/storybooks
-        run: yarn workspaces focus --production
+        run: yarn --production
+
+      - name: Zip
+        working-directory: packages/storybooks
+        run: zip -r ../../deploy.zip ./**/*
 
       - name: "Deploy to Azure Functions"
         id: deploy
@@ -44,7 +48,6 @@ jobs:
         with:
           app-name: "storybooks-manager"
           slot-name: "production"
-          package: packages/storybooks
+          package: deploy.zip
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BA1F912C7A4D4E1EB5A2C63EE65421CC }}
-          respect-funcignore: true
           sku: "consumption"
