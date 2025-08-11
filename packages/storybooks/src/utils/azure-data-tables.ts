@@ -9,7 +9,10 @@ import type {
   StorybookProject,
 } from "./schemas";
 import type { InvocationContext } from "@azure/functions";
-import { PROJECTS_TABLE_PARTITION_KEY, SERVICE_NAME } from "./constants";
+import {
+  PROJECTS_TABLE_PARTITION_KEY,
+  DEFAULT_SERVICE_NAME,
+} from "./constants";
 
 type TableSuffix = "Builds" | "Labels";
 
@@ -18,7 +21,7 @@ export function getAzureProjectsTableClient(
 ): TableClient {
   return TableClient.fromConnectionString(
     connectionString,
-    `${SERVICE_NAME}Projects`
+    `${DEFAULT_SERVICE_NAME}Projects`
   );
 }
 export function getAzureTableClientForProject(
@@ -28,7 +31,7 @@ export function getAzureTableClientForProject(
 ): TableClient {
   return TableClient.fromConnectionString(
     connectionString,
-    `${SERVICE_NAME}${projectId
+    `${DEFAULT_SERVICE_NAME}${projectId
       .replace(/\W+/g, "")
       .toUpperCase()}${tableSuffix}`
   );
@@ -65,7 +68,8 @@ export async function upsertStorybookLabelsToAzureTable(
   context: InvocationContext,
   connectionString: string,
   projectId: string,
-  labelStr: string
+  labelStr: string,
+  buildSHA: string
 ): Promise<string[]> {
   context.info(
     "Updating AzureTable with storybook labels for",
@@ -82,7 +86,7 @@ export async function upsertStorybookLabelsToAzureTable(
   const labels: StorybookLabel[] = labelStr.split(",").map((label) => {
     const value = label.trim();
     const slug = value.toLowerCase().replace(/\s+/g, "_").replace(/\W+/g, "-");
-    return { slug, value };
+    return { slug, value, buildSHA };
   });
 
   await Promise.allSettled(
@@ -118,48 +122,29 @@ export async function upsertStorybookProjectToAzureTable(
   );
 }
 
-type ListAzureTableEntitiesOptions = {
+type ListAzureTableEntitiesOptions<T extends Record<string, unknown>> = {
   limit?: number;
-  filter?: string;
+  filter?: string | ((item: T) => boolean);
   select?: string[];
+  sort?: "latest" | ((a: T, b: T) => number);
 };
 
-export async function listAzureTableEntities(
+export async function listAzureTableEntities<T extends Record<string, unknown>>(
   context: InvocationContext,
-  tableName: string,
-  connectionString: string,
-  queryOptions?: ListAzureTableEntitiesOptions
-): Promise<Array<TableEntityResult<Record<string, unknown>>>>;
-export async function listAzureTableEntities(
-  context: InvocationContext,
-  table: TableClient,
-  queryOptions?: ListAzureTableEntitiesOptions
-): Promise<Array<TableEntityResult<Record<string, unknown>>>>;
-export async function listAzureTableEntities(
-  context: InvocationContext,
-  table: TableClient | string,
-  connectionStringOrOptions?: string | ListAzureTableEntitiesOptions,
-  queryOptions?: ListAzureTableEntitiesOptions
-): Promise<Array<TableEntityResult<Record<string, unknown>>>> {
-  const { limit, filter, select } =
-    (typeof connectionStringOrOptions === "object"
-      ? connectionStringOrOptions
-      : queryOptions) || {};
+  tableClient: TableClient,
+  queryOptions?: ListAzureTableEntitiesOptions<T>
+): Promise<Array<TableEntityResult<T>>> {
+  const { limit, filter, select, sort = "latest" } = queryOptions || {};
   try {
-    const tableClient =
-      table instanceof TableClient
-        ? table
-        : TableClient.fromConnectionString(
-            connectionStringOrOptions as string,
-            table
-          );
-
     await tableClient.createTable();
-    const iterator = tableClient.listEntities({
-      queryOptions: { filter, select: select as string[] },
+    const iterator = tableClient.listEntities<T>({
+      queryOptions: {
+        filter: typeof filter === "string" ? filter : undefined,
+        select: select as string[],
+      },
     });
 
-    let entities: TableEntityResultPage<Record<string, unknown>> = [];
+    let entities: TableEntityResultPage<T> = [];
     if (limit) {
       for await (const page of iterator.byPage({ maxPageSize: limit })) {
         entities = page; // Take the first page as the entities result
@@ -171,14 +156,57 @@ export async function listAzureTableEntities(
       }
     }
 
+    if (typeof filter === "function") {
+      entities = entities.filter(filter);
+    }
+
+    if (sort) {
+      if (typeof sort === "function") {
+        entities.sort(sort);
+      } else {
+        switch (sort) {
+          case "latest":
+            entities.sort((a, b) => {
+              if (!a.timestamp || !b.timestamp) return 0;
+              const aDate = new Date(a.timestamp);
+              const bDate = new Date(b.timestamp);
+              return bDate.getTime() - aDate.getTime();
+            });
+            break;
+        }
+      }
+    }
+
     return entities;
   } catch (error) {
     context.error(
-      `Error listing Azure Table '${
-        table instanceof TableClient ? table.tableName : table
-      }' entities:`,
+      `Error listing Azure Table '${tableClient.tableName}' entities:`,
       error
     );
     return [];
   }
+}
+
+export async function deleteAzureTableEntities<
+  T extends Record<string, unknown>
+>(
+  context: InvocationContext,
+  tableClient: TableClient,
+  queryOptions?: ListAzureTableEntitiesOptions<T>
+) {
+  const entities = await listAzureTableEntities(
+    context,
+    tableClient,
+    queryOptions
+  );
+
+  await Promise.allSettled(
+    entities.map((entity) => {
+      if (entity.partitionKey && entity.rowKey)
+        return tableClient.deleteEntity(entity.partitionKey, entity.rowKey);
+      else return Promise.reject("Entity is missing partitionKey or rowKey");
+    })
+  );
+
+  return;
 }

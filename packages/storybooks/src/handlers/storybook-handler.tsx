@@ -11,7 +11,7 @@ import {
 import { responseError } from "../utils/response-utils";
 import { CACHE_CONTROL_PUBLIC_YEAR, urlBuilder } from "../utils/constants";
 import { Readable } from "node:stream";
-import { getRequestStore } from "../utils/stores";
+import { getStore } from "../utils/store";
 
 export async function serveStorybook(
   request: HttpRequest,
@@ -21,7 +21,7 @@ export async function serveStorybook(
   const blobName = path.posix.join(buildSHA, filepath);
   context.log("Serving SB (%s) - %s...", projectId, blobName);
 
-  const { connectionString } = getRequestStore();
+  const { connectionString } = getStore();
   const blockBlobClient = getAzureStorageBlobServiceClient(connectionString)
     .getContainerClient(generateAzureStorageContainerName(projectId))
     .getBlockBlobClient(blobName);

@@ -1,39 +1,92 @@
-import type { StorybooksRouterTimerHandler } from "../utils/types";
-import { listAzureTableEntities } from "../utils/azure-data-tables";
-import { purgeStorybookByCommitSha } from "../utils/storage-utils";
-import { DEFAULT_PURGE_AFTER_DAYS } from "../utils/constants";
+import {
+  getAzureProjectsTableClient,
+  getAzureTableClientForProject,
+  listAzureTableEntities,
+} from "../utils/azure-data-tables";
+import { DEFAULT_PURGE_AFTER_DAYS, ONE_DAY_IN_MS } from "../utils/constants";
+import { InvocationContext, TimerHandler } from "@azure/functions";
+import { storybookProjectSchema } from "../utils/schemas";
+import {
+  deleteBlobsFromAzureStorageContainerOrThrow,
+  generateAzureStorageContainerName,
+  getAzureStorageBlobContainerClient,
+} from "../utils/azure-storage-blob";
 
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const purgeAfterDays = DEFAULT_PURGE_AFTER_DAYS;
-
-export const timerPurgeHandler: StorybooksRouterTimerHandler =
-  (options) => async (timer, context) => {
-    const expiryTime = new Date(Date.now() - purgeAfterDays * ONE_DAY_MS);
-
+export function timerPurgeHandler(connectionString: string): TimerHandler {
+  return async (timer, context) => {
     context.log(
-      `Timer - Purge storybooks which were last modified more than ${purgeAfterDays} days ago - since ${new Date(
-        expiryTime
-      )}`,
+      "Timer triggered to purge old builds...",
       JSON.stringify(timer)
     );
 
-    const expiredEntities = await listAzureTableEntities(
+    const entities = await listAzureTableEntities(
       context,
-      options,
-      "Commits",
-      {
-        filter: `Timestamp lt '${expiryTime.toISOString()}'`,
-      }
+      getAzureProjectsTableClient(connectionString)
     );
+    const projects = storybookProjectSchema.array().parse(entities);
 
-    await Promise.allSettled(
-      expiredEntities.map(async (entity) =>
-        purgeStorybookByCommitSha(
-          context,
-          options,
-          entity.project,
-          entity.commitSha
+    for (const project of projects) {
+      const { id, purgeBuildsAfterDays = DEFAULT_PURGE_AFTER_DAYS } = project;
+      const expiryTime = new Date(
+        Date.now() - purgeBuildsAfterDays * ONE_DAY_IN_MS
+      );
+
+      context.log(
+        `[${id}] Timer - Purge builds which were last modified more than ${purgeBuildsAfterDays} days ago - since ${new Date(
+          expiryTime
+        )}`
+      );
+
+      const expiredEntities = await listAzureTableEntities(
+        context,
+        getAzureTableClientForProject(connectionString, project.id, "Builds"),
+        { filter: `Timestamp lt '${expiryTime.toISOString()}'` }
+      );
+      await Promise.allSettled(
+        expiredEntities.map(async (entity) =>
+          purgeStorybookByCommitSha(
+            context,
+            connectionString,
+            project.id,
+            entity.rowKey || ""
+          )
         )
-      )
-    );
+      );
+    }
   };
+}
+
+async function purgeStorybookByCommitSha(
+  context: InvocationContext,
+  connectionString: string,
+  projectId: string,
+  buildSHA: string
+) {
+  context.info(`Deleting Build for project: ${projectId}, commit: ${buildSHA}`);
+
+  try {
+    await getAzureTableClientForProject(
+      connectionString,
+      projectId,
+      "Builds"
+    ).deleteEntity(projectId, buildSHA);
+  } catch (error) {
+    context.error(`Failed to delete Build for ${projectId}/${buildSHA}`, error);
+  }
+
+  try {
+    await deleteBlobsFromAzureStorageContainerOrThrow(
+      context,
+      getAzureStorageBlobContainerClient(
+        connectionString,
+        generateAzureStorageContainerName(projectId)
+      ),
+      `${projectId}/${buildSHA}/`
+    );
+  } catch (error) {
+    context.error(
+      `Failed to delete Build blobs for ${projectId}/${buildSHA}`,
+      error
+    );
+  }
+}

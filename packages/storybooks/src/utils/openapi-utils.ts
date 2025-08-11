@@ -1,7 +1,16 @@
 import type {
   ZodOpenApiPathItemObject,
   ZodOpenApiPathsObject,
+  ZodOpenApiSchemaObject,
+  ZodOpenApiSecuritySchemeObject,
 } from "zod-openapi";
+import {
+  storybookBuildSchema,
+  storybookBuildUploadSchema,
+  storybookLabelSchema,
+  storybookProjectCreateSchema,
+  storybookProjectSchema,
+} from "./schemas";
 
 export const openAPIPaths: ZodOpenApiPathsObject = {};
 
@@ -13,11 +22,7 @@ export function registerOpenAPIPath(
   if (!path.startsWith("/")) {
     path = `/${path}`;
   }
-  // console.log(
-  //   "Registering OpenAPI path: '%s' (%s)",
-  //   path,
-  //   Object.keys(input).join(", ")
-  // );
+
   const value = openAPIPaths[path];
 
   if (value) {
@@ -51,3 +56,16 @@ export const openAPITags = {
     description: "Serves static files for web-ui.",
   },
 } satisfies Record<string, { name: string; description?: string }>;
+
+export const openAPISchemas: Record<string, ZodOpenApiSchemaObject> = {
+  storybookProjectSchema,
+  storybookBuildSchema,
+  storybookLabelSchema,
+  storybookBuildUploadSchema,
+  storybookProjectCreateSchema,
+};
+
+export const openAPISecuritySchemas: Record<
+  string,
+  ZodOpenApiSecuritySchemeObject
+> = {};

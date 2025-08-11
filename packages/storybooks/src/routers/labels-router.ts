@@ -1,11 +1,7 @@
 import { app } from "@azure/functions";
-import {
-  commonErrorResponses,
-  CONTENT_TYPES,
-  SERVICE_NAME,
-} from "../utils/constants";
+import { commonErrorResponses, CONTENT_TYPES } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
-import { labelSlugSchema, storybookMetadataSchema } from "../utils/schemas";
+import { labelSlugSchema, storybookLabelSchema } from "../utils/schemas";
 import type { RouterOptions } from "../utils/types";
 import z from "zod";
 import { joinUrl } from "../utils/url-utils";
@@ -14,33 +10,50 @@ import * as handlers from "../handlers/label-handlers";
 const TAG = openAPITags.labels.name;
 
 export function registerLabelsRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
-  const routeWithLabel = joinUrl(baseRoute, "{labelSlug}");
+  const {
+    baseRoute,
+    basePathParamsSchema,
+    handlerWrapper,
+    openAPIEnabled,
+    serviceName,
+  } = options;
 
-  app.get(`${SERVICE_NAME}-labels-list`, {
+  app.get(`${serviceName}-labels-list`, {
     route: baseRoute,
-    handler: handlerWrapper(handlers.listLabels),
-  });
-  app.get(`${SERVICE_NAME}-label-get`, {
-    route: routeWithLabel,
-    handler: handlerWrapper(handlers.getLabel),
-  });
-  app.deleteRequest(`${SERVICE_NAME}-label-delete`, {
-    route: routeWithLabel,
-    handler: handlerWrapper(handlers.deleteLabel),
-  });
-
-  const routeWithLabelLatest = joinUrl(routeWithLabel, "latest");
-  app.get(`${SERVICE_NAME}-label-latest`, {
-    route: routeWithLabelLatest,
-    handler: handlerWrapper(async () => {
-      return { status: 308 };
+    handler: handlerWrapper(handlers.listLabels, {
+      resource: "label",
+      action: "read",
     }),
   });
 
-  if (openAPI) {
+  const routeWithLabel = joinUrl(baseRoute, "{labelSlug}");
+  app.get(`${serviceName}-label-get`, {
+    route: routeWithLabel,
+    handler: handlerWrapper(handlers.getLabel, {
+      resource: "label",
+      action: "read",
+    }),
+  });
+  app.deleteRequest(`${serviceName}-label-delete`, {
+    route: routeWithLabel,
+    handler: handlerWrapper(handlers.deleteLabel, {
+      resource: "label",
+      action: "delete",
+    }),
+  });
+
+  const routeWithLabelLatest = joinUrl(routeWithLabel, "latest");
+  app.get(`${serviceName}-label-latest`, {
+    route: routeWithLabelLatest,
+    handler: handlerWrapper(handlers.getLabelLatestBuild, {
+      resource: "label",
+      action: "read",
+    }),
+  });
+
+  if (openAPIEnabled) {
     const labelPathParameterSchema = basePathParamsSchema.extend({
-      label: labelSlugSchema,
+      labelSlug: labelSlugSchema,
     });
 
     registerOpenAPIPath(baseRoute, {
@@ -55,8 +68,8 @@ export function registerLabelsRouter(options: RouterOptions) {
             description: "A list of labels.",
             content: {
               [CONTENT_TYPES.JSON]: {
-                schema: storybookMetadataSchema.array(),
-                example: [{ project: "project-id", buildSha: "s123s14" }],
+                schema: storybookLabelSchema.array(),
+                example: [{ slug: "label-slug", value: "label/slug" }],
               },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },
@@ -77,9 +90,7 @@ export function registerLabelsRouter(options: RouterOptions) {
           200: {
             description: "Label details retrieved successfully",
             content: {
-              [CONTENT_TYPES.JSON]: {
-                schema: storybookMetadataSchema,
-              },
+              [CONTENT_TYPES.JSON]: { schema: storybookLabelSchema },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },
           },
@@ -118,7 +129,7 @@ export function registerLabelsRouter(options: RouterOptions) {
               },
             },
           },
-          404: { description: "Matching label not found." },
+          404: { description: "Matching label or build not found." },
         },
       },
     });

@@ -1,4 +1,4 @@
-import { getRequestStore } from "../utils/stores";
+import { getStore } from "../utils/store";
 import type {
   StorybookBuild,
   StorybookLabel,
@@ -8,16 +8,23 @@ import { Table } from "./table";
 import { urlBuilder } from "../utils/constants";
 
 export interface BuildTableProps {
+  caption?: JSX.Element;
   builds: Array<StorybookBuild>;
-  project?: StorybookProject;
+  project: StorybookProject;
   labels: StorybookLabel[] | undefined;
 }
 
-export async function BuildTable({ builds, labels }: BuildTableProps) {
-  const { locale } = getRequestStore();
+export async function BuildTable({
+  caption = "Builds",
+  builds,
+  labels,
+  project,
+}: BuildTableProps) {
+  const { locale } = getStore();
 
   return (
     <Table
+      caption={caption}
       data={builds}
       columns={[
         {
@@ -26,7 +33,7 @@ export async function BuildTable({ builds, labels }: BuildTableProps) {
           cell: (item) => {
             return (
               <a safe href={urlBuilder.buildSHA(item.project, item.sha)}>
-                {item.sha}
+                {item.sha.slice(0, 7)}
               </a>
             );
           },
@@ -95,6 +102,22 @@ export async function BuildTable({ builds, labels }: BuildTableProps) {
                   target="_blank"
                 >
                   Coverage
+                </a>
+              </div>
+            );
+          },
+        },
+        {
+          id: "gitHub",
+          header: "GitHub",
+          cell: (item) => {
+            return (
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <a
+                  href={urlBuilder.gitHub(project, "commit", item.sha)}
+                  target="_blank"
+                >
+                  Commit
                 </a>
               </div>
             );

@@ -3,6 +3,7 @@ export type TableItem = Record<string, unknown>;
 export type TableProps<T extends TableItem> = {
   data: T[];
   columns: (TableColumn<NoInfer<T>> | undefined)[];
+  caption?: JSX.Element;
 };
 
 export type TableColumn<T extends TableItem> = {
@@ -11,11 +12,16 @@ export type TableColumn<T extends TableItem> = {
   cell?: (item: T) => JSX.Element | null;
 };
 
-export function Table<T extends TableItem>({ columns, data }: TableProps<T>) {
+export function Table<T extends TableItem>({
+  caption,
+  columns,
+  data,
+}: TableProps<T>) {
   const cols = columns.filter(Boolean) as TableColumn<T>[];
 
   return (
     <table>
+      {caption ? <caption>{caption}</caption> : null}
       <thead>
         <tr>
           {cols.map((col) => (

@@ -1,9 +1,5 @@
 import { app } from "@azure/functions";
-import {
-  commonErrorResponses,
-  CONTENT_TYPES,
-  SERVICE_NAME,
-} from "../utils/constants";
+import { commonErrorResponses, CONTENT_TYPES } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
 import {
   buildSHASchema,
@@ -18,27 +14,45 @@ import * as handlers from "../handlers/build-handlers";
 const TAG = openAPITags.builds.name;
 
 export function registerBuildsRouter(options: RouterOptions) {
-  const { baseRoute, basePathParamsSchema, handlerWrapper, openAPI } = options;
+  const {
+    baseRoute,
+    basePathParamsSchema,
+    handlerWrapper,
+    openAPIEnabled,
+    serviceName,
+  } = options;
   const routeWithBuildSHA = joinUrl(baseRoute, "{buildSHA}");
 
-  app.get(`${SERVICE_NAME}-builds-list`, {
+  app.get(`${serviceName}-builds-list`, {
     route: baseRoute,
-    handler: handlerWrapper(handlers.listBuilds),
+    handler: handlerWrapper(handlers.listBuilds, {
+      resource: "build",
+      action: "read",
+    }),
   });
-  app.post(`${SERVICE_NAME}-build-upload`, {
+  app.post(`${serviceName}-build-upload`, {
     route: baseRoute,
-    handler: handlerWrapper(handlers.uploadBuild),
+    handler: handlerWrapper(handlers.uploadBuild, {
+      resource: "build",
+      action: "create",
+    }),
   });
-  app.get(`${SERVICE_NAME}-build-get`, {
+  app.get(`${serviceName}-build-get`, {
     route: routeWithBuildSHA,
-    handler: handlerWrapper(handlers.getBuild),
+    handler: handlerWrapper(handlers.getBuild, {
+      resource: "build",
+      action: "read",
+    }),
   });
-  app.deleteRequest(`${SERVICE_NAME}-build-delete`, {
+  app.deleteRequest(`${serviceName}-build-delete`, {
     route: routeWithBuildSHA,
-    handler: handlerWrapper(handlers.deleteBuild),
+    handler: handlerWrapper(handlers.deleteBuild, {
+      resource: "build",
+      action: "delete",
+    }),
   });
 
-  if (openAPI) {
+  if (openAPIEnabled) {
     const buildPathParameterSchema = basePathParamsSchema.extend({
       buildSHA: buildSHASchema,
     });

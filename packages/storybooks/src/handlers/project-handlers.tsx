@@ -1,7 +1,7 @@
-import type {
-  HttpRequest,
-  HttpResponseInit,
-  InvocationContext,
+import {
+  type HttpRequest,
+  type HttpResponseInit,
+  type InvocationContext,
 } from "@azure/functions";
 import type { StorybookProjectTableEntity } from "../utils/types";
 import {
@@ -18,22 +18,29 @@ import {
 import { ProjectsTable } from "../components/projects-table";
 import { DocumentLayout } from "../components/layout";
 import { responseError, responseHTML } from "../utils/response-utils";
-import { storybookBuildSchema, storybookProjectSchema } from "../utils/schemas";
+import {
+  storybookBuildSchema,
+  storybookLabelSchema,
+  storybookProjectCreateSchema,
+  storybookProjectSchema,
+} from "../utils/schemas";
 import { RawDataPreview } from "../components/raw-data";
 import {
   generateAzureStorageContainerName,
   getAzureStorageBlobServiceClient,
 } from "../utils/azure-storage-blob";
 import { BuildTable } from "../components/builds-table";
-import { getRequestStore } from "../utils/stores";
+import { getStore } from "../utils/store";
+import { LabelsTable } from "../components/labels-table";
 
 export async function listProjects(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   context.log("Serving all projects...");
+
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
 
     const entities = await listAzureTableEntities(
       context,
@@ -45,7 +52,10 @@ export async function listProjects(
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return responseHTML(
         <DocumentLayout title="All Projects">
-          <ProjectsTable projects={projects} />
+          <ProjectsTable
+            projects={projects}
+            caption={`Projects (${projects.length})`}
+          />
         </DocumentLayout>
       );
     }
@@ -62,7 +72,7 @@ export async function getProject(
 ): Promise<HttpResponseInit> {
   const { projectId } = request.params;
   context.log("Serving project: '%s'...", projectId);
-  const { connectionString } = getRequestStore();
+  const { connectionString } = getStore();
 
   if (!projectId) {
     return { status: 400, body: "Missing project ID" };
@@ -78,11 +88,23 @@ export async function getProject(
       )
     );
 
-    const builds = await listAzureTableEntities(
-      context,
-      getAzureTableClientForProject(connectionString, projectId, "Builds"),
-      { limit: 10 }
-    );
+    const builds = storybookBuildSchema
+      .array()
+      .parse(
+        await listAzureTableEntities(
+          context,
+          getAzureTableClientForProject(connectionString, projectId, "Builds"),
+          { limit: 25 }
+        )
+      );
+    const labels = storybookLabelSchema
+      .array()
+      .parse(
+        await listAzureTableEntities(
+          context,
+          getAzureTableClientForProject(connectionString, projectId, "Labels")
+        )
+      );
 
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
@@ -92,17 +114,37 @@ export async function getProject(
           breadcrumbs={[{ label: "Projects", href: urlBuilder.allProjects() }]}
         >
           <>
-            <RawDataPreview data={project} />
+            <RawDataPreview data={project} summary={"Project details"} />
+            <LabelsTable
+              caption={
+                <span>
+                  Labels (<a href={urlBuilder.allLabels(projectId)}>View all</a>
+                  )
+                </span>
+              }
+              labels={labels}
+              projectId={projectId}
+            />
             <BuildTable
-              builds={storybookBuildSchema.array().parse(builds)}
-              labels={undefined}
+              caption={
+                <span>
+                  Latest builds (
+                  <a href={urlBuilder.allBuilds(projectId)}>View all</a>)
+                </span>
+              }
+              project={project}
+              builds={builds}
+              labels={labels}
             />
           </>
         </DocumentLayout>
       );
     }
 
-    return { status: 200, jsonBody: project };
+    return {
+      status: 200,
+      jsonBody: { ...project, latestBuilds: builds, labels },
+    };
   } catch (error) {
     return responseError(error, context, 404);
   }
@@ -113,7 +155,7 @@ export async function createProject(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    const { connectionString } = getRequestStore();
+    const { connectionString } = getStore();
 
     const contentType = request.headers.get("content-type");
     if (!contentType) {
@@ -127,7 +169,7 @@ export async function createProject(
       );
     }
 
-    const result = storybookProjectSchema.safeParse(
+    const result = storybookProjectCreateSchema.safeParse(
       Object.fromEntries((await request.formData()).entries())
     );
     if (!result.success) {
@@ -170,7 +212,8 @@ export async function updateProject(
   try {
     const { projectId } = request.params;
     context.log("Updating project: '%s'...", projectId);
-    const { connectionString } = getRequestStore();
+
+    const { connectionString } = getStore();
 
     if (!projectId) {
       return { status: 400, body: "Missing project ID" };
@@ -237,12 +280,13 @@ export async function deleteProject(
 ): Promise<HttpResponseInit> {
   try {
     const { projectId } = request.params;
-    context.log("Deleting project: '%s'...", projectId);
-    const { connectionString } = getRequestStore();
-
     if (!projectId) {
       return { status: 400, body: "Missing project ID" };
     }
+
+    context.log("Deleting project: '%s'...", projectId);
+
+    const { connectionString } = getStore();
 
     await Promise.allSettled([
       getAzureStorageBlobServiceClient(connectionString).deleteContainer(

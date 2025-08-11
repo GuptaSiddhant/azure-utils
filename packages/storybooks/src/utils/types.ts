@@ -1,103 +1,97 @@
 import type {
   HttpHandler,
   HttpRequest,
-  HttpTriggerOptions,
+  HttpResponse,
+  HttpResponseInit,
   InvocationContext,
-  StorageBlobHandler,
-  TimerHandler,
 } from "@azure/functions";
 import type { TableEntityResult } from "@azure/data-tables";
-import type {
-  StorybookBuild,
-  StorybookMetadata,
-  StorybookProject,
-} from "./schemas";
-import z from "zod";
+import type { StorybookBuild, StorybookProject } from "./schemas";
+import type z from "zod";
 
 /**
- * Options to register the storybooks router
+ * Type for the callback function to check permissions.
+ *
+ * Return true to allow access, or following to deny:
+ * - false - returns 403 response
+ * - HttpResponse - returns the specified HTTP response
  */
-export type RegisterStorybooksRouterOptions = {
-  /**
-   * Define the route on which all router is placed.
-   *
-   * @default 'storybooks/'
-   */
-  route?: string;
-
-  /**
-   * The function HTTP authorization level Defaults to 'anonymous' if not specified.
-   */
-  authLevel?: HttpTriggerOptions["authLevel"];
-
-  /**
-   * Name of the Environment variable which stores
-   * the connection string to the Azure Storage resource.
-   * @default 'AzureWebJobsStorage'
-   */
-  storageConnectionStringEnvVar?: string;
-
-  /**
-   * Modify the cron-schedule of timer function
-   * which purge outdated storybooks.
-   *
-   * Pass `null` to disable auto-purge functionality.
-   *
-   * @default "0 0 0 * * *" // Every midnight
-   */
-  purgeScheduleCron?: string | null;
-
-  /**
-   * Options to configure OpenAPI schema
-   */
-  openapi?: {
-    /**
-     * Enable or disable openAPI schema endpoint.
-     * @default false
-     */
-    disabled?: boolean;
-    /**
-     * Title of the OpenAPI schema
-     * @default SERVICE_NAME (storybooks)
-     */
-    title?: string;
-    /**
-     * A version visible in the OpenAPI schema.
-     * @default process.env['NODE_ENV']
-     */
-    version?: string;
-    /**
-     * Servers to be included in the OpenAPI schema.
-     */
-    servers?: Array<{
-      url: string;
-      description?: string;
-      variables?: Record<
-        string,
-        {
-          enum?: string[] | boolean[] | number[];
-          default: string | boolean | number;
-          description?: string;
-        }
-      >;
-    }>;
-  };
-
-  /**
-   * Locale to be used for formatting dates.
-   * @default 'server locale'
-   */
-  locale?: string;
+export type CheckPermissionCallback = (
+  permission: Permission,
+  context: InvocationContext,
+  request: HttpRequest
+) =>
+  | boolean
+  | HttpResponse
+  | HttpResponseInit
+  | Promise<boolean | HttpResponse | HttpResponseInit>;
+/**
+ * Type of permission to check
+ */
+export type Permission = {
+  resource: PermissionResource;
+  action: PermissionAction;
+  projectId?: string;
 };
+/**
+ * Type of possible resources to check permissions for
+ */
+export type PermissionResource =
+  | "project"
+  | "build"
+  | "label"
+  | "openapi"
+  | "ui";
+/**
+ * Type of possible actions to check permissions for
+ */
+export type PermissionAction = "create" | "read" | "update" | "delete";
+
+export interface OpenAPIOptions {
+  /**
+   * Enable or disable openAPI schema endpoint.
+   * @default false
+   */
+  disabled?: boolean;
+  /**
+   * Title of the OpenAPI schema
+   * @default SERVICE_NAME (storybooks)
+   */
+  title?: string;
+  /**
+   * A version visible in the OpenAPI schema.
+   * @default process.env['NODE_ENV']
+   */
+  version?: string;
+  /**
+   * Servers to be included in the OpenAPI schema.
+   */
+  servers?: Array<{
+    url: string;
+    description?: string;
+    variables?: Record<
+      string,
+      {
+        enum?: string[] | boolean[] | number[];
+        default: string | boolean | number;
+        description?: string;
+      }
+    >;
+  }>;
+}
 
 /**
  * @private
  * Options for linking with Azure Blob Storage
  */
 export interface RouterHandlerOptions {
+  serviceName: string;
   connectionString: string;
-  locale: string | undefined;
   baseRoute: string;
+  staticDirs: string[];
+  openapi: OpenAPIOptions | undefined;
+  checkPermission: CheckPermissionCallback;
+  defaultGitHubBranch: string;
 }
 
 /**
@@ -106,13 +100,17 @@ export interface RouterHandlerOptions {
  */
 export interface RouterOptions {
   /**
+   * Name of the service
+   */
+  serviceName: string;
+  /**
    * The base route for the router.
    */
   baseRoute: string;
   /**
    * Enable or disable OpenAPI schema generation.
    */
-  openAPI: boolean;
+  openAPIEnabled: boolean;
   /**
    * A base schema for path parameters based on baseRoute.
    */
@@ -122,27 +120,15 @@ export interface RouterOptions {
    * A wrapper function for the HTTP handler.
    * It adds request-specific context to the handler.
    */
-  handlerWrapper: (handler: HttpHandler) => HttpHandler;
+  handlerWrapper: (
+    handler: HttpHandler,
+    permission: Permission | undefined
+  ) => HttpHandler;
 }
 
 /** @private */
-export type StorybooksRouterHttpHandler = (
-  options: RouterHandlerOptions
-) => HttpHandler;
-
-/** @private */
-export type StorybooksRouterStorageBlobHandler = (
-  handlerOptions: RouterHandlerOptions
-) => StorageBlobHandler;
-
-/** @private */
-export type StorybooksRouterTimerHandler = (
-  handlerOptions: RouterHandlerOptions
-) => TimerHandler;
-
-/** @private */
 export type StorybooksRouterOpenAPIHandler = (
-  handlerOptions: RegisterStorybooksRouterOptions["openapi"]
+  options?: OpenAPIOptions
 ) => HttpHandler;
 
 /** @private */
@@ -181,6 +167,5 @@ export type AzureFunctionsStorageBlobTriggerMetadata<
   };
 } & Record<Params, string>;
 
-export type StorybookMetadataTableEntity = TableEntityResult<StorybookMetadata>;
 export type StorybookProjectTableEntity = TableEntityResult<StorybookProject>;
 export type StorybookBuildTableEntity = TableEntityResult<StorybookBuild>;
