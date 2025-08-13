@@ -3,7 +3,10 @@ import type {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import { createDocument } from "zod-openapi";
+import {
+  createDocument,
+  type ZodOpenApiSecuritySchemeObject,
+} from "zod-openapi";
 import {
   openAPIPaths,
   openAPISchemas,
@@ -18,26 +21,31 @@ export async function openAPIHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const { openapi, serviceName } = getStore();
+  const { authLevel, openapi, serviceName } = getStore();
   const {
     title = serviceName.toUpperCase(),
     version = process.env["NODE_ENV"] || "TEST",
     servers,
   } = openapi || {};
 
-  context.log("Serving OpenAPI schema...");
+  context.log("Serving OpenAPI schema...", authLevel);
 
   try {
+    const securitySchemes: Record<string, ZodOpenApiSecuritySchemeObject> = {};
+    if (authLevel) {
+      securitySchemes["functionsKey"] = openAPISecuritySchemas.functionsKey;
+    }
+
     const openAPISpec = createDocument({
       openapi: "3.1.0",
       info: { title, version },
-      security: [],
+      security: authLevel ? [{ functionsKey: [] }] : [],
       servers,
       tags: Object.values(openAPITags),
       paths: openAPIPaths,
       components: {
         schemas: openAPISchemas,
-        securitySchemes: openAPISecuritySchemas,
+        securitySchemes,
       },
     });
 

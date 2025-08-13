@@ -11,6 +11,7 @@ const TAG = openAPITags.storybook.name;
 
 export function registerStorybookRouter(options: RouterOptions) {
   const {
+    authLevel,
     baseRoute,
     basePathParamsSchema,
     handlerWrapper,
@@ -26,6 +27,7 @@ export function registerStorybookRouter(options: RouterOptions) {
   );
 
   app.get(`${serviceName}-storybook-serve`, {
+    authLevel,
     route: storybookRoute,
     handler: handlerWrapper(serveStorybook, {
       resource: "build",

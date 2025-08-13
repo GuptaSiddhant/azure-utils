@@ -15,6 +15,7 @@ const TAG = openAPITags.projects.name;
 
 export function registerProjectsRouter(options: RouterOptions) {
   const {
+    authLevel,
     baseRoute,
     basePathParamsSchema,
     handlerWrapper,
@@ -24,6 +25,7 @@ export function registerProjectsRouter(options: RouterOptions) {
   const routeWithProjectId = joinUrl(baseRoute, "{projectId}");
 
   app.get(`${serviceName}-projects-list`, {
+    authLevel,
     route: baseRoute,
     handler: handlerWrapper(handlers.listProjects, {
       resource: "project",
@@ -31,6 +33,7 @@ export function registerProjectsRouter(options: RouterOptions) {
     }),
   });
   app.post(`${serviceName}-project-create`, {
+    authLevel,
     route: baseRoute,
     handler: handlerWrapper(handlers.createProject, {
       resource: "project",
@@ -38,6 +41,7 @@ export function registerProjectsRouter(options: RouterOptions) {
     }),
   });
   app.get(`${serviceName}-project-get`, {
+    authLevel,
     route: routeWithProjectId,
     handler: handlerWrapper(handlers.getProject, {
       resource: "project",
@@ -45,6 +49,7 @@ export function registerProjectsRouter(options: RouterOptions) {
     }),
   });
   app.patch(`${serviceName}-project-update`, {
+    authLevel,
     route: routeWithProjectId,
     handler: handlerWrapper(handlers.updateProject, {
       resource: "project",
@@ -52,6 +57,7 @@ export function registerProjectsRouter(options: RouterOptions) {
     }),
   });
   app.deleteRequest(`${serviceName}-project-delete`, {
+    authLevel,
     route: routeWithProjectId,
     handler: handlerWrapper(handlers.deleteProject, {
       resource: "project",

@@ -15,6 +15,7 @@ const TAG = openAPITags.builds.name;
 
 export function registerBuildsRouter(options: RouterOptions) {
   const {
+    authLevel,
     baseRoute,
     basePathParamsSchema,
     handlerWrapper,
@@ -24,6 +25,7 @@ export function registerBuildsRouter(options: RouterOptions) {
   const routeWithBuildSHA = joinUrl(baseRoute, "{buildSHA}");
 
   app.get(`${serviceName}-builds-list`, {
+    authLevel,
     route: baseRoute,
     handler: handlerWrapper(handlers.listBuilds, {
       resource: "build",
@@ -31,6 +33,7 @@ export function registerBuildsRouter(options: RouterOptions) {
     }),
   });
   app.post(`${serviceName}-build-upload`, {
+    authLevel,
     route: baseRoute,
     handler: handlerWrapper(handlers.uploadBuild, {
       resource: "build",
@@ -38,6 +41,7 @@ export function registerBuildsRouter(options: RouterOptions) {
     }),
   });
   app.get(`${serviceName}-build-get`, {
+    authLevel,
     route: routeWithBuildSHA,
     handler: handlerWrapper(handlers.getBuild, {
       resource: "build",
@@ -45,6 +49,7 @@ export function registerBuildsRouter(options: RouterOptions) {
     }),
   });
   app.deleteRequest(`${serviceName}-build-delete`, {
+    authLevel,
     route: routeWithBuildSHA,
     handler: handlerWrapper(handlers.deleteBuild, {
       resource: "build",

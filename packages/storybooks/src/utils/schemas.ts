@@ -4,12 +4,21 @@ export type StorybookProject = z.infer<typeof storybookProjectSchema>;
 export type StorybookBuild = z.infer<typeof storybookBuildSchema>;
 export type StorybookLabel = z.infer<typeof storybookLabelSchema>;
 
+/**
+ * @private
+ */
 export const emptyObjectSchema = z.object({});
 
+/**
+ * @private
+ */
 export const projectIdSchema = z
   .string()
   .meta({ id: "projectId", description: "The ID of the project." });
 
+/**
+ * @private
+ */
 export const buildSHASchema = z
   .string()
   .check(
@@ -20,10 +29,16 @@ export const buildSHASchema = z
   )
   .meta({ id: "buildSHA", description: "The SHA of the build." });
 
+/**
+ * @private
+ */
 export const labelSlugSchema = z
   .string()
   .meta({ id: "labelSlug", description: "The slug of the label." });
 
+/**
+ * @private
+ */
 export const storybookBuildSchema = z.object({
   project: projectIdSchema,
   labels: z.string(),
@@ -37,6 +52,9 @@ export const storybookBuildSchema = z.object({
   timestamp: z.string().optional(),
 });
 
+/**
+ * @private
+ */
 export const storybookLabelSchema = z
   .object({
     slug: labelSlugSchema,
@@ -47,6 +65,9 @@ export const storybookLabelSchema = z
   })
   .meta({ id: "storybook-label", description: "A Storybook label." });
 
+/**
+ * @private
+ */
 export const storybookProjectSchema = z
   .object({
     id: z.string().meta({ description: "ID of the project." }),
@@ -76,10 +97,16 @@ export const storybookProjectSchema = z
 
 //
 
+/**
+ * @private
+ */
 export const storybookBuildUploadSchema = storybookBuildSchema.omit({
   project: true,
 });
 
+/**
+ * @private
+ */
 export const storybookProjectCreateSchema = storybookProjectSchema.omit({
   buildSHA: true,
   timestamp: true,

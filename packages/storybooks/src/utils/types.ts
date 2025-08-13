@@ -85,6 +85,7 @@ export interface OpenAPIOptions {
  * Options for linking with Azure Blob Storage
  */
 export interface RouterHandlerOptions {
+  authLevel?: "admin";
   serviceName: string;
   connectionString: string;
   baseRoute: string;
@@ -99,6 +100,10 @@ export interface RouterHandlerOptions {
  * Options for configuring the router
  */
 export interface RouterOptions {
+  /**
+   * Whether the router requires authentication.
+   */
+  authLevel?: "admin";
   /**
    * Name of the service
    */

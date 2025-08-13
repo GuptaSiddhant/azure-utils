@@ -65,7 +65,12 @@ export const openAPISchemas: Record<string, ZodOpenApiSchemaObject> = {
   storybookProjectCreateSchema,
 };
 
-export const openAPISecuritySchemas: Record<
-  string,
-  ZodOpenApiSecuritySchemeObject
-> = {};
+export const openAPISecuritySchemas = {
+  functionsKey: {
+    type: "apiKey",
+    in: "header",
+    name: "x-functions-key",
+    description:
+      "Azure Admin Functions key for authentication if authLevel is set to 'admin'.",
+  },
+} satisfies Record<string, ZodOpenApiSecuritySchemeObject>;

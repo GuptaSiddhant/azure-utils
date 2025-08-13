@@ -11,6 +11,7 @@ const TAG = openAPITags.webUI.name;
 
 export function registerWebUIRouter(options: RouterOptions) {
   const {
+    authLevel,
     baseRoute,
     basePathParamsSchema,
     handlerWrapper,
@@ -19,6 +20,7 @@ export function registerWebUIRouter(options: RouterOptions) {
   } = options;
 
   app.get(`${serviceName}-root`, {
+    authLevel,
     route: joinUrl(baseRoute),
     handler: handlerWrapper(rootHandler, {
       resource: "ui",
@@ -34,6 +36,7 @@ export function registerWebUIRouter(options: RouterOptions) {
 
   const staticFileRoute = joinUrl(baseRoute, "{**filepath}");
   app.get(`${serviceName}-static-files`, {
+    authLevel,
     route: staticFileRoute,
     handler: handlerWrapper(staticFileHandler, {
       resource: "ui",
@@ -43,6 +46,7 @@ export function registerWebUIRouter(options: RouterOptions) {
 
   if (openAPIEnabled) {
     app.get(`${serviceName}-openapi`, {
+      authLevel,
       route: joinUrl(baseRoute, "openapi"),
       handler: handlerWrapper(openAPIHandler, {
         resource: "openapi",

@@ -1,5 +1,5 @@
 // @ts-check
 
-import { registerStorybooksRouter } from "./dist";
+import { registerStorybooksRouter } from "./dist/index.mjs";
 
 registerStorybooksRouter({});

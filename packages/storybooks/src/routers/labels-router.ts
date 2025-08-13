@@ -11,6 +11,7 @@ const TAG = openAPITags.labels.name;
 
 export function registerLabelsRouter(options: RouterOptions) {
   const {
+    authLevel,
     baseRoute,
     basePathParamsSchema,
     handlerWrapper,
@@ -19,6 +20,7 @@ export function registerLabelsRouter(options: RouterOptions) {
   } = options;
 
   app.get(`${serviceName}-labels-list`, {
+    authLevel,
     route: baseRoute,
     handler: handlerWrapper(handlers.listLabels, {
       resource: "label",
@@ -28,6 +30,7 @@ export function registerLabelsRouter(options: RouterOptions) {
 
   const routeWithLabel = joinUrl(baseRoute, "{labelSlug}");
   app.get(`${serviceName}-label-get`, {
+    authLevel,
     route: routeWithLabel,
     handler: handlerWrapper(handlers.getLabel, {
       resource: "label",
@@ -35,6 +38,7 @@ export function registerLabelsRouter(options: RouterOptions) {
     }),
   });
   app.deleteRequest(`${serviceName}-label-delete`, {
+    authLevel,
     route: routeWithLabel,
     handler: handlerWrapper(handlers.deleteLabel, {
       resource: "label",
@@ -44,6 +48,7 @@ export function registerLabelsRouter(options: RouterOptions) {
 
   const routeWithLabelLatest = joinUrl(routeWithLabel, "latest");
   app.get(`${serviceName}-label-latest`, {
+    authLevel,
     route: routeWithLabelLatest,
     handler: handlerWrapper(handlers.getLabelLatestBuild, {
       resource: "label",

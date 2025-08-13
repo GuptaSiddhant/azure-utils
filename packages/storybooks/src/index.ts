@@ -26,8 +26,6 @@ import { wrapHttpHandlerWithStore } from "./utils/store";
 
 export type { CheckPermissionCallback, OpenAPIOptions };
 
-export { urlBuilder } from "./utils/constants";
-
 /**
  * Options to register the storybooks router
  */
@@ -44,6 +42,17 @@ export type RegisterStorybooksRouterOptions = {
    * @default ''
    */
   baseRoute?: string;
+
+  /**
+   * Set the Azure Functions authentication level for all routes.
+   *
+   * This is a good option to set if the service is used in
+   * Headless mode and requires single token authentication
+   * for all the requests.
+   *
+   * This setting does not affect health-check route.
+   */
+  authLevel?: "admin";
 
   /**
    * Name of the Environment variable which stores
@@ -100,10 +109,11 @@ export type RegisterStorybooksRouterOptions = {
  */
 export function registerStorybooksRouter(
   options: RegisterStorybooksRouterOptions = {}
-) {
+): (name: string, options: HttpFunctionOptions) => void {
   const {
     serviceName = DEFAULT_SERVICE_NAME,
     baseRoute = "",
+    authLevel,
     storageConnectionStringEnvVar = DEFAULT_STORAGE_CONN_STR_ENV_VAR,
     purgeScheduleCron,
     openapi,
@@ -129,6 +139,7 @@ export function registerStorybooksRouter(
   const handlerWrapper = wrapHttpHandlerWithStore.bind(null, {
     serviceName,
     baseRoute,
+    authLevel,
     connectionString: storageConnectionString,
     openapi,
     staticDirs: options.staticDirs || ["./public"],
@@ -186,14 +197,15 @@ export function registerStorybooksRouter(
 
   /**
    * Register an HTTP function.
-   * The correct baseRoute is automatically added.
-   * The route is unauthenticated by default.
+   *
+   * The baseRoute and authLevel is inherited.
    *
    * @param name unique name for the HTTP function
    * @param options Options for Azure HTTP function
    */
   function registerRoute(name: string, options: HttpFunctionOptions) {
     app.http(`${normalisedServiceName}-${name}`, {
+      authLevel,
       ...options,
       route: joinUrl(baseRoute, options.route || name),
       handler: handlerWrapper(options.handler, undefined),
