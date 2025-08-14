@@ -3,10 +3,14 @@ import type {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import { CONTENT_TYPES } from "../utils/constants";
+import { CONTENT_TYPES, QUERY_PARAMS } from "../utils/constants";
 import { ProjectsTable } from "../components/projects-table";
 import { DocumentLayout } from "../components/layout";
-import { responseError, responseHTML } from "../utils/response-utils";
+import {
+  responseError,
+  responseHTML,
+  responseRedirect,
+} from "../utils/response-utils";
 import { RawDataPreview } from "../components/raw-data";
 import { BuildTable } from "../components/builds-table";
 import { getStore } from "../utils/store";
@@ -18,24 +22,34 @@ import {
 } from "../models/projects";
 import { urlSearchParamsToObject } from "../utils/url-utils";
 import { urlBuilder } from "../utils/url-builder";
+import { ProjectForm } from "../components/project-form";
+import { checkIsHTMLRequest, checkIsHXRequest } from "../utils/request-utils";
 
 export async function listProjects(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
+    const isCreateMode = request.query.has(QUERY_PARAMS.newResource);
+    if (isCreateMode) {
+      return responseHTML(
+        <DocumentLayout title="Create Project" breadcrumbs={["Projects"]}>
+          <ProjectForm project={undefined} />
+        </DocumentLayout>
+      );
+    }
+
     const { connectionString } = getStore();
     const projectModel = new ProjectModel(context, connectionString);
     const projects = await projectModel.list();
 
-    const accept = request.headers.get("accept");
-    if (accept?.includes(CONTENT_TYPES.HTML)) {
+    if (checkIsHTMLRequest()) {
       return responseHTML(
-        <DocumentLayout title="All Projects">
-          <ProjectsTable
-            projects={projects}
-            caption={`Projects (${projects.length})`}
-          />
+        <DocumentLayout
+          title="All Projects"
+          toolbar={<a href={urlBuilder.projectCreate()}>+ Create</a>}
+        >
+          <ProjectsTable projects={projects} />
         </DocumentLayout>
       );
     }
@@ -59,37 +73,48 @@ export async function getProject(
 
   try {
     const projectModel = new ProjectModel(context, connectionString);
-
     const project = await projectModel.get(projectId);
-    const builds = await projectModel.buildModel(projectId).list();
-    const labels = await projectModel.labelModel(projectId).list();
 
-    const accept = request.headers.get("accept");
-    if (accept?.includes(CONTENT_TYPES.HTML)) {
+    const isEditMode = request.query.has(QUERY_PARAMS.editResource);
+    if (isEditMode) {
+      return responseHTML(
+        <DocumentLayout title="Edit Project" breadcrumbs={[projectId]}>
+          <ProjectForm project={project} />
+        </DocumentLayout>
+      );
+    }
+
+    const builds = await projectModel.buildModel(projectId).list({ limit: 25 });
+    const labels = await projectModel.labelModel(projectId).list({ limit: 25 });
+
+    if (checkIsHTMLRequest()) {
       return responseHTML(
         <DocumentLayout
           title={project.name}
           breadcrumbs={[{ label: "Projects", href: urlBuilder.allProjects() }]}
+          toolbar={
+            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+              <a href={urlBuilder.projectIdEdit(projectId)}>Edit</a>
+              <form
+                hx-delete={request.url}
+                hx-confirm="Are you sure about deleting the project?"
+              >
+                <button>Delete</button>
+              </form>
+            </div>
+          }
         >
           <>
             <RawDataPreview data={project} summary={"Project details"} />
             <LabelsTable
-              caption={
-                <span>
-                  Labels (<a href={urlBuilder.allLabels(projectId)}>View all</a>
-                  )
-                </span>
-              }
+              caption={"Latest labels"}
+              toolbar={<a href={urlBuilder.allLabels(projectId)}>View all</a>}
               labels={labels}
               projectId={projectId}
             />
             <BuildTable
-              caption={
-                <span>
-                  Latest builds (
-                  <a href={urlBuilder.allBuilds(projectId)}>View all</a>)
-                </span>
-              }
+              toolbar={<a href={urlBuilder.allBuilds(projectId)}>View all</a>}
+              caption={"Latest builds"}
               project={project}
               builds={builds}
               labels={labels}
@@ -138,9 +163,9 @@ export async function createProject(
     await model.create(result.data);
 
     const projectUrl = urlBuilder.projectId(result.data.id);
-    const accept = request.headers.get("accept");
-    if (accept?.includes(CONTENT_TYPES.HTML)) {
-      return { status: 303, headers: { Location: projectUrl } };
+
+    if (checkIsHTMLRequest() || checkIsHXRequest()) {
+      return responseRedirect(projectUrl, 303);
     }
 
     return {
@@ -189,9 +214,8 @@ export async function updateProject(
     const data = result.data;
     await model.update(projectId, data);
 
-    const accept = request.headers.get("accept");
-    if (accept?.includes(CONTENT_TYPES.HTML)) {
-      return { status: 303, headers: { Location: request.url } };
+    if (checkIsHTMLRequest() || checkIsHXRequest()) {
+      return responseRedirect(request.url, 303);
     }
 
     return {
@@ -222,9 +246,8 @@ export async function deleteProject(
     await model.delete(projectId);
 
     const projectsUrl = urlBuilder.allProjects();
-    const accept = request.headers.get("accept");
-    if (accept?.includes(CONTENT_TYPES.HTML)) {
-      return { status: 303, headers: { Location: projectsUrl } };
+    if (checkIsHTMLRequest() || checkIsHXRequest()) {
+      return responseRedirect(projectsUrl, 303);
     }
 
     return { status: 204, headers: { Location: projectsUrl } };

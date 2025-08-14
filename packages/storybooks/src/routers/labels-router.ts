@@ -25,6 +25,7 @@ export function registerLabelsRouter(options: RouterOptions) {
     route: baseRoute,
     handler: handlerWrapper(handlers.listLabels, [
       { resource: "label", action: "read" },
+      { resource: "ui", action: "read" },
     ]),
   });
 
@@ -34,6 +35,7 @@ export function registerLabelsRouter(options: RouterOptions) {
     route: routeWithLabel,
     handler: handlerWrapper(handlers.getLabel, [
       { resource: "label", action: "read" },
+      { resource: "ui", action: "read" },
     ]),
   });
   app.deleteRequest(`${serviceName}-label-delete`, {

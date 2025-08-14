@@ -27,7 +27,7 @@ export function Table<T extends TableItem>({
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "baseline",
+          alignItems: "end",
           margin: 0,
           gap: "1rem",
         }}

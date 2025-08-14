@@ -11,6 +11,7 @@ export const CACHE_CONTROL_PUBLIC_YEAR = "public, max-age=31536000, immutable";
 export const CACHE_CONTROL_PUBLIC_WEEK = "public, max-age=604800, immutable";
 
 export const DEFAULT_PURGE_AFTER_DAYS = 30;
+export const DEFAULT_GITHUB_BRANCH = "main";
 
 export const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
 
@@ -35,4 +36,9 @@ export const commonErrorResponses: ZodOpenApiResponsesObject = {
   401: { description: "Unauthenticated access" },
   403: { description: "Unauthorized access" },
   500: { description: "An unexpected server-error occurred." },
+};
+
+export const QUERY_PARAMS = {
+  newResource: "_new_",
+  editResource: "_edit_",
 };

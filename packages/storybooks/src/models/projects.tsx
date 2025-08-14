@@ -2,7 +2,11 @@ import z from "zod";
 import { TableClient } from "@azure/data-tables";
 import type { InvocationContext } from "@azure/functions";
 import { BlobServiceClient } from "@azure/storage-blob";
-import { DEFAULT_SERVICE_NAME } from "../utils/constants";
+import {
+  DEFAULT_GITHUB_BRANCH,
+  DEFAULT_PURGE_AFTER_DAYS,
+  DEFAULT_SERVICE_NAME,
+} from "../utils/constants";
 import {
   generateProjectAzureTableName,
   listAzureTableEntities,
@@ -19,10 +23,14 @@ export const ProjectSchema = z
   .object({
     id: ProjectIdSchema,
     name: z.string().meta({ description: "Name of the project." }),
-    purgeBuildsAfterDays: z.number().min(1).optional().meta({
-      description:
-        "Days after which the builds in the project should be purged.",
-    }),
+    purgeBuildsAfterDays: z.coerce
+      .number()
+      .min(1)
+      .default(DEFAULT_PURGE_AFTER_DAYS)
+      .meta({
+        description:
+          "Days after which the builds in the project should be purged.",
+      }),
     gitHubRepo: z.string().check(
       z.minLength(1, "Query-param 'gitHubRepo' is required."),
       z.refine(
@@ -36,7 +44,7 @@ export const ProjectSchema = z
     }),
     gitHubDefaultBranch: z
       .string()
-      .default("main")
+      .default(DEFAULT_GITHUB_BRANCH)
       .meta({ description: "Default branch to use for GitHub repository" }),
     buildSHA: BuildSHASchema.optional(),
     timestamp: z.string().optional(),
@@ -116,6 +124,7 @@ export class ProjectModel implements BaseModel<ProjectType, ProjectCreateType> {
       partitionKey,
       rowKey: data.id,
       ...data,
+      gitHubDefaultBranch: data.gitHubDefaultBranch || DEFAULT_GITHUB_BRANCH,
     });
 
     await TableClient.fromConnectionString(

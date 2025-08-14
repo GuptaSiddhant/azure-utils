@@ -2,6 +2,7 @@ import { getStore } from "../utils/store";
 import { Table } from "./table";
 import { urlBuilder } from "../utils/url-builder";
 import { ProjectType } from "../models/projects";
+import { DEFAULT_GITHUB_BRANCH } from "../utils/constants";
 
 export interface ProjectsTableProps {
   caption?: JSX.Element;
@@ -39,7 +40,11 @@ export async function ProjectsTable({
           header: "GitHub",
           cell: (item) => {
             const pathnames = item.gitHubPath
-              ? ["tree", item.gitHubDefaultBranch, item.gitHubPath]
+              ? [
+                  "tree",
+                  item.gitHubDefaultBranch || DEFAULT_GITHUB_BRANCH,
+                  item.gitHubPath,
+                ]
               : [];
             const href = urlBuilder.gitHub(item.gitHubRepo, ...pathnames);
 

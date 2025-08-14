@@ -5,6 +5,7 @@ import { ErrorMessage } from "../components/error-message";
 import { CONTENT_TYPES } from "./constants";
 import { parseErrorMessage } from "./error-utils";
 import { getStore } from "./store";
+import { checkIsHXRequest } from "./request-utils";
 
 export function responseHTML(html: JSX.Element): HttpResponseInit {
   return {
@@ -27,6 +28,11 @@ export function responseError(
   const headers = new Headers(typeof init === "number" ? {} : init?.headers);
 
   const store = getStore(false);
+
+  if (checkIsHXRequest()) {
+    return { status, headers, body: errorMessage };
+  }
+
   if (store?.accept?.includes(CONTENT_TYPES.HTML)) {
     headers.set("Content-Type", CONTENT_TYPES.HTML);
 
@@ -47,4 +53,20 @@ export function responseError(
   headers.set("Content-Type", "application/json");
   const jsonBody = { errorMessage };
   return { jsonBody, status, headers };
+}
+
+export function responseRedirect(
+  location: string,
+  init: ResponseInit | number
+): HttpResponseInit {
+  const status = typeof init === "number" ? init : init?.status ?? 303;
+  const headers = new Headers(typeof init === "number" ? {} : init?.headers);
+
+  if (checkIsHXRequest()) {
+    headers.set("HX-redirect", location);
+  } else {
+    headers.set("Location", location);
+  }
+
+  return { status, headers };
 }

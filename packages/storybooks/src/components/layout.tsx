@@ -8,13 +8,13 @@ export function DocumentLayout({
   breadcrumbs = [],
   children,
   footer,
-  header,
+  toolbar,
 }: {
   title: string;
   breadcrumbs?: string[] | Array<{ label: string; href?: string }>;
   children: JSX.Element;
   footer?: JSX.Element | null;
-  header?: JSX.Element | null;
+  toolbar?: JSX.Element | null;
 }) {
   const safeStylesheet = globalStyleSheet();
   const store = getStore();
@@ -31,6 +31,14 @@ export function DocumentLayout({
               : store.serviceName}
           </title>
           <style>{safeStylesheet}</style>
+          <script
+            src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js"
+            crossorigin="anonymous"
+          ></script>
+          <script
+            src="https://cdn.jsdelivr.net/npm/htmx-ext-response-targets@2.0.2"
+            crossorigin="anonymous"
+          ></script>
         </head>
         <body>
           <header>
@@ -40,7 +48,7 @@ export function DocumentLayout({
                 paddingRight: "1rem",
               }}
             >
-              <a href={urlBuilder.home()} title="Home">
+              <a href={urlBuilder.root()} title="Home">
                 {store.serviceName === DEFAULT_SERVICE_NAME ? (
                   <strong
                     style={{
@@ -85,7 +93,7 @@ export function DocumentLayout({
               <div safe>{title}</div>
             </div>
 
-            {header ? <div>{header}</div> : null}
+            {toolbar ? <div>{toolbar}</div> : null}
           </header>
           <main>{children}</main>
           {footer ? <footer>{footer}</footer> : null}
@@ -235,6 +243,9 @@ function globalStyleSheet() {
       white-space: pre-wrap;
       padding: 0.5rem;
     }
+    .raw-data:empty{
+      display: none;
+    }
       
     .page-heading {
       display: flex;
@@ -266,5 +277,51 @@ function globalStyleSheet() {
       color: var(--color-text-secondary);
       font-size: 0.9rem;
     }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    form fieldset {
+      display: flex;
+      flex-direction:column;
+      gap: 1rem;
+      border-radius: 0.5rem;
+    }
+    form legend {
+      font-size:0.9rem;
+    }
+
+    form .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    form label {
+      font-size:0.9rem;
+      font-weight:600;
+    }
+    
+    form input,
+    form select,
+    form textarea,
+    form button
+     {
+      border-radius: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      color: inherit;
+    }
+    form button[type="submit"] {
+      font-weight:bold;
+    }
+
+    form .description {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+    }
+
   `.replace(/\s+/g, " ");
 }

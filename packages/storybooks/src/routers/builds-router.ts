@@ -25,6 +25,7 @@ export function registerBuildsRouter(options: RouterOptions) {
     route: baseRoute,
     handler: handlerWrapper(handlers.listBuilds, [
       { resource: "build", action: "read" },
+      { resource: "ui", action: "read" },
     ]),
   });
   app.post(`${serviceName}-build-upload`, {
@@ -39,6 +40,7 @@ export function registerBuildsRouter(options: RouterOptions) {
     route: routeWithBuildSHA,
     handler: handlerWrapper(handlers.getBuild, [
       { resource: "build", action: "read" },
+      { resource: "ui", action: "read" },
     ]),
   });
   app.deleteRequest(`${serviceName}-build-delete`, {

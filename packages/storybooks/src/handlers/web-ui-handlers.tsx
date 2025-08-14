@@ -26,9 +26,9 @@ export async function rootHandler(
   return responseHTML(
     <DocumentLayout
       title="Home"
-      header={
+      toolbar={
         !openapi?.disabled ? (
-          <a href={urlBuilder.home("openapi")} target="_blank">
+          <a href={urlBuilder.root("openapi")} target="_blank">
             OpenAPI
           </a>
         ) : null

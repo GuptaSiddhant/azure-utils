@@ -19,13 +19,15 @@ export function registerProjectsRouter(options: RouterOptions) {
     openAPIEnabled,
     serviceName,
   } = options;
-  const routeWithProjectId = joinUrl(baseRoute, "{projectId}");
+
+  const projectIdRoute = joinUrl(baseRoute, "{projectId}");
 
   app.get(`${serviceName}-projects-list`, {
     authLevel,
     route: baseRoute,
     handler: handlerWrapper(handlers.listProjects, [
       { resource: "project", action: "read" },
+      { resource: "ui", action: "read" },
     ]),
   });
   app.post(`${serviceName}-project-create`, {
@@ -37,21 +39,22 @@ export function registerProjectsRouter(options: RouterOptions) {
   });
   app.get(`${serviceName}-project-get`, {
     authLevel,
-    route: routeWithProjectId,
+    route: projectIdRoute,
     handler: handlerWrapper(handlers.getProject, [
       { resource: "project", action: "read" },
+      { resource: "ui", action: "read" },
     ]),
   });
   app.patch(`${serviceName}-project-update`, {
     authLevel,
-    route: routeWithProjectId,
+    route: projectIdRoute,
     handler: handlerWrapper(handlers.updateProject, [
       { resource: "project", action: "update" },
     ]),
   });
   app.deleteRequest(`${serviceName}-project-delete`, {
     authLevel,
-    route: routeWithProjectId,
+    route: projectIdRoute,
     handler: handlerWrapper(handlers.deleteProject, [
       { resource: "project", action: "delete" },
     ]),
@@ -118,7 +121,7 @@ export function registerProjectsRouter(options: RouterOptions) {
       },
     });
 
-    registerOpenAPIPath(routeWithProjectId, {
+    registerOpenAPIPath(projectIdRoute, {
       get: {
         tags: [TAG],
         summary: "Get project details",
