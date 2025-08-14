@@ -3,7 +3,7 @@ import type {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import { CACHE_CONTROL_PUBLIC_WEEK, urlBuilder } from "../utils/constants";
+import { CACHE_CONTROL_PUBLIC_WEEK } from "../utils/constants";
 import { getStore } from "../utils/store";
 import path from "node:path";
 import fs from "node:fs";
@@ -12,6 +12,7 @@ import { responseHTML } from "../utils/response-utils";
 import { DocumentLayout } from "../components/layout";
 import { ProjectsTable } from "../components/projects-table";
 import { ProjectModel } from "../models/projects";
+import { urlBuilder } from "../utils/url-builder";
 
 export async function rootHandler(
   _request: HttpRequest,
@@ -33,7 +34,10 @@ export async function rootHandler(
         ) : null
       }
     >
-      <ProjectsTable projects={projects} />
+      <ProjectsTable
+        projects={projects}
+        toolbar={<a href={urlBuilder.allProjects()}>View all</a>}
+      />
     </DocumentLayout>
   );
 }

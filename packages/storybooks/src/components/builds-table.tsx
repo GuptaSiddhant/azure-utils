@@ -1,6 +1,6 @@
 import { getStore } from "../utils/store";
 import { Table } from "./table";
-import { urlBuilder } from "../utils/constants";
+import { urlBuilder } from "../utils/url-builder";
 import { BuildType } from "../models/builds";
 import { ProjectType } from "../models/projects";
 import { LabelType } from "../models/labels";
@@ -10,10 +10,13 @@ export interface BuildTableProps {
   builds: Array<BuildType>;
   project: ProjectType;
   labels: LabelType[] | undefined;
+
+  toolbar?: JSX.Element;
 }
 
 export async function BuildTable({
-  caption = "Builds",
+  caption,
+  toolbar,
   builds,
   project,
 }: BuildTableProps) {
@@ -21,7 +24,8 @@ export async function BuildTable({
 
   return (
     <Table
-      caption={caption}
+      caption={caption ?? `Builds (${builds.length})`}
+      toolbar={toolbar}
       data={builds}
       columns={[
         {

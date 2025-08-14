@@ -14,8 +14,8 @@ import type z from "zod";
  * - false - returns 403 response
  * - HttpResponse - returns the specified HTTP response
  */
-export type CheckPermissionCallback = (
-  permission: Permission,
+export type CheckPermissionsCallback = (
+  permissions: Permission[],
   context: InvocationContext,
   request: HttpRequest
 ) =>
@@ -110,6 +110,6 @@ export interface RouterOptions {
    */
   handlerWrapper: (
     handler: HttpHandler,
-    permission: Permission | undefined
+    permissions: Permission[]
   ) => HttpHandler;
 }

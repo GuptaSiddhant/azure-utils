@@ -23,38 +23,34 @@ export function registerLabelsRouter(options: RouterOptions) {
   app.get(`${serviceName}-labels-list`, {
     authLevel,
     route: baseRoute,
-    handler: handlerWrapper(handlers.listLabels, {
-      resource: "label",
-      action: "read",
-    }),
+    handler: handlerWrapper(handlers.listLabels, [
+      { resource: "label", action: "read" },
+    ]),
   });
 
   const routeWithLabel = joinUrl(baseRoute, "{labelSlug}");
   app.get(`${serviceName}-label-get`, {
     authLevel,
     route: routeWithLabel,
-    handler: handlerWrapper(handlers.getLabel, {
-      resource: "label",
-      action: "read",
-    }),
+    handler: handlerWrapper(handlers.getLabel, [
+      { resource: "label", action: "read" },
+    ]),
   });
   app.deleteRequest(`${serviceName}-label-delete`, {
     authLevel,
     route: routeWithLabel,
-    handler: handlerWrapper(handlers.deleteLabel, {
-      resource: "label",
-      action: "delete",
-    }),
+    handler: handlerWrapper(handlers.deleteLabel, [
+      { resource: "label", action: "delete" },
+    ]),
   });
 
   const routeWithLabelLatest = joinUrl(routeWithLabel, "latest");
   app.get(`${serviceName}-label-latest`, {
     authLevel,
     route: routeWithLabelLatest,
-    handler: handlerWrapper(handlers.getLabelLatestBuild, {
-      resource: "label",
-      action: "read",
-    }),
+    handler: handlerWrapper(handlers.getLabelLatestBuild, [
+      { resource: "label", action: "read" },
+    ]),
   });
 
   if (openAPIEnabled) {

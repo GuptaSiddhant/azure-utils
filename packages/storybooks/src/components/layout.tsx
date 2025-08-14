@@ -1,5 +1,6 @@
-import { DEFAULT_SERVICE_NAME, urlBuilder } from "../utils/constants";
+import { DEFAULT_SERVICE_NAME } from "../utils/constants";
 import { getStore } from "../utils/store";
+import { urlBuilder } from "../utils/url-builder";
 import { joinUrl } from "../utils/url-utils";
 
 export function DocumentLayout({

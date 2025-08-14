@@ -4,7 +4,7 @@ import type {
   InvocationContext,
 } from "@azure/functions";
 import { responseError, responseHTML } from "../utils/response-utils";
-import { CONTENT_TYPES, urlBuilder } from "../utils/constants";
+import { CONTENT_TYPES } from "../utils/constants";
 import { DocumentLayout } from "../components/layout";
 import { RawDataPreview } from "../components/raw-data";
 import { getStore } from "../utils/store";
@@ -13,6 +13,7 @@ import { BuildTable } from "../components/builds-table";
 import { validateBuildUploadBody } from "../utils/validators";
 import { uploadZipWithDecompressed } from "../utils/upload-utils";
 import { BuildModel, BuildUploadSchema } from "../models/builds";
+import { urlBuilder } from "../utils/url-builder";
 
 export async function listBuilds(
   request: HttpRequest,

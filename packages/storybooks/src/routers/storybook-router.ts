@@ -29,10 +29,9 @@ export function registerStorybookRouter(options: RouterOptions) {
   app.get(`${serviceName}-storybook-serve`, {
     authLevel,
     route: storybookRoute,
-    handler: handlerWrapper(serveStorybook, {
-      resource: "build",
-      action: "read",
-    }),
+    handler: handlerWrapper(serveStorybook, [
+      { resource: "build", action: "read" },
+    ]),
   });
 
   if (openAPIEnabled) {

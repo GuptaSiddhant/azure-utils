@@ -3,7 +3,7 @@ import type {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import { CONTENT_TYPES, urlBuilder } from "../utils/constants";
+import { CONTENT_TYPES } from "../utils/constants";
 import { ProjectsTable } from "../components/projects-table";
 import { DocumentLayout } from "../components/layout";
 import { responseError, responseHTML } from "../utils/response-utils";
@@ -17,6 +17,7 @@ import {
   ProjectSchema,
 } from "../models/projects";
 import { urlSearchParamsToObject } from "../utils/url-utils";
+import { urlBuilder } from "../utils/url-builder";
 
 export async function listProjects(
   request: HttpRequest,

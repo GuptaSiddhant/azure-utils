@@ -23,34 +23,30 @@ export function registerBuildsRouter(options: RouterOptions) {
   app.get(`${serviceName}-builds-list`, {
     authLevel,
     route: baseRoute,
-    handler: handlerWrapper(handlers.listBuilds, {
-      resource: "build",
-      action: "read",
-    }),
+    handler: handlerWrapper(handlers.listBuilds, [
+      { resource: "build", action: "read" },
+    ]),
   });
   app.post(`${serviceName}-build-upload`, {
     authLevel,
     route: baseRoute,
-    handler: handlerWrapper(handlers.uploadBuild, {
-      resource: "build",
-      action: "create",
-    }),
+    handler: handlerWrapper(handlers.uploadBuild, [
+      { resource: "build", action: "create" },
+    ]),
   });
   app.get(`${serviceName}-build-get`, {
     authLevel,
     route: routeWithBuildSHA,
-    handler: handlerWrapper(handlers.getBuild, {
-      resource: "build",
-      action: "read",
-    }),
+    handler: handlerWrapper(handlers.getBuild, [
+      { resource: "build", action: "read" },
+    ]),
   });
   app.deleteRequest(`${serviceName}-build-delete`, {
     authLevel,
     route: routeWithBuildSHA,
-    handler: handlerWrapper(handlers.deleteBuild, {
-      resource: "build",
-      action: "delete",
-    }),
+    handler: handlerWrapper(handlers.deleteBuild, [
+      { resource: "build", action: "delete" },
+    ]),
   });
 
   if (openAPIEnabled) {

@@ -4,7 +4,7 @@ import type {
   HttpRequest,
   InvocationContext,
 } from "@azure/functions";
-import { CheckPermissionCallback, OpenAPIOptions, Permission } from "./types";
+import { CheckPermissionsCallback, OpenAPIOptions, Permission } from "./types";
 import { responseError } from "./response-utils";
 
 /**
@@ -18,7 +18,7 @@ interface RouterHandlerOptions {
   baseRoute: string;
   staticDirs: string[];
   openapi: OpenAPIOptions | undefined;
-  checkPermission: CheckPermissionCallback;
+  checkPermissions: CheckPermissionsCallback;
 }
 
 type Store = RouterHandlerOptions & {
@@ -47,7 +47,7 @@ export function getStore(throwError?: boolean) {
 export function wrapHttpHandlerWithStore(
   options: RouterHandlerOptions,
   handler: HttpHandler,
-  permission: Permission | undefined
+  permissions: Permission[]
 ): HttpHandler {
   return function (request, context) {
     const locale = request.headers.get("accept-language")?.split(",")[0];
@@ -62,15 +62,15 @@ export function wrapHttpHandlerWithStore(
     };
 
     return store.run(storeValue, async () => {
-      if (!permission) {
+      if (!permissions || permissions.length === 0) {
         return handler(request, context);
       }
 
-      const { checkPermission } = options;
-      const { projectId = permission.projectId } = request.params;
+      const { checkPermissions } = options;
+      const { projectId } = request.params;
 
-      const permitted = await checkPermission(
-        { projectId, ...permission },
+      const permitted = await checkPermissions(
+        permissions.map((p) => ({ projectId, ...p })),
         context,
         request
       );
@@ -79,7 +79,9 @@ export function wrapHttpHandlerWithStore(
         return handler(request, context);
       }
 
-      const message = `Permission denied '${permission.resource}:${permission.action}' (project: ${projectId})`;
+      const message = `Permission denied [${permissions
+        .map((p) => `'${p.resource}:${p.action}'`)
+        .join(", ")}] (project: ${projectId})`;
       if (permitted === false) {
         return responseError(message, context, 403);
       }

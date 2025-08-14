@@ -19,12 +19,12 @@ import {
   DEFAULT_STORAGE_CONN_STR_ENV_VAR,
   DEFAULT_SERVICE_NAME,
 } from "./utils/constants";
-import type { CheckPermissionCallback, OpenAPIOptions } from "./utils/types";
+import type { CheckPermissionsCallback, OpenAPIOptions } from "./utils/types";
 import { joinUrl } from "./utils/url-utils";
 import { wrapHttpHandlerWithStore } from "./utils/store";
 import { EmptyObjectSchema, ProjectIdSchema } from "./models/shared";
 
-export type { CheckPermissionCallback, OpenAPIOptions };
+export type { CheckPermissionsCallback, OpenAPIOptions };
 
 /**
  * Options to register the storybooks router
@@ -92,7 +92,7 @@ export type RegisterStorybooksRouterOptions = {
    * - `false` - returns 403 response
    * - `HttpResponse` - returns the specified HTTP response
    */
-  checkPermission?: CheckPermissionCallback;
+  checkPermissions?: CheckPermissionsCallback;
 };
 
 /**
@@ -111,7 +111,7 @@ export function registerStorybooksRouter(
     storageConnectionStringEnvVar = DEFAULT_STORAGE_CONN_STR_ENV_VAR,
     purgeScheduleCron,
     openapi,
-    checkPermission = DEFAULT_CHECK_PERMISSIONS_CALLBACK,
+    checkPermissions = DEFAULT_CHECK_PERMISSIONS_CALLBACK,
   } = options;
 
   const storageConnectionString = process.env[storageConnectionStringEnvVar];
@@ -136,7 +136,7 @@ export function registerStorybooksRouter(
     connectionString: storageConnectionString,
     openapi,
     staticDirs: options.staticDirs || ["./public"],
-    checkPermission,
+    checkPermissions,
   });
 
   const normalisedServiceName = serviceName.toLowerCase().replace(/\s+/g, "_");
@@ -200,7 +200,7 @@ export function registerStorybooksRouter(
       authLevel,
       ...options,
       route: joinUrl(baseRoute, options.route || name),
-      handler: handlerWrapper(options.handler, undefined),
+      handler: handlerWrapper(options.handler, []),
       methods: options.methods || ["GET"],
     });
   }

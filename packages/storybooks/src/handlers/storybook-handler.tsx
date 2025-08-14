@@ -7,9 +7,10 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import path from "node:path";
 import { generateAzureStorageContainerName } from "../utils/azure-storage-blob";
 import { responseError } from "../utils/response-utils";
-import { CACHE_CONTROL_PUBLIC_YEAR, urlBuilder } from "../utils/constants";
+import { CACHE_CONTROL_PUBLIC_YEAR } from "../utils/constants";
 import { Readable } from "node:stream";
 import { getStore } from "../utils/store";
+import { urlBuilder } from "../utils/url-builder";
 
 export async function serveStorybook(
   request: HttpRequest,

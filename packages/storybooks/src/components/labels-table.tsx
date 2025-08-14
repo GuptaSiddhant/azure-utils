@@ -1,25 +1,28 @@
 import { Table } from "./table";
-import { urlBuilder } from "../utils/constants";
+import { urlBuilder } from "../utils/url-builder";
 import { getStore } from "../utils/store";
 import { LabelType } from "../models/labels";
 
 export interface LabelsTableProps {
   caption?: JSX.Element;
   projectId: string;
+  toolbar?: JSX.Element;
   labels: LabelType[];
 }
 
 export async function LabelsTable({
   labels,
   projectId,
-  caption = "Labels",
+  toolbar,
+  caption,
 }: LabelsTableProps) {
   const { locale } = getStore();
 
   return (
     <Table
-      caption={caption}
+      caption={caption ?? `Labels (${labels.length})`}
       data={labels}
+      toolbar={toolbar}
       columns={[
         {
           id: "slug",

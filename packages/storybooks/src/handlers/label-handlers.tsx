@@ -4,13 +4,14 @@ import type {
   InvocationContext,
 } from "@azure/functions";
 import { responseError, responseHTML } from "../utils/response-utils";
-import { CONTENT_TYPES, urlBuilder } from "../utils/constants";
+import { CONTENT_TYPES } from "../utils/constants";
 import { DocumentLayout } from "../components/layout";
 import { RawDataPreview } from "../components/raw-data";
 import { getStore } from "../utils/store";
 import { BuildTable } from "../components/builds-table";
 import { LabelsTable } from "../components/labels-table";
 import { LabelModel } from "../models/labels";
+import { urlBuilder } from "../utils/url-builder";
 
 export async function listLabels(
   request: HttpRequest,

@@ -1,22 +1,25 @@
 import { getStore } from "../utils/store";
 import { Table } from "./table";
-import { urlBuilder } from "../utils/constants";
+import { urlBuilder } from "../utils/url-builder";
 import { ProjectType } from "../models/projects";
 
 export interface ProjectsTableProps {
-  caption?: string;
+  caption?: JSX.Element;
+  toolbar?: JSX.Element;
   projects: Array<ProjectType>;
 }
 
 export async function ProjectsTable({
-  caption = "Projects",
+  caption,
+  toolbar,
   projects,
 }: ProjectsTableProps) {
   const { locale } = getStore();
 
   return (
     <Table
-      caption={caption}
+      caption={caption ?? `Projects (${projects.length})`}
+      toolbar={toolbar}
       data={projects}
       columns={[
         {

@@ -24,42 +24,37 @@ export function registerProjectsRouter(options: RouterOptions) {
   app.get(`${serviceName}-projects-list`, {
     authLevel,
     route: baseRoute,
-    handler: handlerWrapper(handlers.listProjects, {
-      resource: "project",
-      action: "read",
-    }),
+    handler: handlerWrapper(handlers.listProjects, [
+      { resource: "project", action: "read" },
+    ]),
   });
   app.post(`${serviceName}-project-create`, {
     authLevel,
     route: baseRoute,
-    handler: handlerWrapper(handlers.createProject, {
-      resource: "project",
-      action: "create",
-    }),
+    handler: handlerWrapper(handlers.createProject, [
+      { resource: "project", action: "create" },
+    ]),
   });
   app.get(`${serviceName}-project-get`, {
     authLevel,
     route: routeWithProjectId,
-    handler: handlerWrapper(handlers.getProject, {
-      resource: "project",
-      action: "read",
-    }),
+    handler: handlerWrapper(handlers.getProject, [
+      { resource: "project", action: "read" },
+    ]),
   });
   app.patch(`${serviceName}-project-update`, {
     authLevel,
     route: routeWithProjectId,
-    handler: handlerWrapper(handlers.updateProject, {
-      resource: "project",
-      action: "update",
-    }),
+    handler: handlerWrapper(handlers.updateProject, [
+      { resource: "project", action: "update" },
+    ]),
   });
   app.deleteRequest(`${serviceName}-project-delete`, {
     authLevel,
     route: routeWithProjectId,
-    handler: handlerWrapper(handlers.deleteProject, {
-      resource: "project",
-      action: "delete",
-    }),
+    handler: handlerWrapper(handlers.deleteProject, [
+      { resource: "project", action: "delete" },
+    ]),
   });
 
   if (openAPIEnabled) {
