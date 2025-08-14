@@ -4,13 +4,9 @@ import type {
   ZodOpenApiSchemaObject,
   ZodOpenApiSecuritySchemeObject,
 } from "zod-openapi";
-import {
-  storybookBuildSchema,
-  storybookBuildUploadSchema,
-  storybookLabelSchema,
-  storybookProjectCreateSchema,
-  storybookProjectSchema,
-} from "./schemas";
+import { ProjectCreateSchema, ProjectSchema } from "../models/projects";
+import { BuildSchema, BuildUploadSchema } from "../models/builds";
+import { LabelSchema } from "../models/labels";
 
 export const openAPIPaths: ZodOpenApiPathsObject = {};
 
@@ -58,11 +54,11 @@ export const openAPITags = {
 } satisfies Record<string, { name: string; description?: string }>;
 
 export const openAPISchemas: Record<string, ZodOpenApiSchemaObject> = {
-  storybookProjectSchema,
-  storybookBuildSchema,
-  storybookLabelSchema,
-  storybookBuildUploadSchema,
-  storybookProjectCreateSchema,
+  ProjectSchema,
+  BuildSchema,
+  LabelSchema,
+  BuildUploadSchema,
+  ProjectCreateSchema,
 };
 
 export const openAPISecuritySchemas = {

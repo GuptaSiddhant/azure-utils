@@ -4,8 +4,22 @@ import type {
   HttpRequest,
   InvocationContext,
 } from "@azure/functions";
-import { Permission, RouterHandlerOptions } from "./types";
+import { CheckPermissionCallback, OpenAPIOptions, Permission } from "./types";
 import { responseError } from "./response-utils";
+
+/**
+ * @private
+ * Options for linking with Azure Blob Storage
+ */
+interface RouterHandlerOptions {
+  authLevel?: "admin";
+  serviceName: string;
+  connectionString: string;
+  baseRoute: string;
+  staticDirs: string[];
+  openapi: OpenAPIOptions | undefined;
+  checkPermission: CheckPermissionCallback;
+}
 
 type Store = RouterHandlerOptions & {
   accept: string | null;

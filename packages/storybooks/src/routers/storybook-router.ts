@@ -3,9 +3,9 @@ import { commonErrorResponses } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
 import type { RouterOptions } from "../utils/types";
 import z from "zod";
-import { buildSHASchema, projectIdSchema } from "../utils/schemas";
 import { joinUrl } from "../utils/url-utils";
 import { serveStorybook } from "../handlers/storybook-handler";
+import { BuildSHASchema, ProjectIdSchema } from "../models/shared";
 
 const TAG = openAPITags.storybook.name;
 
@@ -43,8 +43,8 @@ export function registerStorybookRouter(options: RouterOptions) {
         description: "Retrieves a list of projects.",
         requestParams: {
           path: basePathParamsSchema.extend({
-            projectId: projectIdSchema,
-            buildSHA: buildSHASchema,
+            projectId: ProjectIdSchema,
+            buildSHA: BuildSHASchema,
             "**filepath": z.string().meta({
               description: "The path to the storybook files.",
               example: "index.html",

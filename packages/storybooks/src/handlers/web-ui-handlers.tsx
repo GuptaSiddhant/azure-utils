@@ -11,11 +11,7 @@ import { getMimeType } from "../utils/mime-utils";
 import { responseHTML } from "../utils/response-utils";
 import { DocumentLayout } from "../components/layout";
 import { ProjectsTable } from "../components/projects-table";
-import {
-  getAzureProjectsTableClient,
-  listAzureTableEntities,
-} from "../utils/azure-data-tables";
-import { storybookProjectSchema } from "../utils/schemas";
+import { ProjectModel } from "../models/projects";
 
 export async function rootHandler(
   _request: HttpRequest,
@@ -23,12 +19,8 @@ export async function rootHandler(
 ): Promise<HttpResponseInit> {
   context.log("Serving SB root...");
   const { connectionString, openapi } = getStore();
-
-  const entities = await listAzureTableEntities(
-    context,
-    getAzureProjectsTableClient(connectionString)
-  );
-  const projects = storybookProjectSchema.array().parse(entities);
+  const projectModel = new ProjectModel(context, connectionString);
+  const projects = await projectModel.list();
 
   return responseHTML(
     <DocumentLayout

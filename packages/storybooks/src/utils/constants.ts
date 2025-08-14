@@ -2,7 +2,6 @@ import { ZodOpenApiResponsesObject } from "zod-openapi";
 import { getStore } from "./store";
 import { joinUrl } from "./url-utils";
 import type { CheckPermissionCallback } from "./types";
-import { StorybookProject } from "./schemas";
 
 export const DEFAULT_SERVICE_NAME = "storybooks";
 
@@ -32,8 +31,6 @@ export const SUPPORTED_CONTENT_TYPES_MSG = `Only following content-type supporte
 
 export const DEFAULT_CHECK_PERMISSIONS_CALLBACK: CheckPermissionCallback = () =>
   true;
-
-export const PROJECTS_TABLE_PARTITION_KEY = "projects";
 
 export const commonErrorResponses: ZodOpenApiResponsesObject = {
   400: { description: "Invalid request data" },
@@ -125,9 +122,9 @@ export const urlBuilder = {
       url
     ).toString();
   },
-  gitHub: (project: StorybookProject, ...pathnames: string[]) => {
+  gitHub: (gitHubRepo: string, ...pathnames: string[]) => {
     return new URL(
-      joinUrl(project.gitHubRepo, ...pathnames),
+      joinUrl(gitHubRepo, ...pathnames),
       "https://github.com"
     ).toString();
   },

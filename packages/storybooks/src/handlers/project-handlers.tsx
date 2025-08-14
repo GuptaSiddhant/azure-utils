@@ -1,52 +1,31 @@
-import {
-  type HttpRequest,
-  type HttpResponseInit,
-  type InvocationContext,
+import type {
+  HttpRequest,
+  HttpResponseInit,
+  InvocationContext,
 } from "@azure/functions";
-import type { StorybookProjectTableEntity } from "../utils/types";
-import {
-  getAzureProjectsTableClient,
-  getAzureTableClientForProject,
-  listAzureTableEntities,
-  upsertStorybookProjectToAzureTable,
-} from "../utils/azure-data-tables";
-import {
-  CONTENT_TYPES,
-  PROJECTS_TABLE_PARTITION_KEY,
-  urlBuilder,
-} from "../utils/constants";
+import { CONTENT_TYPES, urlBuilder } from "../utils/constants";
 import { ProjectsTable } from "../components/projects-table";
 import { DocumentLayout } from "../components/layout";
 import { responseError, responseHTML } from "../utils/response-utils";
-import {
-  storybookBuildSchema,
-  storybookLabelSchema,
-  storybookProjectCreateSchema,
-  storybookProjectSchema,
-} from "../utils/schemas";
 import { RawDataPreview } from "../components/raw-data";
-import {
-  generateAzureStorageContainerName,
-  getAzureStorageBlobServiceClient,
-} from "../utils/azure-storage-blob";
 import { BuildTable } from "../components/builds-table";
 import { getStore } from "../utils/store";
 import { LabelsTable } from "../components/labels-table";
+import {
+  ProjectModel,
+  ProjectCreateSchema,
+  ProjectSchema,
+} from "../models/projects";
+import { urlSearchParamsToObject } from "../utils/url-utils";
 
 export async function listProjects(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  context.log("Serving all projects...");
-
   try {
     const { connectionString } = getStore();
-
-    const entities = await listAzureTableEntities(
-      context,
-      getAzureProjectsTableClient(connectionString)
-    );
-    const projects = storybookProjectSchema.array().parse(entities);
+    const projectModel = new ProjectModel(context, connectionString);
+    const projects = await projectModel.list();
 
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
@@ -71,40 +50,18 @@ export async function getProject(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   const { projectId } = request.params;
-  context.log("Serving project: '%s'...", projectId);
   const { connectionString } = getStore();
 
   if (!projectId) {
     return { status: 400, body: "Missing project ID" };
   }
 
-  const client = getAzureProjectsTableClient(connectionString);
-
   try {
-    const project = storybookProjectSchema.parse(
-      await client.getEntity<StorybookProjectTableEntity>(
-        PROJECTS_TABLE_PARTITION_KEY,
-        projectId
-      )
-    );
+    const projectModel = new ProjectModel(context, connectionString);
 
-    const builds = storybookBuildSchema
-      .array()
-      .parse(
-        await listAzureTableEntities(
-          context,
-          getAzureTableClientForProject(connectionString, projectId, "Builds"),
-          { limit: 25 }
-        )
-      );
-    const labels = storybookLabelSchema
-      .array()
-      .parse(
-        await listAzureTableEntities(
-          context,
-          getAzureTableClientForProject(connectionString, projectId, "Labels")
-        )
-      );
+    const project = await projectModel.get(projectId);
+    const builds = await projectModel.buildModel(projectId).list();
+    const labels = await projectModel.labelModel(projectId).list();
 
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
@@ -169,27 +126,17 @@ export async function createProject(
       );
     }
 
-    const result = storybookProjectCreateSchema.safeParse(
-      Object.fromEntries((await request.formData()).entries())
+    const result = ProjectCreateSchema.safeParse(
+      urlSearchParamsToObject(await request.formData())
     );
     if (!result.success) {
       return responseError(result.error, context, 400);
     }
 
-    const data = result.data;
-    context.log("Create project: '%s'...", data.id);
+    const model = new ProjectModel(context, connectionString);
+    await model.create(result.data);
 
-    await getAzureStorageBlobServiceClient(connectionString).createContainer(
-      generateAzureStorageContainerName(data.id)
-    );
-    await upsertStorybookProjectToAzureTable(
-      context,
-      connectionString,
-      data,
-      "Replace"
-    );
-
-    const projectUrl = urlBuilder.projectId(data.id);
+    const projectUrl = urlBuilder.projectId(result.data.id);
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return { status: 303, headers: { Location: projectUrl } };
@@ -198,7 +145,7 @@ export async function createProject(
     return {
       status: 201,
       headers: { Location: projectUrl },
-      jsonBody: { data, links: { self: projectUrl } },
+      jsonBody: { data: result.data, links: { self: projectUrl } },
     };
   } catch (error) {
     return responseError(error, context);
@@ -211,8 +158,6 @@ export async function updateProject(
 ): Promise<HttpResponseInit> {
   try {
     const { projectId } = request.params;
-    context.log("Updating project: '%s'...", projectId);
-
     const { connectionString } = getStore();
 
     if (!projectId) {
@@ -231,41 +176,28 @@ export async function updateProject(
       );
     }
 
-    const result = storybookProjectSchema
-      .partial()
-      .safeParse(Object.fromEntries((await request.formData()).entries()));
+    const result = ProjectSchema.partial().safeParse(
+      urlSearchParamsToObject(await request.formData())
+    );
     if (!result.success) {
       return responseError(result.error, context, 400);
     }
 
-    const data = result.data;
+    const model = new ProjectModel(context, connectionString);
 
-    const client = getAzureProjectsTableClient(connectionString);
-    await client.updateEntity(
-      {
-        ...data,
-        partitionKey: PROJECTS_TABLE_PARTITION_KEY,
-        rowKey: projectId,
-        id: projectId,
-      },
-      "Merge"
-    );
+    const data = result.data;
+    await model.update(projectId, data);
 
     const accept = request.headers.get("accept");
     if (accept?.includes(CONTENT_TYPES.HTML)) {
       return { status: 303, headers: { Location: request.url } };
     }
 
-    const updatedEntity = await client.getEntity<StorybookProjectTableEntity>(
-      PROJECTS_TABLE_PARTITION_KEY,
-      projectId
-    );
-
     return {
       status: 202,
       headers: { Location: request.url },
       jsonBody: {
-        data: storybookProjectSchema.parse(updatedEntity),
+        data: await model.get(projectId),
         links: { self: request.url },
       },
     };
@@ -284,29 +216,9 @@ export async function deleteProject(
       return { status: 400, body: "Missing project ID" };
     }
 
-    context.log("Deleting project: '%s'...", projectId);
-
     const { connectionString } = getStore();
-
-    await Promise.allSettled([
-      getAzureStorageBlobServiceClient(connectionString).deleteContainer(
-        generateAzureStorageContainerName(projectId)
-      ),
-      getAzureTableClientForProject(
-        connectionString,
-        projectId,
-        "Builds"
-      ).deleteTable(),
-      getAzureTableClientForProject(
-        connectionString,
-        projectId,
-        "Labels"
-      ).deleteTable(),
-      getAzureProjectsTableClient(connectionString).deleteEntity(
-        PROJECTS_TABLE_PARTITION_KEY,
-        projectId
-      ),
-    ]);
+    const model = new ProjectModel(context, connectionString);
+    await model.delete(projectId);
 
     const projectsUrl = urlBuilder.allProjects();
     const accept = request.headers.get("accept");

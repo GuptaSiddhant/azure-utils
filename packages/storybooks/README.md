@@ -4,6 +4,7 @@ An easy way to deploy Storybooks management using Azure Functions. The package r
 
 > Only works with **V4** functions written in TypeScript/JavaScript.
 
+[DOCS](https://jsr.io/@azure-utils/storybooks/doc) • Packages:
 [![NPM](https://img.shields.io/npm/v/@azure-utils/storybooks)](https://www.npmjs.com/package/@azure-utils/storybooks)
 [![JSR](https://jsr.io/badges/@azure-utils/storybooks)](https://jsr.io/badges/@azure-utils/storybooks)
 
@@ -12,13 +13,14 @@ An easy way to deploy Storybooks management using Azure Functions. The package r
 ### NPM
 
 ```sh
-npm i -D @azure-utils/storybooks zod
+npm i @azure-utils/storybooks
 ```
 
 ### JSR
 
 ```sh
-deno add -D @azure-utils/storybooks npm:zod
+npx jsr add @azure-utils/storybooks
+yarn add jsr:@azure-utils/storybooks
 ```
 
 ## Build and deploy app

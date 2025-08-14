@@ -10,7 +10,6 @@ import z from "zod";
 import { timerPurgeHandler } from "./handlers/timer-purge-handler";
 import { registerProjectsRouter } from "./routers/projects-router";
 import { registerBuildsRouter } from "./routers/builds-router";
-import { emptyObjectSchema, projectIdSchema } from "./utils/schemas";
 import { registerLabelsRouter } from "./routers/labels-router";
 import { registerWebUIRouter } from "./routers/web-ui-router";
 import { registerStorybookRouter } from "./routers/storybook-router";
@@ -23,6 +22,7 @@ import {
 import type { CheckPermissionCallback, OpenAPIOptions } from "./utils/types";
 import { joinUrl } from "./utils/url-utils";
 import { wrapHttpHandlerWithStore } from "./utils/store";
+import { EmptyObjectSchema, ProjectIdSchema } from "./models/shared";
 
 export type { CheckPermissionCallback, OpenAPIOptions };
 
@@ -93,12 +93,6 @@ export type RegisterStorybooksRouterOptions = {
    * - `HttpResponse` - returns the specified HTTP response
    */
   checkPermission?: CheckPermissionCallback;
-
-  /**
-   * Default branch to use for GitHub repositories.
-   * @default 'main'
-   */
-  defaultGitHubBranch?: string;
 };
 
 /**
@@ -118,7 +112,6 @@ export function registerStorybooksRouter(
     purgeScheduleCron,
     openapi,
     checkPermission = DEFAULT_CHECK_PERMISSIONS_CALLBACK,
-    defaultGitHubBranch = "main",
   } = options;
 
   const storageConnectionString = process.env[storageConnectionStringEnvVar];
@@ -144,14 +137,13 @@ export function registerStorybooksRouter(
     openapi,
     staticDirs: options.staticDirs || ["./public"],
     checkPermission,
-    defaultGitHubBranch,
   });
 
   const normalisedServiceName = serviceName.toLowerCase().replace(/\s+/g, "_");
   registerProjectsRouter({
     serviceName: normalisedServiceName,
     baseRoute: joinUrl(baseRoute, "projects"),
-    basePathParamsSchema: emptyObjectSchema,
+    basePathParamsSchema: EmptyObjectSchema,
     openAPIEnabled,
     handlerWrapper,
   });
@@ -159,7 +151,7 @@ export function registerStorybooksRouter(
   registerBuildsRouter({
     serviceName: normalisedServiceName,
     baseRoute: joinUrl(baseRoute, "projects", "{projectId}", "builds"),
-    basePathParamsSchema: z.object({ projectId: projectIdSchema }),
+    basePathParamsSchema: z.object({ projectId: ProjectIdSchema }),
     openAPIEnabled,
     handlerWrapper,
   });
@@ -167,7 +159,7 @@ export function registerStorybooksRouter(
   registerLabelsRouter({
     serviceName: normalisedServiceName,
     baseRoute: joinUrl(baseRoute, "projects", "{projectId}", "labels"),
-    basePathParamsSchema: z.object({ projectId: projectIdSchema }),
+    basePathParamsSchema: z.object({ projectId: ProjectIdSchema }),
     openAPIEnabled,
     handlerWrapper,
   });
@@ -175,7 +167,7 @@ export function registerStorybooksRouter(
   registerStorybookRouter({
     serviceName: normalisedServiceName,
     baseRoute: joinUrl(baseRoute, "_"),
-    basePathParamsSchema: emptyObjectSchema,
+    basePathParamsSchema: EmptyObjectSchema,
     openAPIEnabled,
     handlerWrapper,
   });
@@ -183,7 +175,7 @@ export function registerStorybooksRouter(
   registerWebUIRouter({
     serviceName: normalisedServiceName,
     baseRoute,
-    basePathParamsSchema: emptyObjectSchema,
+    basePathParamsSchema: EmptyObjectSchema,
     openAPIEnabled,
     handlerWrapper,
   });

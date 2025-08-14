@@ -1,16 +1,20 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import type { HttpRequest, InvocationContext } from "@azure/functions";
+import type {
+  HttpRequest,
+  HttpResponseInit,
+  InvocationContext,
+} from "@azure/functions";
 import { responseError } from "./response-utils";
 import {
   generateAzureStorageContainerName,
-  getOrCreateAzureStorageBlobContainerClientOrThrow,
   uploadDirToAzureBlobStorage,
 } from "./azure-storage-blob";
 import decompress from "decompress";
 import { Readable } from "node:stream";
 import { once } from "node:events";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 export async function uploadZipWithDecompressed(
   context: InvocationContext,
@@ -18,7 +22,7 @@ export async function uploadZipWithDecompressed(
   connectionString: string,
   projectId: string,
   buildSHA: string
-) {
+): Promise<HttpResponseInit | undefined> {
   const tmpDir = os.tmpdir();
   const dirpath = fs.mkdtempSync(path.join(tmpDir, "storybook-"));
   const zipFilePath = path.join(
@@ -30,12 +34,9 @@ export async function uploadZipWithDecompressed(
     await writeStreamToFile(Readable.fromWeb(request.body!), zipFilePath);
     await decompress(zipFilePath, dirpath);
 
-    const containerClient =
-      await getOrCreateAzureStorageBlobContainerClientOrThrow(
-        context,
-        connectionString,
-        generateAzureStorageContainerName(projectId)
-      );
+    const containerClient = BlobServiceClient.fromConnectionString(
+      connectionString
+    ).getContainerClient(generateAzureStorageContainerName(projectId));
     const blobName = `${buildSHA}/storybook.zip`;
 
     context.debug(
@@ -67,7 +68,7 @@ export async function uploadZipWithDecompressed(
       (blobName) => path.join(buildSHA, blobName)
     );
 
-    return blobName;
+    return;
   } finally {
     fs.rmSync(dirpath, { recursive: true, force: true });
   }

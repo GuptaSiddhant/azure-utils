@@ -1,18 +1,18 @@
 import { getStore } from "../utils/store";
-import type { StorybookProject } from "../utils/schemas";
 import { Table } from "./table";
 import { urlBuilder } from "../utils/constants";
+import { ProjectType } from "../models/projects";
 
 export interface ProjectsTableProps {
   caption?: string;
-  projects: Array<StorybookProject>;
+  projects: Array<ProjectType>;
 }
 
 export async function ProjectsTable({
   caption = "Projects",
   projects,
 }: ProjectsTableProps) {
-  const { locale, defaultGitHubBranch } = getStore();
+  const { locale } = getStore();
 
   return (
     <Table
@@ -36,9 +36,9 @@ export async function ProjectsTable({
           header: "GitHub",
           cell: (item) => {
             const pathnames = item.gitHubPath
-              ? ["tree", defaultGitHubBranch, item.gitHubPath]
+              ? ["tree", item.gitHubDefaultBranch, item.gitHubPath]
               : [];
-            const href = urlBuilder.gitHub(item, ...pathnames);
+            const href = urlBuilder.gitHub(item.gitHubRepo, ...pathnames);
 
             return (
               <a safe href={href} target="_blank" rel="noopener noreferrer">

@@ -1,15 +1,12 @@
 import { app } from "@azure/functions";
 import { commonErrorResponses, CONTENT_TYPES } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
-import {
-  projectIdSchema,
-  storybookProjectCreateSchema,
-  storybookProjectSchema,
-} from "../utils/schemas";
 import z from "zod";
 import type { RouterOptions } from "../utils/types";
 import * as handlers from "../handlers/project-handlers";
 import { joinUrl } from "../utils/url-utils";
+import { ProjectIdSchema } from "../models/shared";
+import { ProjectCreateSchema, ProjectSchema } from "../models/projects";
 
 const TAG = openAPITags.projects.name;
 
@@ -67,7 +64,7 @@ export function registerProjectsRouter(options: RouterOptions) {
 
   if (openAPIEnabled) {
     const projectPathParameterSchema = basePathParamsSchema.extend({
-      projectId: projectIdSchema,
+      projectId: ProjectIdSchema,
     });
 
     registerOpenAPIPath(baseRoute, {
@@ -82,7 +79,7 @@ export function registerProjectsRouter(options: RouterOptions) {
             description: "A list of projects.",
             content: {
               [CONTENT_TYPES.JSON]: {
-                schema: storybookProjectSchema.array(),
+                schema: ProjectSchema.array(),
                 example: [{ project: "project-id" }],
               },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
@@ -99,7 +96,7 @@ export function registerProjectsRouter(options: RouterOptions) {
           description: "Data about the project",
           content: {
             [CONTENT_TYPES.FORM_ENCODED]: {
-              schema: storybookProjectCreateSchema,
+              schema: ProjectCreateSchema,
             },
           },
         },
@@ -111,7 +108,7 @@ export function registerProjectsRouter(options: RouterOptions) {
             content: {
               [CONTENT_TYPES.JSON]: {
                 schema: z.object({
-                  data: storybookProjectSchema,
+                  data: ProjectSchema,
                   links: z.object({ self: z.url() }),
                 }),
               },
@@ -138,7 +135,7 @@ export function registerProjectsRouter(options: RouterOptions) {
             description: "Project details retrieved successfully",
             content: {
               [CONTENT_TYPES.JSON]: {
-                schema: storybookProjectSchema,
+                schema: ProjectSchema,
               },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },
@@ -156,7 +153,7 @@ export function registerProjectsRouter(options: RouterOptions) {
           description: "Updated project data",
           content: {
             [CONTENT_TYPES.FORM_ENCODED]: {
-              schema: storybookProjectSchema.partial(),
+              schema: ProjectSchema.partial(),
             },
           },
         },
@@ -167,7 +164,7 @@ export function registerProjectsRouter(options: RouterOptions) {
             content: {
               [CONTENT_TYPES.JSON]: {
                 schema: z.object({
-                  data: storybookProjectSchema,
+                  data: ProjectSchema,
                   links: z.object({ self: z.url() }),
                 }),
               },

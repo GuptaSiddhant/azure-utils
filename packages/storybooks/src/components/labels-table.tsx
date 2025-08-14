@@ -1,12 +1,12 @@
-import type { StorybookLabel } from "../utils/schemas";
 import { Table } from "./table";
 import { urlBuilder } from "../utils/constants";
 import { getStore } from "../utils/store";
+import { LabelType } from "../models/labels";
 
 export interface LabelsTableProps {
   caption?: JSX.Element;
   projectId: string;
-  labels: StorybookLabel[];
+  labels: LabelType[];
 }
 
 export async function LabelsTable({

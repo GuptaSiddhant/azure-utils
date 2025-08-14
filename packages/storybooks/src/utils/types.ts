@@ -5,8 +5,6 @@ import type {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import type { TableEntityResult } from "@azure/data-tables";
-import type { StorybookBuild, StorybookProject } from "./schemas";
 import type z from "zod";
 
 /**
@@ -82,21 +80,6 @@ export interface OpenAPIOptions {
 
 /**
  * @private
- * Options for linking with Azure Blob Storage
- */
-export interface RouterHandlerOptions {
-  authLevel?: "admin";
-  serviceName: string;
-  connectionString: string;
-  baseRoute: string;
-  staticDirs: string[];
-  openapi: OpenAPIOptions | undefined;
-  checkPermission: CheckPermissionCallback;
-  defaultGitHubBranch: string;
-}
-
-/**
- * @private
  * Options for configuring the router
  */
 export interface RouterOptions {
@@ -130,47 +113,3 @@ export interface RouterOptions {
     permission: Permission | undefined
   ) => HttpHandler;
 }
-
-/** @private */
-export type StorybooksRouterOpenAPIHandler = (
-  options?: OpenAPIOptions
-) => HttpHandler;
-
-/** @private */
-export type AzureFunctionsStorageBlobTriggerMetadata<
-  Params extends string = string,
-  Metadata extends Record<string, string> = Record<string, string>
-> = {
-  blobTrigger: string;
-  uri: string;
-  metadata: Metadata;
-  properties: {
-    metadata: Metadata;
-    lastModified: string;
-    createdOn: string;
-    contentLength: number;
-    contentType: string;
-    eTag: unknown;
-    contentHash: string | null;
-    contentEncoding: string | null;
-    contentDisposition: string | null;
-    contentLanguage: string | null;
-    cacheControl: string | null;
-    blobSequenceNumber: number;
-    acceptRanges: string;
-    isServerEncrypted: boolean;
-    accessTier: string;
-    isVersionLatest: boolean;
-    versionId: string | null;
-    tagCount: number;
-    expiresOn: string;
-    lastAccessed: string;
-    immutabilityPolicy: {
-      expiresOn: string | null;
-      policyMode: string | null;
-    };
-  };
-} & Record<Params, string>;
-
-export type StorybookProjectTableEntity = TableEntityResult<StorybookProject>;
-export type StorybookBuildTableEntity = TableEntityResult<StorybookBuild>;

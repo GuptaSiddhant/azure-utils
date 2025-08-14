@@ -1,15 +1,11 @@
 import { app } from "@azure/functions";
 import { commonErrorResponses, CONTENT_TYPES } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
-import {
-  buildSHASchema,
-  storybookBuildSchema,
-  storybookBuildUploadSchema,
-} from "../utils/schemas";
-import z from "zod";
 import type { RouterOptions } from "../utils/types";
 import { joinUrl } from "../utils/url-utils";
 import * as handlers from "../handlers/build-handlers";
+import { BuildSHASchema } from "../models/shared";
+import { BuildSchema, BuildUploadSchema } from "../models/builds";
 
 const TAG = openAPITags.builds.name;
 
@@ -59,7 +55,7 @@ export function registerBuildsRouter(options: RouterOptions) {
 
   if (openAPIEnabled) {
     const buildPathParameterSchema = basePathParamsSchema.extend({
-      buildSHA: buildSHASchema,
+      buildSHA: BuildSHASchema,
     });
 
     registerOpenAPIPath(baseRoute, {
@@ -74,7 +70,7 @@ export function registerBuildsRouter(options: RouterOptions) {
             description: "A list of builds.",
             content: {
               [CONTENT_TYPES.JSON]: {
-                schema: storybookBuildSchema.array(),
+                schema: BuildSchema.array(),
                 example: [{ project: "project-id", sha: "s123s14" }],
               },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
@@ -88,7 +84,7 @@ export function registerBuildsRouter(options: RouterOptions) {
         description: "Uploads a new build with the provided metadata.",
         requestParams: {
           path: basePathParamsSchema,
-          query: storybookBuildUploadSchema,
+          query: BuildUploadSchema,
         },
         requestBody: {
           required: true,
@@ -102,17 +98,7 @@ export function registerBuildsRouter(options: RouterOptions) {
         },
         responses: {
           ...commonErrorResponses,
-          202: {
-            description: "Build uploaded successfully",
-            content: {
-              [CONTENT_TYPES.JSON]: {
-                schema: z.object({
-                  blobName: z.string(),
-                  data: storybookBuildSchema,
-                }),
-              },
-            },
-          },
+          202: { description: "Build uploaded successfully" },
         },
       },
     });
@@ -129,7 +115,7 @@ export function registerBuildsRouter(options: RouterOptions) {
             description: "Build details retrieved successfully",
             content: {
               [CONTENT_TYPES.JSON]: {
-                schema: storybookBuildSchema,
+                schema: BuildSchema,
               },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },

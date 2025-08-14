@@ -1,11 +1,12 @@
 import { app } from "@azure/functions";
 import { commonErrorResponses, CONTENT_TYPES } from "../utils/constants";
 import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
-import { labelSlugSchema, storybookLabelSchema } from "../utils/schemas";
 import type { RouterOptions } from "../utils/types";
 import z from "zod";
 import { joinUrl } from "../utils/url-utils";
 import * as handlers from "../handlers/label-handlers";
+import { LabelSlugSchema } from "../models/shared";
+import { LabelSchema } from "../models/labels";
 
 const TAG = openAPITags.labels.name;
 
@@ -58,7 +59,7 @@ export function registerLabelsRouter(options: RouterOptions) {
 
   if (openAPIEnabled) {
     const labelPathParameterSchema = basePathParamsSchema.extend({
-      labelSlug: labelSlugSchema,
+      labelSlug: LabelSlugSchema,
     });
 
     registerOpenAPIPath(baseRoute, {
@@ -73,7 +74,7 @@ export function registerLabelsRouter(options: RouterOptions) {
             description: "A list of labels.",
             content: {
               [CONTENT_TYPES.JSON]: {
-                schema: storybookLabelSchema.array(),
+                schema: LabelSchema.array(),
                 example: [{ slug: "label-slug", value: "label/slug" }],
               },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
@@ -95,7 +96,7 @@ export function registerLabelsRouter(options: RouterOptions) {
           200: {
             description: "Label details retrieved successfully",
             content: {
-              [CONTENT_TYPES.JSON]: { schema: storybookLabelSchema },
+              [CONTENT_TYPES.JSON]: { schema: LabelSchema },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },
           },

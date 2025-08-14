@@ -1,50 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { InvocationContext } from "@azure/functions";
-import {
-  BlobServiceClient,
-  type ContainerCreateOptions,
-  type ContainerClient,
-  type BlobClient,
-} from "@azure/storage-blob";
+import type { ContainerClient, BlobClient } from "@azure/storage-blob";
 import { getMimeType } from "./mime-utils";
 import { parseErrorMessage } from "./error-utils";
 import { DEFAULT_SERVICE_NAME } from "./constants";
 
-export function generateAzureStorageContainerName(projectId: string) {
-  return `${DEFAULT_SERVICE_NAME}-${projectId.replace(/[^\w\-]+/g, "-")}`.slice(
-    0,
-    60
-  );
-}
-
-export function getAzureStorageBlobServiceClient(connectionString: string) {
-  return BlobServiceClient.fromConnectionString(connectionString);
-}
-export function getAzureStorageBlobContainerClient(
-  connectionString: string,
-  containerName: string
-) {
-  return BlobServiceClient.fromConnectionString(
-    connectionString
-  ).getContainerClient(containerName);
-}
-
-export async function getOrCreateAzureStorageBlobContainerClientOrThrow(
-  context: InvocationContext,
-  connectionString: string,
-  containerName: string,
-  options?: ContainerCreateOptions
-): Promise<ContainerClient> {
-  const service = getAzureStorageBlobServiceClient(connectionString);
-  const containerClient = service.getContainerClient(containerName);
-
-  if (!(await containerClient.exists())) {
-    context.info(`Creating container ${containerName}.`);
-    await containerClient.create(options);
-  }
-
-  return containerClient;
+export function generateAzureStorageContainerName(id: string) {
+  return `${DEFAULT_SERVICE_NAME}-${id.replace(/[^\w\-]+/g, "-")}`.slice(0, 60);
 }
 
 export async function uploadDirToAzureBlobStorage(
