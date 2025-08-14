@@ -4,23 +4,29 @@ import { z } from "zod/mini";
 export function parseErrorMessage(error: unknown): {
   errorMessage: string;
   errorStatus?: number;
+  errorType: string;
 } {
   console.log(error instanceof RestError);
   return typeof error === "string"
-    ? { errorMessage: error }
+    ? { errorMessage: error, errorType: "string" }
     : error instanceof RestError
     ? parseAzureRestError(error)
     : error instanceof z.core.$ZodError
-    ? { errorMessage: z.prettifyError(error) }
+    ? {
+        errorMessage: z.prettifyError(error),
+        errorStatus: 400,
+        errorType: "Zod",
+      }
     : error instanceof Error ||
       (error && typeof error === "object" && "message" in error)
-    ? { errorMessage: String(error.message) }
-    : { errorMessage: String(error) };
+    ? { errorMessage: String(error.message), errorType: "error" }
+    : { errorMessage: String(error), errorType: "unknown" };
 }
 
 function parseAzureRestError(error: RestError): {
   errorMessage: string;
   errorStatus?: number;
+  errorType: string;
 } {
   const details = (error.details ?? {}) as { [key: string]: unknown };
   const message =
@@ -34,5 +40,6 @@ function parseAzureRestError(error: RestError): {
       error.code ?? error.statusCode
     }): ${message}`,
     errorStatus: error.statusCode,
+    errorType: "AzureRest",
   };
 }

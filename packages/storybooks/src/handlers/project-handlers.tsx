@@ -3,7 +3,7 @@ import type {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import { CONTENT_TYPES, QUERY_PARAMS } from "../utils/constants";
+import { CONTENT_TYPES } from "../utils/constants";
 import { ProjectsTable } from "../components/projects-table";
 import { DocumentLayout } from "../components/layout";
 import {
@@ -23,17 +23,24 @@ import {
 import { urlSearchParamsToObject } from "../utils/url-utils";
 import { urlBuilder } from "../utils/url-builder";
 import { ProjectForm } from "../components/project-form";
-import { checkIsHTMLRequest, checkIsHXRequest } from "../utils/request-utils";
+import {
+  checkIsEditMode,
+  checkIsHTMLRequest,
+  checkIsHXRequest,
+  checkIsNewMode,
+} from "../utils/request-utils";
 
 export async function listProjects(
-  request: HttpRequest,
+  _request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    const isCreateMode = request.query.has(QUERY_PARAMS.newResource);
-    if (isCreateMode) {
+    if (checkIsNewMode()) {
       return responseHTML(
-        <DocumentLayout title="Create Project" breadcrumbs={["Projects"]}>
+        <DocumentLayout
+          title="Create Project"
+          breadcrumbs={[{ label: "Projects", href: urlBuilder.allProjects() }]}
+        >
           <ProjectForm project={undefined} />
         </DocumentLayout>
       );
@@ -75,10 +82,15 @@ export async function getProject(
     const projectModel = new ProjectModel(context, connectionString);
     const project = await projectModel.get(projectId);
 
-    const isEditMode = request.query.has(QUERY_PARAMS.editResource);
-    if (isEditMode) {
+    if (checkIsEditMode()) {
       return responseHTML(
-        <DocumentLayout title="Edit Project" breadcrumbs={[projectId]}>
+        <DocumentLayout
+          title="Edit Project"
+          breadcrumbs={[
+            { label: "Projects", href: urlBuilder.allProjects() },
+            { label: projectId, href: urlBuilder.projectId(projectId) },
+          ]}
+        >
           <ProjectForm project={project} />
         </DocumentLayout>
       );
@@ -152,17 +164,14 @@ export async function createProject(
       );
     }
 
-    const result = ProjectCreateSchema.safeParse(
+    const data = ProjectCreateSchema.parse(
       urlSearchParamsToObject(await request.formData())
     );
-    if (!result.success) {
-      return responseError(result.error, context, 400);
-    }
 
-    const model = new ProjectModel(context, connectionString);
-    await model.create(result.data);
+    const projectModel = new ProjectModel(context, connectionString);
+    await projectModel.create(data);
 
-    const projectUrl = urlBuilder.projectId(result.data.id);
+    const projectUrl = urlBuilder.projectId(data.id);
 
     if (checkIsHTMLRequest() || checkIsHXRequest()) {
       return responseRedirect(projectUrl, 303);
@@ -171,7 +180,7 @@ export async function createProject(
     return {
       status: 201,
       headers: { Location: projectUrl },
-      jsonBody: { data: result.data, links: { self: projectUrl } },
+      jsonBody: { data: data, links: { self: projectUrl } },
     };
   } catch (error) {
     return responseError(error, context);

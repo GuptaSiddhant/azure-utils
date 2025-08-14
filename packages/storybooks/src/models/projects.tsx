@@ -118,13 +118,15 @@ export class ProjectModel implements BaseModel<ProjectType, ProjectCreateType> {
 
   async create(data: ProjectCreateType): Promise<void> {
     this.#context.log("Create project: '%s'...", data.id);
+    const gitHubDefaultBranch =
+      data.gitHubDefaultBranch || DEFAULT_GITHUB_BRANCH;
 
     await this.#tableClient.createTable();
     await this.#tableClient.createEntity({
       partitionKey,
       rowKey: data.id,
       ...data,
-      gitHubDefaultBranch: data.gitHubDefaultBranch || DEFAULT_GITHUB_BRANCH,
+      gitHubDefaultBranch,
     });
 
     await TableClient.fromConnectionString(
@@ -138,6 +140,10 @@ export class ProjectModel implements BaseModel<ProjectType, ProjectCreateType> {
     await this.#blobService.createContainer(
       generateAzureStorageContainerName(data.id)
     );
+    await this.labelModel(data.id).create({
+      type: "branch",
+      value: gitHubDefaultBranch,
+    });
   }
 
   async update(id: string, data: Partial<ProjectType>): Promise<void> {

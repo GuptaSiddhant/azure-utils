@@ -39,6 +39,21 @@ export const commonErrorResponses: ZodOpenApiResponsesObject = {
 };
 
 export const QUERY_PARAMS = {
-  newResource: "_new_",
-  editResource: "_edit_",
+  mode: "mode",
+  newResource: "new",
+  editResource: "edit",
 };
+
+export const PATTERNS = {
+  projectId: {
+    pattern: "^[a-z0-9][a-z0-9-]{0,60}$",
+    message: "Should contain only lowercase alphabets, numbers and hyphen.",
+  },
+} satisfies Record<
+  string,
+  {
+    pattern: string | RegExp;
+    patternGlobal?: string | RegExp;
+    message?: string;
+  }
+>;

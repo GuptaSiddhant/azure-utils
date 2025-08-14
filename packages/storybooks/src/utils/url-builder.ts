@@ -25,7 +25,7 @@ export const urlBuilder = {
   projectCreate: () => {
     const { baseRoute, url: base } = getStore();
     const url = new URL(joinUrl(baseRoute, "projects"), base);
-    url.searchParams.set(QUERY_PARAMS.newResource, "");
+    url.searchParams.set(QUERY_PARAMS.mode, QUERY_PARAMS.newResource);
     return url.toString();
   },
   projectId: (projectId: string) => {
@@ -36,7 +36,7 @@ export const urlBuilder = {
   projectIdEdit: (projectId: string) => {
     const { baseRoute, url: base } = getStore();
     const url = new URL(joinUrl(baseRoute, "projects", projectId), base);
-    url.searchParams.set(QUERY_PARAMS.editResource, "");
+    url.searchParams.set(QUERY_PARAMS.mode, QUERY_PARAMS.editResource);
     return url.toString();
   },
   allBuilds: (projectId: string) => {
@@ -63,12 +63,30 @@ export const urlBuilder = {
     );
     return url.toString();
   },
+  labelCreate: (projectId: string) => {
+    const { baseRoute, url: base } = getStore();
+    const url = new URL(
+      joinUrl(baseRoute, "projects", projectId, "labels"),
+      base
+    );
+    url.searchParams.set(QUERY_PARAMS.mode, QUERY_PARAMS.newResource);
+    return url.toString();
+  },
   labelSlug: (projectId: string, labelSlug: string) => {
     const { baseRoute, url: base } = getStore();
     const url = new URL(
       joinUrl(baseRoute, "projects", projectId, "labels", labelSlug),
       base
     );
+    return url.toString();
+  },
+  labelSlugEdit: (projectId: string, labelSlug: string) => {
+    const { baseRoute, url: base } = getStore();
+    const url = new URL(
+      joinUrl(baseRoute, "projects", projectId, "labels", labelSlug),
+      base
+    );
+    url.searchParams.set(QUERY_PARAMS.mode, QUERY_PARAMS.editResource);
     return url.toString();
   },
   labelSlugLatest: (projectId: string, labelSlug: string) => {

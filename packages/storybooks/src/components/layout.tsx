@@ -97,6 +97,11 @@ export function DocumentLayout({
           </header>
           <main>{children}</main>
           {footer ? <footer>{footer}</footer> : null}
+
+          <script
+            defer
+            src="https://unpkg.com/htmx-toaster/dist/htmx-toaster.min.js"
+          />
         </body>
       </html>
     </>
@@ -322,6 +327,5 @@ function globalStyleSheet() {
       font-size: 0.8rem;
       color: var(--color-text-secondary);
     }
-
   `.replace(/\s+/g, " ");
 }

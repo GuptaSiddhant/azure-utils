@@ -116,9 +116,9 @@ export class BuildModel implements BaseModel<BuildType, BuildUploadType> {
           labelSlug
         );
         await labelModel.create({
-          slug: labelSlug,
           value: labelSlug,
           buildSHA: sha,
+          type: /\d+/.test(labelSlug) ? "pr" : "branch",
         });
       }
     }

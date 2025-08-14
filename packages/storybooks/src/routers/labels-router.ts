@@ -29,6 +29,14 @@ export function registerLabelsRouter(options: RouterOptions) {
     ]),
   });
 
+  app.post(`${serviceName}-label-create`, {
+    authLevel,
+    route: baseRoute,
+    handler: handlerWrapper(handlers.createLabel, [
+      { resource: "label", action: "create" },
+    ]),
+  });
+
   const routeWithLabel = joinUrl(baseRoute, "{labelSlug}");
   app.get(`${serviceName}-label-get`, {
     authLevel,
@@ -36,6 +44,13 @@ export function registerLabelsRouter(options: RouterOptions) {
     handler: handlerWrapper(handlers.getLabel, [
       { resource: "label", action: "read" },
       { resource: "ui", action: "read" },
+    ]),
+  });
+  app.patch(`${serviceName}-label-update`, {
+    authLevel,
+    route: routeWithLabel,
+    handler: handlerWrapper(handlers.updateLabel, [
+      { resource: "label", action: "update" },
     ]),
   });
   app.deleteRequest(`${serviceName}-label-delete`, {
@@ -77,6 +92,23 @@ export function registerLabelsRouter(options: RouterOptions) {
               },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },
+          },
+        },
+      },
+      post: {
+        tags: [TAG],
+        summary: "Create a new label.",
+        description: "Create a new label with slug and type.",
+        requestParams: { path: basePathParamsSchema },
+        responses: {
+          ...commonErrorResponses,
+          202: {
+            description: "Data about label",
+            content: { [CONTENT_TYPES.JSON]: { schema: LabelSchema } },
+          },
+          303: {
+            description: "Label created, redirecting...",
+            headers: { Location: z.url() },
           },
         },
       },

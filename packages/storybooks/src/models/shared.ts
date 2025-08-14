@@ -1,19 +1,27 @@
 import z from "zod";
 import { ListAzureTableEntitiesOptions } from "../utils/azure-data-tables";
+import { PATTERNS } from "../utils/constants";
 
-export interface BaseModel<T extends Record<string, unknown>, C = T> {
-  list(options?: ListAzureTableEntitiesOptions<T>): Promise<T[]>;
-  create(data: C): Promise<void>;
-  get(id: string): Promise<T | null>;
+export interface BaseModel<
+  Data extends Record<string, unknown>,
+  CreateData = Data,
+  UpdateData = Partial<Data>
+> {
+  list(options?: ListAzureTableEntitiesOptions<Data>): Promise<Data[]>;
+  create(data: CreateData): Promise<void>;
+  get(id: string): Promise<Data | null>;
   has(id: string): Promise<boolean>;
-  update(id: string, data: Partial<T>): Promise<void>;
+  update(id: string, data: UpdateData): Promise<void>;
   delete(id: string): Promise<void>;
-  parse: (data: unknown) => T;
 }
 
 /** @private */
 export const ProjectIdSchema = z
   .string()
+  .refine(
+    (val) => new RegExp(PATTERNS.projectId.pattern).test(val),
+    PATTERNS.projectId.message
+  )
   .meta({ id: "projectId", description: "The ID of the project." });
 
 /** @private */

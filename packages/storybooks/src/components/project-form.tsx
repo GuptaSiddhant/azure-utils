@@ -1,5 +1,5 @@
 import { ProjectSchema, ProjectType } from "../models/projects";
-import { DEFAULT_PURGE_AFTER_DAYS } from "../utils/constants";
+import { DEFAULT_PURGE_AFTER_DAYS, PATTERNS } from "../utils/constants";
 import { urlBuilder } from "../utils/url-builder";
 import { ErrorMessage } from "./error-message";
 
@@ -25,7 +25,7 @@ export async function ProjectForm({ project }: ProjectsFormProps) {
             <input
               id="id"
               name="id"
-              pattern="^[a-z0-9][a-z0-9\-]{0,60}$"
+              pattern={PATTERNS.projectId.pattern}
               required
             />
             <span class="description">

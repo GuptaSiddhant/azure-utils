@@ -2,10 +2,9 @@ import type { HttpResponseInit, InvocationContext } from "@azure/functions";
 import { renderToStream } from "@kitajs/html/suspense";
 import { DocumentLayout } from "../components/layout";
 import { ErrorMessage } from "../components/error-message";
-import { CONTENT_TYPES } from "./constants";
+import { CONTENT_TYPES, PATTERNS } from "./constants";
 import { parseErrorMessage } from "./error-utils";
-import { getStore } from "./store";
-import { checkIsHXRequest } from "./request-utils";
+import { checkIsHTMLRequest, checkIsHXRequest } from "./request-utils";
 
 export function responseHTML(html: JSX.Element): HttpResponseInit {
   return {
@@ -20,39 +19,63 @@ export function responseError(
   context: InvocationContext,
   init?: ResponseInit | number
 ): HttpResponseInit {
-  const { errorMessage, errorStatus } = parseErrorMessage(error);
-  context.error(errorMessage, error instanceof Error ? error.stack : "");
+  try {
+    const { errorMessage, errorStatus, errorType } = parseErrorMessage(error);
+    context.error(
+      `[${errorType}]`,
+      errorMessage,
+      error instanceof Error ? error.stack : ""
+    );
 
-  const status =
-    errorStatus ?? (typeof init === "number" ? init : init?.status ?? 500);
-  const headers = new Headers(typeof init === "number" ? {} : init?.headers);
+    const status =
+      errorStatus ?? (typeof init === "number" ? init : init?.status ?? 500);
+    const headers = new Headers(typeof init === "number" ? {} : init?.headers);
 
-  const store = getStore(false);
+    if (checkIsHXRequest()) {
+      headers.set("HXToaster-Type", "error");
 
-  if (checkIsHXRequest()) {
-    return { status, headers, body: errorMessage };
-  }
+      if (encodeURIComponent(errorMessage) !== errorMessage) {
+        const safeMessage = errorMessage
+          .toLowerCase()
+          .trim()
+          .replace(/\W+/g, " ");
+        headers.set("HXToaster-Body", safeMessage);
+      } else {
+        headers.set("HXToaster-Body", errorMessage);
+      }
+      return { status, headers, body: errorMessage };
+    }
 
-  if (store?.accept?.includes(CONTENT_TYPES.HTML)) {
-    headers.set("Content-Type", CONTENT_TYPES.HTML);
+    if (checkIsHTMLRequest()) {
+      headers.set("Content-Type", CONTENT_TYPES.HTML);
 
+      return {
+        status,
+        headers,
+        body: renderToStream(
+          <DocumentLayout
+            title={`Error ${status}`}
+            breadcrumbs={[
+              { label: "< Back", href: "javascript:history.back()" },
+            ]}
+          >
+            <ErrorMessage>{errorMessage}</ErrorMessage>
+          </DocumentLayout>
+        ),
+      };
+    }
+
+    headers.set("Content-Type", "application/json");
+    const jsonBody = { errorMessage };
+    return { jsonBody, status, headers };
+  } catch (err) {
+    context.error(`[ErrOnErr]`, err);
     return {
-      status,
-      headers,
-      body: renderToStream(
-        <DocumentLayout
-          title={`Error ${status}`}
-          breadcrumbs={[{ label: "< Back", href: "javascript:history.back()" }]}
-        >
-          <ErrorMessage>{errorMessage}</ErrorMessage>
-        </DocumentLayout>
-      ),
+      status: 500,
+      body: typeof err === "string" ? err : undefined,
+      jsonBody: typeof err === "string" ? undefined : err,
     };
   }
-
-  headers.set("Content-Type", "application/json");
-  const jsonBody = { errorMessage };
-  return { jsonBody, status, headers };
 }
 
 export function responseRedirect(

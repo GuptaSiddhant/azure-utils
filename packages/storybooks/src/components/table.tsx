@@ -11,6 +11,7 @@ export type TableColumn<T extends TableItem> = {
   id: keyof T | (string & {});
   header?: JSX.Element;
   cell?: (item: T) => JSX.Element | null;
+  style?: JSX.HtmlTag["style"];
 };
 
 export function Table<T extends TableItem>({
@@ -63,14 +64,22 @@ export function Table<T extends TableItem>({
 
                   if (typeof value === "string") {
                     const safeValue = value;
-                    return <td>{safeValue}</td>;
+                    return <td style={col.style}>{safeValue}</td>;
                   }
 
                   if (typeof value === "object") {
-                    return <td safe>{JSON.stringify(value)}</td>;
+                    return (
+                      <td safe style={col.style}>
+                        {JSON.stringify(value)}
+                      </td>
+                    );
                   }
 
-                  return <td safe>{String(value)}</td>;
+                  return (
+                    <td safe style={col.style}>
+                      {String(value)}
+                    </td>
+                  );
                 })}
               </tr>
             );

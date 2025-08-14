@@ -40,6 +40,11 @@ export async function LabelsTable({
           header: "Label",
         },
         {
+          id: "type",
+          header: "Type",
+          style: { fontFamily: "monospace" },
+        },
+        {
           id: "build",
           header: "Latest build",
           cell: (item) => {
