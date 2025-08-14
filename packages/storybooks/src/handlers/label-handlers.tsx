@@ -50,7 +50,6 @@ export async function listLabels(
       );
     }
 
-    context.log("Serving all labels for project '%s'...", projectId);
     const { connectionString } = getStore();
     const labelModel = new LabelModel(context, connectionString, projectId);
     const labels = await labelModel.list();
@@ -84,6 +83,15 @@ export async function createLabel(
   try {
     const { projectId = "" } = request.params;
     const { connectionString } = getStore();
+    const model = new LabelModel(context, connectionString, projectId);
+
+    if (!(await model.projectModel.has(projectId))) {
+      return responseError(
+        `The project '${projectId}' does not exist.`,
+        context,
+        404
+      );
+    }
 
     const contentType = request.headers.get("content-type");
     if (!contentType) {
@@ -97,19 +105,15 @@ export async function createLabel(
       );
     }
 
-    const result = LabelCreateSchema.safeParse(
+    const data = LabelCreateSchema.parse(
       urlSearchParamsToObject(await request.formData())
     );
-    if (!result.success) {
-      return responseError(result.error, context, 400);
-    }
 
-    const model = new LabelModel(context, connectionString, projectId);
-    await model.create(result.data);
+    await model.create(data);
 
     const labelUrl = urlBuilder.labelSlug(
       projectId,
-      LabelModel.createSlug(result.data.value)
+      LabelModel.createSlug(data.value)
     );
 
     if (checkIsHTMLRequest() || checkIsHXRequest()) {
@@ -119,7 +123,7 @@ export async function createLabel(
     return {
       status: 201,
       headers: { Location: labelUrl },
-      jsonBody: { data: result.data, links: { self: labelUrl } },
+      jsonBody: { data, links: { self: labelUrl } },
     };
   } catch (error) {
     return responseError(error, context);
@@ -164,7 +168,7 @@ export async function getLabel(
     if (checkIsHTMLRequest()) {
       return responseHTML(
         <DocumentLayout
-          title={label.value}
+          title={`[${label.type}] ${label.value}`}
           breadcrumbs={[projectId, "Labels"]}
           toolbar={
             <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
@@ -217,15 +221,12 @@ export async function updateLabel(
       );
     }
 
-    const result = LabelUpdateSchema.partial().safeParse(
+    const data = LabelUpdateSchema.partial().parse(
       urlSearchParamsToObject(await request.formData())
     );
-    if (!result.success) {
-      return responseError(result.error, context, 400);
-    }
 
     const labelModel = new LabelModel(context, connectionString, projectId);
-    await labelModel.update(labelSlug, result.data);
+    await labelModel.update(labelSlug, data);
 
     const labelUrl = urlBuilder.labelSlug(projectId, labelSlug);
 

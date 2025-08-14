@@ -10,7 +10,6 @@ export interface BuildTableProps {
   builds: Array<BuildType>;
   project: ProjectType;
   labels: LabelType[] | undefined;
-
   toolbar?: JSX.Element;
 }
 
@@ -19,6 +18,7 @@ export async function BuildTable({
   toolbar,
   builds,
   project,
+  labels,
 }: BuildTableProps) {
   const { locale } = getStore();
 
@@ -32,37 +32,48 @@ export async function BuildTable({
           id: "sha",
           header: "SHA",
           cell: (item) => {
+            const labelSlug = item.label.split(",").at(0) || item.label;
             return (
-              <a safe href={urlBuilder.buildSHA(project.id, item.sha)}>
+              <a
+                safe
+                href={urlBuilder.buildSHA(project.id, item.sha, labelSlug)}
+              >
                 {item.sha.slice(0, 7)}
               </a>
             );
           },
         },
-        // labels
-        //   ? {
-        //       id: "labels",
-        //       header: "Labels",
-        //       cell: (item) => {
-        //         return (
-        //           <div safe>
-        //             {item.labels.split(",").map((labelSlug, index, arr) => (
-        //               <>
-        //                 <a
-        //                   safe
-        //                   href={urlBuilder.labelSlug(project.id, labelSlug)}
-        //                 >
-        //                   {labels.find((label) => label.slug === labelSlug)
-        //                     ?.value || labelSlug}
-        //                 </a>
-        //                 {index < arr.length - 1 ? ", " : ""}
-        //               </>
-        //             ))}
-        //           </div>
-        //         );
-        //       },
-        //     }
-        //   : undefined,
+        labels
+          ? {
+              id: "label",
+              header: "Labels",
+              cell: (item) => {
+                return (
+                  <div>
+                    {item.label.split(",").map((labelSlug, index, arr) => {
+                      const label = labels.find(
+                        (label) => label.slug === labelSlug
+                      );
+                      return (
+                        <>
+                          <a
+                            safe
+                            href={urlBuilder.labelSlug(project.id, labelSlug)}
+                            title={labelSlug}
+                          >
+                            {label
+                              ? `${label.value} (${label.type})`
+                              : labelSlug}
+                          </a>
+                          {index === arr.length - 1 ? null : <span>, </span>}
+                        </>
+                      );
+                    })}
+                  </div>
+                );
+              },
+            }
+          : undefined,
         {
           id: "storybook",
           header: "Storybook",

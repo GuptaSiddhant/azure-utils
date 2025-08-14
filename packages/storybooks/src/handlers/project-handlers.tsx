@@ -211,16 +211,11 @@ export async function updateProject(
       );
     }
 
-    const result = ProjectSchema.partial().safeParse(
+    const data = ProjectSchema.partial().parse(
       urlSearchParamsToObject(await request.formData())
     );
-    if (!result.success) {
-      return responseError(result.error, context, 400);
-    }
 
     const model = new ProjectModel(context, connectionString);
-
-    const data = result.data;
     await model.update(projectId, data);
 
     if (checkIsHTMLRequest() || checkIsHXRequest()) {

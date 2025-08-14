@@ -2,7 +2,7 @@ import type { HttpResponseInit, InvocationContext } from "@azure/functions";
 import { renderToStream } from "@kitajs/html/suspense";
 import { DocumentLayout } from "../components/layout";
 import { ErrorMessage } from "../components/error-message";
-import { CONTENT_TYPES, PATTERNS } from "./constants";
+import { CONTENT_TYPES } from "./constants";
 import { parseErrorMessage } from "./error-utils";
 import { checkIsHTMLRequest, checkIsHXRequest } from "./request-utils";
 
@@ -32,17 +32,10 @@ export function responseError(
     const headers = new Headers(typeof init === "number" ? {} : init?.headers);
 
     if (checkIsHXRequest()) {
-      headers.set("HXToaster-Type", "error");
-
-      if (encodeURIComponent(errorMessage) !== errorMessage) {
-        const safeMessage = errorMessage
-          .toLowerCase()
-          .trim()
-          .replace(/\W+/g, " ");
-        headers.set("HXToaster-Body", safeMessage);
-      } else {
+      try {
+        headers.set("HXToaster-Type", "error");
         headers.set("HXToaster-Body", errorMessage);
-      }
+      } catch {}
       return { status, headers, body: errorMessage };
     }
 

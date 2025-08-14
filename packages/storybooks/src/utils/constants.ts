@@ -22,7 +22,7 @@ export const CONTENT_TYPES = {
   ZIP: "application/zip",
   FORM_MULTIPART: "multipart/form-data",
   FORM_ENCODED: "application/x-www-form-urlencoded",
-};
+} as const;
 export const SUPPORTED_CONTENT_TYPES = Object.values(CONTENT_TYPES);
 export const SUPPORTED_CONTENT_TYPES_MSG = `Only following content-type supported: ${SUPPORTED_CONTENT_TYPES.join(
   ", "
@@ -42,6 +42,7 @@ export const QUERY_PARAMS = {
   mode: "mode",
   newResource: "new",
   editResource: "edit",
+  labelSlug: "labelSlug",
 };
 
 export const PATTERNS = {

@@ -26,7 +26,7 @@ export function registerStorybookRouter(options: RouterOptions) {
     "{**filepath}"
   );
 
-  app.get(`${serviceName}-storybook-serve`, {
+  app.get(`${serviceName}-serve-storybook`, {
     authLevel,
     route: storybookRoute,
     handler: handlerWrapper(serveStorybook, [

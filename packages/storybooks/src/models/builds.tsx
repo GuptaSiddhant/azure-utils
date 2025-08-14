@@ -29,13 +29,17 @@ export const BuildSchema = z.object({
 });
 
 /** @private */
+export type BuildUploadType = z.infer<typeof BuildUploadSchema>;
 export const BuildUploadSchema = BuildSchema.omit({ label: true }).extend({
   labels: z.string().array().meta({
     description:
       "Label slugs associated with the build. Must be created beforehand.",
   }),
 });
-export type BuildUploadType = z.infer<typeof BuildUploadSchema>;
+export type BuildUploadFormType = z.infer<typeof BuildUploadSchema>;
+export const BuildUploadFormSchema = BuildUploadSchema.extend({
+  zipFile: z.file(),
+});
 
 /**
  * - partitionKey: label
@@ -69,19 +73,36 @@ export class BuildModel implements BaseModel<BuildType, BuildUploadType> {
   async list(
     options?: ListAzureTableEntitiesOptions<BuildType>
   ): Promise<BuildType[]> {
-    this.#context.log("List builds...");
+    this.#context.log("List builds for project '%s'...", this.#projectId);
     const entities = await listAzureTableEntities(
       this.#context,
       this.#tableClient,
       options
     );
 
-    return BuildSchema.array().parse(entities);
+    const builds = BuildSchema.array().parse(entities);
+
+    const groupBySHA = Object.groupBy(builds, (b) => b.sha);
+    const groupedBuilds: BuildType[] = Object.values(groupBySHA)
+      .map((group) =>
+        group && group.length > 0
+          ? { ...group[0]!, label: group.map((b) => b.label).join(",") }
+          : undefined
+      )
+      .filter((build) => build !== undefined);
+
+    return groupedBuilds;
   }
 
-  async get(sha: string): Promise<BuildType> {
-    this.#context.log("Get build: '%s'...", sha);
-    const entity = await this.#tableClient.getEntity(this.#projectId, sha);
+  async get(sha: string, labelSlug?: string): Promise<BuildType> {
+    this.#context.log(
+      "Get build: '%s' for project '%s'...",
+      sha,
+      this.#projectId
+    );
+    const entity = labelSlug
+      ? await this.#tableClient.getEntity(labelSlug, sha)
+      : (await this.list({ filter: `RowKey eq '${sha}'` })).at(0);
 
     return BuildSchema.parse(entity);
   }
@@ -97,8 +118,13 @@ export class BuildModel implements BaseModel<BuildType, BuildUploadType> {
 
   async create(data: BuildUploadType): Promise<void> {
     const { labels, sha, ...rest } = data;
+    this.#context.log(
+      "Create build '%s' for project '%s'...",
+      sha,
+      this.#projectId
+    );
 
-    for (const labelSlug of labels) {
+    for (const labelSlug of labels.filter(Boolean)) {
       await this.#tableClient.createEntity({
         partitionKey: labelSlug,
         rowKey: sha,
@@ -137,7 +163,11 @@ export class BuildModel implements BaseModel<BuildType, BuildUploadType> {
   }
 
   async delete(sha: string): Promise<void> {
-    this.#context.log("Delete build: '%s'...", sha);
+    this.#context.log(
+      "Delete build: '%s' for project '%s'...",
+      sha,
+      this.#projectId
+    );
     const matchingEntities = await listAzureTableEntities(
       this.#context,
       this.#tableClient,
@@ -163,7 +193,11 @@ export class BuildModel implements BaseModel<BuildType, BuildUploadType> {
   }
 
   async deleteByLabel(labelSlug: string): Promise<void> {
-    this.#context.log("Delete build by label: '%s'...", labelSlug);
+    this.#context.log(
+      "Delete build by label: '%s' for project '%s'...",
+      labelSlug,
+      this.#projectId
+    );
     const matchingEntities = await listAzureTableEntities(
       this.#context,
       this.#tableClient,

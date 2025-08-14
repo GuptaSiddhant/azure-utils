@@ -1,11 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import type {
-  HttpRequest,
-  HttpResponseInit,
-  InvocationContext,
-} from "@azure/functions";
+import type { HttpResponseInit } from "@azure/functions";
 import { responseError } from "./response-utils";
 import {
   generateAzureStorageContainerName,
@@ -15,14 +11,16 @@ import decompress from "decompress";
 import { Readable } from "node:stream";
 import { once } from "node:events";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { getStore } from "./store";
+import type { ReadableStream } from "node:stream/web";
 
 export async function uploadZipWithDecompressed(
-  context: InvocationContext,
-  request: HttpRequest,
-  connectionString: string,
   projectId: string,
-  buildSHA: string
+  buildSHA: string,
+  zipFile?: File
 ): Promise<HttpResponseInit | undefined> {
+  const { context, connectionString, request } = getStore();
+
   const tmpDir = os.tmpdir();
   const dirpath = fs.mkdtempSync(path.join(tmpDir, "storybook-"));
   const zipFilePath = path.join(
@@ -31,7 +29,14 @@ export async function uploadZipWithDecompressed(
   );
 
   try {
-    await writeStreamToFile(Readable.fromWeb(request.body!), zipFilePath);
+    if (zipFile) {
+      await writeStreamToFile(
+        Readable.fromWeb(zipFile.stream() as unknown as ReadableStream<any>),
+        zipFilePath
+      );
+    } else {
+      await writeStreamToFile(Readable.fromWeb(request.body!), zipFilePath);
+    }
     await decompress(zipFilePath, dirpath);
 
     const containerClient = BlobServiceClient.fromConnectionString(

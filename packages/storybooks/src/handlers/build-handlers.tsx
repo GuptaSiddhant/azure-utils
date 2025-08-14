@@ -3,38 +3,68 @@ import type {
   HttpResponseInit,
   InvocationContext,
 } from "@azure/functions";
-import { responseError, responseHTML } from "../utils/response-utils";
-import { CONTENT_TYPES } from "../utils/constants";
+import {
+  responseError,
+  responseHTML,
+  responseRedirect,
+} from "../utils/response-utils";
 import { DocumentLayout } from "../components/layout";
 import { RawDataPreview } from "../components/raw-data";
 import { getStore } from "../utils/store";
 import { urlSearchParamsToObject } from "../utils/url-utils";
 import { BuildTable } from "../components/builds-table";
-import { validateBuildUploadBody } from "../utils/validators";
+import { validateBuildUploadZipBody } from "../utils/validators";
 import { uploadZipWithDecompressed } from "../utils/upload-utils";
-import { BuildModel, BuildUploadSchema } from "../models/builds";
+import {
+  BuildModel,
+  BuildUploadFormSchema,
+  BuildUploadSchema,
+} from "../models/builds";
 import { urlBuilder } from "../utils/url-builder";
+import {
+  checkIsHTMLRequest,
+  checkIsHXRequest,
+  checkIsNewMode,
+} from "../utils/request-utils";
+import { BuildForm } from "../components/build-form";
+import { CONTENT_TYPES, QUERY_PARAMS } from "../utils/constants";
 
 export async function listBuilds(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   const { projectId = "" } = request.params;
-  context.log("Serving all builds for project '%s'...", projectId);
 
   try {
+    if (checkIsNewMode()) {
+      return responseHTML(
+        <DocumentLayout
+          title="Upload Build"
+          breadcrumbs={[
+            { label: projectId, href: urlBuilder.projectId(projectId) },
+            { label: "Builds", href: urlBuilder.allBuilds(projectId) },
+          ]}
+        >
+          <BuildForm projectId={projectId} />
+        </DocumentLayout>
+      );
+    }
+
     const { connectionString } = getStore();
     const buildModel = new BuildModel(context, connectionString, projectId);
     const builds = await buildModel.list();
 
-    const accept = request.headers.get("accept");
-    if (accept?.includes(CONTENT_TYPES.HTML)) {
+    if (checkIsHTMLRequest()) {
       const projectModel = buildModel.projectModel;
       const project = await projectModel.get(projectId);
       const labels = await projectModel.labelModel(projectId).list();
 
       return responseHTML(
-        <DocumentLayout title="All Builds" breadcrumbs={[projectId]}>
+        <DocumentLayout
+          title="All Builds"
+          breadcrumbs={[projectId]}
+          toolbar={<a href={urlBuilder.buildUpload(projectId)}>Upload</a>}
+        >
           <BuildTable
             builds={builds}
             labels={labels}
@@ -56,15 +86,14 @@ export async function getBuild(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   const { projectId = "", buildSHA = "" } = request.params;
-  context.log("Getting build '%s' for project '%s'...", buildSHA, projectId);
+  const labelSlug = request.query.get(QUERY_PARAMS.labelSlug) || undefined;
 
   try {
     const { connectionString } = getStore();
     const buildModel = new BuildModel(context, connectionString, projectId);
-    const build = await buildModel.get(buildSHA);
+    const build = await buildModel.get(buildSHA, labelSlug);
 
-    const accept = request.headers.get("accept");
-    if (accept?.includes(CONTENT_TYPES.HTML)) {
+    if (checkIsHTMLRequest()) {
       return responseHTML(
         <DocumentLayout
           breadcrumbs={[projectId, "Builds"]}
@@ -72,6 +101,16 @@ export async function getBuild(
             build.message
               ? `[${build.sha.slice(0, 7)}] ${build.message}`
               : buildSHA.slice(0, 7)
+          }
+          toolbar={
+            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+              <form
+                hx-delete={request.url}
+                hx-confirm="Are you sure about deleting the build?"
+              >
+                <button>Delete</button>
+              </form>
+            </div>
           }
         >
           <>
@@ -119,7 +158,6 @@ export async function deleteBuild(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   const { projectId = "", buildSHA = "" } = request.params;
-  context.log("Deleting build '%s' for project '%s'...", buildSHA, projectId);
 
   try {
     const { connectionString } = getStore();
@@ -127,9 +165,8 @@ export async function deleteBuild(
     await buildModel.delete(buildSHA);
 
     const buildsUrl = urlBuilder.allBuilds(projectId);
-    const accept = request.headers.get("accept");
-    if (accept?.includes(CONTENT_TYPES.HTML)) {
-      return { status: 303, headers: { Location: buildsUrl } };
+    if (checkIsHTMLRequest() || checkIsHXRequest()) {
+      return responseRedirect(buildsUrl, 303);
     }
 
     return { status: 204, headers: { Location: buildsUrl } };
@@ -142,49 +179,76 @@ export async function uploadBuild(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const { projectId = "" } = request.params;
-  const { connectionString } = getStore();
-
-  const buildModel = new BuildModel(context, connectionString, projectId);
-
-  if (!(await buildModel.projectModel.has(projectId))) {
-    return responseError(
-      `The project '${projectId}' does not exist.`,
-      context,
-      404
-    );
-  }
-
-  context.log("Uploading build for project '%s'...", projectId);
-
-  const queryParseResult = BuildUploadSchema.safeParse(
-    urlSearchParamsToObject(request.query)
-  );
-  if (!queryParseResult.success) {
-    return responseError(queryParseResult.error, context, 400);
-  }
-  const buildUploadData = queryParseResult.data;
-
-  const bodyValidationResponse = validateBuildUploadBody(request, context);
-  if (typeof bodyValidationResponse === "object") {
-    return bodyValidationResponse;
-  }
-
   try {
-    const response = await uploadZipWithDecompressed(
-      context,
-      request,
-      connectionString,
-      projectId,
-      buildUploadData.sha
-    );
-    if (response) {
-      return response;
+    const { projectId = "" } = request.params;
+    const { connectionString } = getStore();
+
+    const buildModel = new BuildModel(context, connectionString, projectId);
+
+    if (!(await buildModel.projectModel.has(projectId))) {
+      return responseError(
+        `The project '${projectId}' does not exist.`,
+        context,
+        404
+      );
     }
 
-    await buildModel.create(buildUploadData);
+    const contentType = request.headers.get("content-type");
+    if (contentType?.includes(CONTENT_TYPES.ZIP)) {
+      const buildUploadData = BuildUploadSchema.parse(
+        urlSearchParamsToObject(request.query)
+      );
+      const bodyValidationResponse = validateBuildUploadZipBody(
+        request,
+        context
+      );
+      if (bodyValidationResponse) {
+        return bodyValidationResponse;
+      }
+      const uploadResponse = await uploadZipWithDecompressed(
+        projectId,
+        buildUploadData.sha
+      );
+      if (uploadResponse) {
+        return uploadResponse;
+      }
+      await buildModel.create(buildUploadData);
 
-    return { status: 202 };
+      const buildUrl = urlBuilder.buildSHA(projectId, buildUploadData.sha);
+      if (checkIsHTMLRequest() || checkIsHXRequest()) {
+        return responseRedirect(buildUrl, 303);
+      }
+
+      return { status: 202 };
+    }
+
+    if (contentType?.includes(CONTENT_TYPES.FORM_MULTIPART)) {
+      const { zipFile, ...buildUploadData } = BuildUploadFormSchema.parse(
+        urlSearchParamsToObject(await request.formData())
+      );
+      const uploadResponse = await uploadZipWithDecompressed(
+        projectId,
+        buildUploadData.sha,
+        zipFile
+      );
+      if (uploadResponse) {
+        return uploadResponse;
+      }
+      await buildModel.create(buildUploadData);
+
+      const buildUrl = urlBuilder.buildSHA(projectId, buildUploadData.sha);
+      if (checkIsHTMLRequest() || checkIsHXRequest()) {
+        return responseRedirect(buildUrl, 303);
+      }
+
+      return { status: 202 };
+    }
+
+    return responseError(
+      `Invalid content type, expected ${CONTENT_TYPES.ZIP} or ${CONTENT_TYPES.FORM_MULTIPART}.`,
+      context,
+      415
+    );
   } catch (error) {
     return responseError(error, context);
   }

@@ -5,7 +5,7 @@ import type {
 } from "@azure/functions";
 import { responseError } from "./response-utils";
 
-export function validateBuildUploadBody(
+export function validateBuildUploadZipBody(
   request: HttpRequest,
   context: InvocationContext
 ): HttpResponseInit | undefined {
@@ -19,13 +19,6 @@ export function validateBuildUploadBody(
   }
   if (parseInt(contentLength, 10) === 0) {
     return responseError("Request body should have length > 0", context, 400);
-  }
-  if (request.headers.get("content-type") !== "application/zip") {
-    return responseError(
-      "Invalid content type, expected application/zip",
-      context,
-      415
-    );
   }
 
   return undefined;

@@ -47,12 +47,24 @@ export const urlBuilder = {
     );
     return url.toString();
   },
-  buildSHA: (projectId: string, sha: string) => {
+  buildSHA: (projectId: string, sha: string, labelSlug?: string) => {
     const { baseRoute, url: base } = getStore();
     const url = new URL(
       joinUrl(baseRoute, "projects", projectId, "builds", sha),
       base
     );
+    if (labelSlug) {
+      url.searchParams.set(QUERY_PARAMS.labelSlug, labelSlug);
+    }
+    return url.toString();
+  },
+  buildUpload: (projectId: string) => {
+    const { baseRoute, url: base } = getStore();
+    const url = new URL(
+      joinUrl(baseRoute, "projects", projectId, "builds"),
+      base
+    );
+    url.searchParams.set(QUERY_PARAMS.mode, QUERY_PARAMS.newResource);
     return url.toString();
   },
   allLabels: (projectId: string) => {
