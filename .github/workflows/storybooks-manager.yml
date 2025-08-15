@@ -6,8 +6,8 @@ on:
     branches:
       - main
     paths:
+      - .github/workflows/storybooks-manager.yml
       - apps/storybooks-manager/**
-      - .github/workflows/deploy-storybooks.yml
 
 jobs:
   build-deploy:
@@ -22,9 +22,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            apps/storybooks-manager
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
+
+      - name: List files
+        run: ls -R
 
       - name: Install dependencies
         working-directory: apps/storybooks-manager

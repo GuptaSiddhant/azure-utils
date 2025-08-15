@@ -1,9 +1,13 @@
 name: Publish
 on:
+  workflow_dispatch:
   push:
     branches:
       - "main"
-  workflow_dispatch:
+    paths:
+      - .github/workflows/public.yml
+      - .github/workflows/_shared-public.yml
+      - packages/**
 
 permissions:
   contents: read
