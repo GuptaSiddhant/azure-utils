@@ -1,4 +1,4 @@
-name: Deploy functions
+name: Deploy Storybooks Manager functions app
 
 on:
   workflow_dispatch:
@@ -26,20 +26,24 @@ jobs:
           fetch-depth: 0
           sparse-checkout: |
             apps/storybooks-manager
+          sparse-checkout-cone-mode: false
 
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
 
-      - name: List files
-        run: ls -R
+        # Move the subdirectory contents to the repository root
+      - name: Move subdirectory contents to root
+        run: |
+          shopt -s dotglob
+          mv apps/storybooks-manager/* .
+          rm -rf apps
+          ls -R
 
       - name: Install dependencies
-        working-directory: apps/storybooks-manager
         run: |
           npm install
           ls -a .
-          ls -a ../..
 
       - name: "Deploy to Azure Functions"
         id: deploy
@@ -47,6 +51,6 @@ jobs:
         with:
           app-name: "storybooks-manager"
           slot-name: "production"
-          package: apps/storybooks-manager/
+          package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BA1F912C7A4D4E1EB5A2C63EE65421CC }}
           sku: "consumption"
