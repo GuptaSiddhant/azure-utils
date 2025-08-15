@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - packages/storybooks/**
+      - apps/storybooks-manager/**
       - .github/workflows/deploy-storybooks.yml
 
 jobs:
@@ -27,24 +27,8 @@ jobs:
           node-version-file: ".nvmrc"
 
       - name: Install dependencies
-        working-directory: packages/storybooks
-        run: yarn workspaces focus
-
-      - name: Build
-        working-directory: packages/storybooks
-        run: yarn build
-
-      - name: Install dependencies
-        working-directory: packages/storybooks
-        run: yarn workspaces focus --production
-
-      - name: Zip
-        run: |
-          cd packages/storybooks
-          zip -r ../../deploy.zip ./**/*
-          cd ../../
-          zip -r deploy.zip ./node_modules/**/*
-          du -sh deploy.zip
+        working-directory: apps/storybooks-manager
+        run: npm install
 
       - name: "Deploy to Azure Functions"
         id: deploy
@@ -52,6 +36,6 @@ jobs:
         with:
           app-name: "storybooks-manager"
           slot-name: "production"
-          package: deploy.zip
+          package: apps/storybooks-manager/
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BA1F912C7A4D4E1EB5A2C63EE65421CC }}
           sku: "consumption"

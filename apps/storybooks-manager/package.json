@@ -1,0 +1,14 @@
+{
+  "name": "storybooks-manager",
+  "version": "0.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "azurite": "npx -y azurite -s -l ./.azurite",
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure-utils/storybooks": "*"
+  }
+}
