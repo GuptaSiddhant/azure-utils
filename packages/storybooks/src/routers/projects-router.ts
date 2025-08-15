@@ -5,8 +5,12 @@ import z from "zod";
 import type { RouterOptions } from "../utils/types";
 import * as handlers from "../handlers/project-handlers";
 import { joinUrl } from "../utils/url-utils";
-import { ProjectIdSchema } from "../models/shared";
-import { ProjectCreateSchema, ProjectSchema } from "../models/projects";
+import { ProjectIdSchema } from "#utils/shared-model";
+import {
+  ProjectCreateSchema,
+  ProjectSchema,
+  ProjectUpdateSchema,
+} from "#projects/schema";
 
 const TAG = openAPITags.projects.name;
 
@@ -132,9 +136,7 @@ export function registerProjectsRouter(options: RouterOptions) {
           200: {
             description: "Project details retrieved successfully",
             content: {
-              [CONTENT_TYPES.JSON]: {
-                schema: ProjectSchema,
-              },
+              [CONTENT_TYPES.JSON]: { schema: ProjectSchema },
               [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
             },
           },
@@ -150,9 +152,7 @@ export function registerProjectsRouter(options: RouterOptions) {
           required: true,
           description: "Updated project data",
           content: {
-            [CONTENT_TYPES.FORM_ENCODED]: {
-              schema: ProjectSchema.partial(),
-            },
+            [CONTENT_TYPES.FORM_ENCODED]: { schema: ProjectUpdateSchema },
           },
         },
         responses: {

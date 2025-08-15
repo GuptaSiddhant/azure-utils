@@ -95,7 +95,9 @@ export function DocumentLayout({
 
             {toolbar ? <div>{toolbar}</div> : null}
           </header>
+
           <main>{children}</main>
+
           {footer ? <footer>{footer}</footer> : null}
 
           <script
@@ -135,6 +137,7 @@ function globalStyleSheet() {
       color-scheme: light dark;
       font-family: system-ui;
       border-color: var(--color-border);
+      border-radius: 0px;
     }
 
     body {
@@ -157,8 +160,7 @@ function globalStyleSheet() {
     body > aside {
       margin: 0 1rem;
       background-color: var(--color-bg-card);
-      color: var(--color-text-primary);
-      border-radius: 0.5rem;
+      color: var(--color-text-primary);      
       overflow: hidden;
       padding: 1rem;
     }
@@ -190,8 +192,7 @@ function globalStyleSheet() {
 
     table {      
       height: 100%;
-      width: 100%;
-      border-radius: 0.25rem;
+      width: 100%;      
       overflow: hidden;
     }
 
@@ -241,8 +242,7 @@ function globalStyleSheet() {
     .raw-data {
       margin: 0;
       background-color: #00000010;
-      border: 1px solid var(--color-border);
-      border-radius: 0.25rem;
+      border: 1px solid var(--color-border);      
       font-family: monospace;
       font-size: 0.9rem;
       white-space: pre-wrap;
@@ -292,9 +292,10 @@ function globalStyleSheet() {
     form fieldset {
       display: flex;
       flex-direction:column;
-      gap: 1rem;
-      border-radius: 0.5rem;
+      gap: 1rem;      
+      padding: 1rem;
     }
+    
     form legend {
       font-size:0.9rem;
     }
@@ -306,24 +307,37 @@ function globalStyleSheet() {
     }
 
     form label {
-      font-size:0.9rem;
-      font-weight:600;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
-    
-    form input,
-    form select,
-    form textarea,
-    form button
-     {
-      border-radius: 0.25rem;
-      padding: 0.25rem 0.5rem;
-      color: inherit;
-    }
-    form button[type="submit"] {
-      font-weight:bold;
+   
+    input,
+    select {
+      min-height: 3em;
     }
 
-    form .description {
+    input,
+    select,
+    textarea
+    {      
+      padding: 0.25rem 0.5rem;
+      color: inherit;      
+    }
+    
+    button {
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+    }
+    button.ghost, button[type="reset"] {
+      background: none;
+    }
+
+    button[type="submit"] {
+      font-weight:bold;
+      padding: 0.25rem 1rem;
+    }
+
+    .description {
       font-size: 0.8rem;
       color: var(--color-text-secondary);
     }

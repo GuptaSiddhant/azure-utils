@@ -1,11 +1,11 @@
 import { app } from "@azure/functions";
-import { commonErrorResponses, CONTENT_TYPES } from "../utils/constants";
-import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
-import type { RouterOptions } from "../utils/types";
-import { joinUrl } from "../utils/url-utils";
-import * as handlers from "../handlers/build-handlers";
-import { BuildSHASchema } from "../models/shared";
-import { BuildSchema, BuildUploadSchema } from "../models/builds";
+import { commonErrorResponses, CONTENT_TYPES } from "#utils/constants";
+import { openAPITags, registerOpenAPIPath } from "#utils/openapi-utils";
+import type { RouterOptions } from "#utils/types";
+import { joinUrl } from "#utils/url-utils";
+import * as handlers from "#handlers/build-handlers";
+import { BuildSHASchema } from "#utils/shared-model";
+import { BuildSchema, BuildUploadSchema } from "#builds/schema";
 
 const TAG = openAPITags.builds.name;
 

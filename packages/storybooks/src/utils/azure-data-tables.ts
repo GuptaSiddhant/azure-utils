@@ -3,8 +3,8 @@ import {
   TableEntityResult,
   TableEntityResultPage,
 } from "@azure/data-tables";
-import type { InvocationContext } from "@azure/functions";
 import { DEFAULT_SERVICE_NAME } from "./constants";
+import { getStore } from "./store";
 
 type TableSuffix = "Builds" | "Labels";
 
@@ -25,10 +25,10 @@ export type ListAzureTableEntitiesOptions<T extends Record<string, unknown>> = {
 };
 
 export async function listAzureTableEntities<T extends Record<string, unknown>>(
-  context: InvocationContext,
   tableClient: TableClient,
   queryOptions?: ListAzureTableEntitiesOptions<T>
 ): Promise<Array<TableEntityResult<T>>> {
+  const { context } = getStore();
   const { limit, filter, select, sort = "latest" } = queryOptions || {};
   try {
     await tableClient.createTable();

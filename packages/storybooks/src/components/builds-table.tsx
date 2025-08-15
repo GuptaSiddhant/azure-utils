@@ -1,9 +1,9 @@
 import { getStore } from "../utils/store";
 import { Table } from "./table";
 import { urlBuilder } from "../utils/url-builder";
-import { BuildType } from "../models/builds";
-import { ProjectType } from "../models/projects";
-import { LabelType } from "../models/labels";
+import { BuildType } from "#builds/schema";
+import { ProjectType } from "#projects/schema";
+import { LabelType } from "#labels/schema";
 
 export interface BuildTableProps {
   caption?: JSX.Element;

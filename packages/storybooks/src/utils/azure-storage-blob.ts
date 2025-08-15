@@ -5,6 +5,7 @@ import type { ContainerClient, BlobClient } from "@azure/storage-blob";
 import { getMimeType } from "./mime-utils";
 import { parseErrorMessage } from "./error-utils";
 import { DEFAULT_SERVICE_NAME } from "./constants";
+import { getStore } from "./store";
 
 export function generateAzureStorageContainerName(id: string) {
   return `${DEFAULT_SERVICE_NAME}-${id.replace(/[^\w\-]+/g, "-")}`.slice(0, 60);
@@ -75,10 +76,11 @@ export async function uploadDirToAzureBlobStorage(
 }
 
 export async function deleteBlobsFromAzureStorageContainerOrThrow(
-  context: InvocationContext,
   containerClient: ContainerClient,
   prefix: string
 ) {
+  const { context } = getStore();
+
   const blobClientsToDelete: BlobClient[] = [];
   for await (const blob of containerClient.listBlobsFlat({ prefix })) {
     blobClientsToDelete.push(containerClient.getBlobClient(blob.name));

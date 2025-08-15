@@ -22,7 +22,7 @@ import {
 import type { CheckPermissionsCallback, OpenAPIOptions } from "./utils/types";
 import { joinUrl } from "./utils/url-utils";
 import { wrapHttpHandlerWithStore } from "./utils/store";
-import { EmptyObjectSchema, ProjectIdSchema } from "./models/shared";
+import { EmptyObjectSchema, ProjectIdSchema } from "#utils/shared-model";
 
 export type { CheckPermissionsCallback, OpenAPIOptions };
 
@@ -182,8 +182,9 @@ export function registerStorybooksRouter(
 
   if (purgeScheduleCron !== null) {
     app.timer(`${normalisedServiceName}-timer_purge`, {
+      runOnStartup: false,
       schedule: purgeScheduleCron || DEFAULT_PURGE_SCHEDULE_CRON,
-      handler: timerPurgeHandler(storageConnectionString),
+      handler: timerPurgeHandler,
     });
   }
 

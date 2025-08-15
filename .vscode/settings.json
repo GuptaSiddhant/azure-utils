@@ -9,7 +9,7 @@
     "*.cjs": "${capture}.cjs.map, ${capture}.d.ts",
     "*.mjs": "${capture}.mjs.map, ${capture}.d.ts, ${capture}.cjs, ${capture}.cjs.map"
   },
-  "cSpell.words": ["rolldown", "turborepo", "vite"],
+  "cSpell.words": ["normalised", "rolldown", "turborepo", "vite"],
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true
 }

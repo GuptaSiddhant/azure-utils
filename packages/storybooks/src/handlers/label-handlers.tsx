@@ -7,31 +7,26 @@ import {
   responseError,
   responseHTML,
   responseRedirect,
-} from "../utils/response-utils";
-import { DocumentLayout } from "../components/layout";
-import { RawDataPreview } from "../components/raw-data";
-import { getStore } from "../utils/store";
-import { BuildTable } from "../components/builds-table";
-import { LabelsTable } from "../components/labels-table";
-import {
-  LabelCreateSchema,
-  LabelModel,
-  LabelUpdateSchema,
-} from "../models/labels";
-import { urlBuilder } from "../utils/url-builder";
+} from "#utils/response-utils";
+import { DocumentLayout } from "#components/layout";
+import { RawDataPreview } from "#components/raw-data";
+import { BuildTable } from "#components/builds-table";
+import { LabelsTable } from "#components/labels-table";
+import { urlBuilder } from "#utils/url-builder";
 import {
   checkIsEditMode,
   checkIsHTMLRequest,
   checkIsHXRequest,
   checkIsNewMode,
-} from "../utils/request-utils";
-import { LabelForm } from "../components/label-form";
-import { CONTENT_TYPES } from "../utils/constants";
-import { urlSearchParamsToObject } from "../utils/url-utils";
+} from "#utils/request-utils";
+import { LabelForm } from "#components/label-form";
+import { CONTENT_TYPES } from "#utils/constants";
+import { urlSearchParamsToObject } from "#utils/url-utils";
+import { LabelSlugModel, LabelsModel } from "#labels/model";
+import { BuildsModel } from "#builds/model";
 
 export async function listLabels(
-  request: HttpRequest,
-  context: InvocationContext
+  request: HttpRequest
 ): Promise<HttpResponseInit> {
   const { projectId = "" } = request.params;
 
@@ -50,8 +45,7 @@ export async function listLabels(
       );
     }
 
-    const { connectionString } = getStore();
-    const labelModel = new LabelModel(context, connectionString, projectId);
+    const labelModel = new LabelsModel(projectId);
     const labels = await labelModel.list();
 
     if (checkIsHTMLRequest()) {
@@ -72,48 +66,39 @@ export async function listLabels(
 
     return { status: 200, jsonBody: labels };
   } catch (error) {
-    return responseError(error, context);
+    return responseError(error);
   }
 }
 
 export async function createLabel(
-  request: HttpRequest,
-  context: InvocationContext
+  request: HttpRequest
 ): Promise<HttpResponseInit> {
   try {
     const { projectId = "" } = request.params;
-    const { connectionString } = getStore();
-    const model = new LabelModel(context, connectionString, projectId);
+    const labelsModel = new LabelsModel(projectId);
 
-    if (!(await model.projectModel.has(projectId))) {
-      return responseError(
-        `The project '${projectId}' does not exist.`,
-        context,
-        404
-      );
+    if (!(await labelsModel.projectModel.has())) {
+      return responseError(`The project '${projectId}' does not exist.`, 404);
     }
 
     const contentType = request.headers.get("content-type");
     if (!contentType) {
-      return responseError("Content-Type header is required", context, 400);
+      return responseError("Content-Type header is required", 400);
     }
     if (!contentType.includes(CONTENT_TYPES.FORM_ENCODED)) {
       return responseError(
         `Invalid Content-Type, expected ${CONTENT_TYPES.FORM_ENCODED}`,
-        context,
         415
       );
     }
 
-    const data = LabelCreateSchema.parse(
+    const data = await labelsModel.create(
       urlSearchParamsToObject(await request.formData())
     );
 
-    await model.create(data);
-
     const labelUrl = urlBuilder.labelSlug(
       projectId,
-      LabelModel.createSlug(data.value)
+      LabelsModel.createSlug(data.value)
     );
 
     if (checkIsHTMLRequest() || checkIsHXRequest()) {
@@ -126,20 +111,18 @@ export async function createLabel(
       jsonBody: { data, links: { self: labelUrl } },
     };
   } catch (error) {
-    return responseError(error, context);
+    return responseError(error);
   }
 }
 
 export async function getLabel(
-  request: HttpRequest,
-  context: InvocationContext
+  request: HttpRequest
 ): Promise<HttpResponseInit> {
   const { projectId = "", labelSlug = "" } = request.params;
 
   try {
-    const { connectionString } = getStore();
-    const labelModel = new LabelModel(context, connectionString, projectId);
-    const label = await labelModel.get(labelSlug);
+    const labelModel = new LabelSlugModel(projectId, labelSlug);
+    const label = await labelModel.get();
 
     if (checkIsEditMode()) {
       return responseHTML(
@@ -160,8 +143,8 @@ export async function getLabel(
     }
 
     const projectModel = labelModel.projectModel;
-    const project = await projectModel.get(projectId);
-    const builds = await projectModel.buildModel(projectId).list({
+    const project = await projectModel.get();
+    const builds = await new BuildsModel(projectId).list({
       filter: `PartitionKey eq '${labelSlug}'`,
     });
 
@@ -197,36 +180,30 @@ export async function getLabel(
 
     return { status: 202, jsonBody: { ...label, builds } };
   } catch (error) {
-    return responseError(error, context);
+    return responseError(error);
   }
 }
 
 export async function updateLabel(
-  request: HttpRequest,
-  context: InvocationContext
+  request: HttpRequest
 ): Promise<HttpResponseInit> {
   const { projectId = "", labelSlug = "" } = request.params;
 
   try {
-    const { connectionString } = getStore();
     const contentType = request.headers.get("content-type");
     if (!contentType) {
-      return responseError("Content-Type header is required", context, 400);
+      return responseError("Content-Type header is required", 400);
     }
     if (!contentType.includes(CONTENT_TYPES.FORM_ENCODED)) {
       return responseError(
         `Invalid Content-Type, expected ${CONTENT_TYPES.FORM_ENCODED}`,
-        context,
+
         415
       );
     }
 
-    const data = LabelUpdateSchema.partial().parse(
-      urlSearchParamsToObject(await request.formData())
-    );
-
-    const labelModel = new LabelModel(context, connectionString, projectId);
-    await labelModel.update(labelSlug, data);
+    const labelModel = new LabelSlugModel(projectId, labelSlug);
+    await labelModel.update(urlSearchParamsToObject(await request.formData()));
 
     const labelUrl = urlBuilder.labelSlug(projectId, labelSlug);
 
@@ -238,25 +215,23 @@ export async function updateLabel(
       status: 202,
       headers: { Location: labelUrl },
       jsonBody: {
-        data: await labelModel.get(labelSlug),
+        data: await labelModel.get(),
         links: { self: request.url },
       },
     };
   } catch (error) {
-    return responseError(error, context);
+    return responseError(error);
   }
 }
 
 export async function deleteLabel(
-  request: HttpRequest,
-  context: InvocationContext
+  request: HttpRequest
 ): Promise<HttpResponseInit> {
   const { projectId = "", labelSlug = "" } = request.params;
 
   try {
-    const { connectionString } = getStore();
-    const labelModel = new LabelModel(context, connectionString, projectId);
-    await labelModel.delete(labelSlug);
+    const labelModel = new LabelSlugModel(projectId, labelSlug);
+    await labelModel.delete();
 
     const labelsUrl = urlBuilder.allLabels(projectId);
 
@@ -266,7 +241,7 @@ export async function deleteLabel(
 
     return { status: 204, headers: { Location: labelsUrl } };
   } catch (error) {
-    return responseError(error, context);
+    return responseError(error);
   }
 }
 
@@ -275,6 +250,7 @@ export async function getLabelLatestBuild(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   const { projectId = "", labelSlug = "" } = request.params;
+
   context.log(
     "Getting latest build for label '%s' in project '%s'...",
     labelSlug,
@@ -282,9 +258,8 @@ export async function getLabelLatestBuild(
   );
 
   try {
-    const { connectionString } = getStore();
-    const labelModel = new LabelModel(context, connectionString, projectId);
-    const { buildSHA: latestBuildSHA } = await labelModel.get(labelSlug);
+    const labelModel = new LabelSlugModel(projectId, labelSlug);
+    const { buildSHA: latestBuildSHA } = await labelModel.get();
 
     if (!latestBuildSHA) {
       return {
@@ -298,6 +273,6 @@ export async function getLabelLatestBuild(
       headers: { Location: urlBuilder.buildSHA(projectId, latestBuildSHA) },
     };
   } catch (error) {
-    return responseError(error, context);
+    return responseError(error);
   }
 }

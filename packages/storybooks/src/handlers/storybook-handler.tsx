@@ -28,7 +28,7 @@ export async function serveStorybook(
     .getBlockBlobClient(blobName);
 
   if (!(await blockBlobClient.exists())) {
-    return responseError(`File '${blobName}' not found.`, context, 404);
+    return responseError(`File '${blobName}' not found.`, 404);
   }
 
   if (blobName.endsWith("index.html")) {

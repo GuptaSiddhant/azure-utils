@@ -1,7 +1,7 @@
 import { Table } from "./table";
 import { urlBuilder } from "../utils/url-builder";
 import { getStore } from "../utils/store";
-import { LabelType } from "../models/labels";
+import { LabelType } from "#labels/schema";
 
 export interface LabelsTableProps {
   caption?: JSX.Element;

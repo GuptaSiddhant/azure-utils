@@ -76,7 +76,7 @@ export async function openAPIHandler(
 
     return { status: 406, body: SUPPORTED_CONTENT_TYPES_MSG };
   } catch (error) {
-    return responseError(error, context);
+    return responseError(error);
   }
 }
 

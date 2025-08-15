@@ -1,12 +1,16 @@
 import { app } from "@azure/functions";
-import { commonErrorResponses, CONTENT_TYPES } from "../utils/constants";
-import { openAPITags, registerOpenAPIPath } from "../utils/openapi-utils";
-import type { RouterOptions } from "../utils/types";
 import z from "zod";
-import { joinUrl } from "../utils/url-utils";
-import * as handlers from "../handlers/label-handlers";
-import { LabelSlugSchema } from "../models/shared";
-import { LabelSchema } from "../models/labels";
+import { commonErrorResponses, CONTENT_TYPES } from "#utils/constants";
+import { openAPITags, registerOpenAPIPath } from "#utils/openapi-utils";
+import type { RouterOptions } from "#utils/types";
+import { joinUrl } from "#utils/url-utils";
+import * as handlers from "#handlers/label-handlers";
+import { LabelSlugSchema } from "#utils/shared-model";
+import {
+  LabelCreateSchema,
+  LabelSchema,
+  LabelUpdateSchema,
+} from "#labels/schema";
 
 const TAG = openAPITags.labels.name;
 
@@ -100,6 +104,11 @@ export function registerLabelsRouter(options: RouterOptions) {
         summary: "Create a new label.",
         description: "Create a new label with slug and type.",
         requestParams: { path: basePathParamsSchema },
+        requestBody: {
+          content: {
+            [CONTENT_TYPES.FORM_ENCODED]: { schema: LabelCreateSchema },
+          },
+        },
         responses: {
           ...commonErrorResponses,
           202: {
@@ -121,6 +130,28 @@ export function registerLabelsRouter(options: RouterOptions) {
         description:
           "Retrieves the details of a specific label and all builds associated with it.",
         requestParams: { path: labelPathParameterSchema },
+        responses: {
+          ...commonErrorResponses,
+          200: {
+            description: "Label details retrieved successfully",
+            content: {
+              [CONTENT_TYPES.JSON]: { schema: LabelSchema },
+              [CONTENT_TYPES.HTML]: { example: "<!DOCTYPE html>" },
+            },
+          },
+          404: { description: "Matching label not found." },
+        },
+      },
+      patch: {
+        tags: [TAG],
+        summary: "Update label details",
+        description: "Update the label",
+        requestParams: { path: labelPathParameterSchema },
+        requestBody: {
+          content: {
+            [CONTENT_TYPES.FORM_ENCODED]: { schema: LabelUpdateSchema },
+          },
+        },
         responses: {
           ...commonErrorResponses,
           200: {

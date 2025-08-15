@@ -1,8 +1,8 @@
 import { getStore } from "../utils/store";
 import { Table } from "./table";
 import { urlBuilder } from "../utils/url-builder";
-import { ProjectType } from "../models/projects";
 import { DEFAULT_GITHUB_BRANCH } from "../utils/constants";
+import { ProjectType } from "#projects/schema";
 
 export interface ProjectsTableProps {
   caption?: JSX.Element;

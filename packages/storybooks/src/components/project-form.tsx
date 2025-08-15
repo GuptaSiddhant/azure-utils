@@ -1,4 +1,4 @@
-import { ProjectSchema, ProjectType } from "../models/projects";
+import { ProjectSchema, ProjectType } from "#projects/schema";
 import { DEFAULT_PURGE_AFTER_DAYS, PATTERNS } from "../utils/constants";
 import { urlBuilder } from "../utils/url-builder";
 import { ErrorMessage } from "./error-message";

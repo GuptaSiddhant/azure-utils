@@ -5,7 +5,7 @@ import type { RouterOptions } from "../utils/types";
 import z from "zod";
 import { joinUrl } from "../utils/url-utils";
 import { serveStorybook } from "../handlers/storybook-handler";
-import { BuildSHASchema, ProjectIdSchema } from "../models/shared";
+import { BuildSHASchema, ProjectIdSchema } from "#utils/shared-model";
 
 const TAG = openAPITags.storybook.name;
 

@@ -11,16 +11,16 @@ import { getMimeType } from "../utils/mime-utils";
 import { responseHTML } from "../utils/response-utils";
 import { DocumentLayout } from "../components/layout";
 import { ProjectsTable } from "../components/projects-table";
-import { ProjectModel } from "../models/projects";
 import { urlBuilder } from "../utils/url-builder";
+import { ProjectsModel } from "#projects/model";
 
 export async function rootHandler(
   _request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   context.log("Serving SB root...");
-  const { connectionString, openapi } = getStore();
-  const projectModel = new ProjectModel(context, connectionString);
+  const { openapi } = getStore();
+  const projectModel = new ProjectsModel();
   const projects = await projectModel.list();
 
   return responseHTML(

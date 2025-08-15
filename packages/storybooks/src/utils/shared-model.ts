@@ -1,18 +1,19 @@
 import z from "zod";
-import { ListAzureTableEntitiesOptions } from "../utils/azure-data-tables";
-import { PATTERNS } from "../utils/constants";
+import type { ListAzureTableEntitiesOptions } from "./azure-data-tables";
+import { PATTERNS } from "./constants";
 
-export interface BaseModel<
-  Data extends Record<string, unknown>,
-  CreateData = Data,
-  UpdateData = Partial<Data>
-> {
+type Obj = Record<string, unknown>;
+
+export interface BaseModel<Data extends Obj> {
   list(options?: ListAzureTableEntitiesOptions<Data>): Promise<Data[]>;
-  create(data: CreateData): Promise<void>;
-  get(id: string): Promise<Data | null>;
-  has(id: string): Promise<boolean>;
-  update(id: string, data: UpdateData): Promise<void>;
-  delete(id: string): Promise<void>;
+  create(data: unknown): Promise<Data>;
+}
+
+export interface BaseIdModel<Data extends Obj> {
+  get(): Promise<Data>;
+  has(): Promise<boolean>;
+  update(data: unknown): Promise<void>;
+  delete(): Promise<void>;
 }
 
 /** @private */

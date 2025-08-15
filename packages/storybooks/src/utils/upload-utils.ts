@@ -61,7 +61,6 @@ export async function uploadZipWithDecompressed(
     if (uploadResponse.errorCode) {
       return responseError(
         "Failed to upload Storybook.",
-        context,
         uploadResponse._response.status
       );
     }

@@ -1,39 +1,29 @@
-import type {
-  HttpRequest,
-  HttpResponseInit,
-  InvocationContext,
-} from "@azure/functions";
-import { CONTENT_TYPES } from "../utils/constants";
-import { ProjectsTable } from "../components/projects-table";
-import { DocumentLayout } from "../components/layout";
+import type { HttpRequest, HttpResponseInit } from "@azure/functions";
+import { CONTENT_TYPES } from "#utils/constants";
+import { ProjectsTable } from "#components/projects-table";
+import { DocumentLayout } from "#components/layout";
 import {
   responseError,
   responseHTML,
   responseRedirect,
-} from "../utils/response-utils";
-import { RawDataPreview } from "../components/raw-data";
-import { BuildTable } from "../components/builds-table";
-import { getStore } from "../utils/store";
-import { LabelsTable } from "../components/labels-table";
-import {
-  ProjectModel,
-  ProjectCreateSchema,
-  ProjectSchema,
-} from "../models/projects";
-import { urlSearchParamsToObject } from "../utils/url-utils";
-import { urlBuilder } from "../utils/url-builder";
-import { ProjectForm } from "../components/project-form";
+} from "#utils/response-utils";
+import { RawDataPreview } from "#components/raw-data";
+import { BuildTable } from "#components/builds-table";
+import { LabelsTable } from "#components/labels-table";
+import { urlSearchParamsToObject } from "#utils/url-utils";
+import { urlBuilder } from "#utils/url-builder";
+import { ProjectForm } from "#components/project-form";
 import {
   checkIsEditMode,
   checkIsHTMLRequest,
   checkIsHXRequest,
   checkIsNewMode,
-} from "../utils/request-utils";
+} from "#utils/request-utils";
+import { ProjectIdModel, ProjectsModel } from "#projects/model";
+import { BuildsModel } from "#builds/model";
+import { LabelsModel } from "#labels/model";
 
-export async function listProjects(
-  _request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
+export async function listProjects(): Promise<HttpResponseInit> {
   try {
     if (checkIsNewMode()) {
       return responseHTML(
@@ -46,9 +36,8 @@ export async function listProjects(
       );
     }
 
-    const { connectionString } = getStore();
-    const projectModel = new ProjectModel(context, connectionString);
-    const projects = await projectModel.list();
+    const projectsModel = new ProjectsModel();
+    const projects = await projectsModel.list();
 
     if (checkIsHTMLRequest()) {
       return responseHTML(
@@ -63,24 +52,22 @@ export async function listProjects(
 
     return { status: 200, jsonBody: projects };
   } catch (error) {
-    return responseError(error, context, 500);
+    return responseError(error, 500);
   }
 }
 
 export async function getProject(
-  request: HttpRequest,
-  context: InvocationContext
+  request: HttpRequest
 ): Promise<HttpResponseInit> {
   const { projectId } = request.params;
-  const { connectionString } = getStore();
 
   if (!projectId) {
     return { status: 400, body: "Missing project ID" };
   }
 
   try {
-    const projectModel = new ProjectModel(context, connectionString);
-    const project = await projectModel.get(projectId);
+    const projectsModel = new ProjectIdModel(projectId);
+    const project = await projectsModel.get();
 
     if (checkIsEditMode()) {
       return responseHTML(
@@ -96,8 +83,10 @@ export async function getProject(
       );
     }
 
-    const builds = await projectModel.buildModel(projectId).list({ limit: 25 });
-    const labels = await projectModel.labelModel(projectId).list({ limit: 25 });
+    const [builds, labels] = await Promise.all([
+      new BuildsModel(projectId).list({ limit: 25 }),
+      new LabelsModel(projectId).list({ limit: 25 }),
+    ]);
 
     if (checkIsHTMLRequest()) {
       return responseHTML(
@@ -141,35 +130,29 @@ export async function getProject(
       jsonBody: { ...project, latestBuilds: builds, labels },
     };
   } catch (error) {
-    return responseError(error, context, 404);
+    return responseError(error, 404);
   }
 }
 
 export async function createProject(
-  request: HttpRequest,
-  context: InvocationContext
+  request: HttpRequest
 ): Promise<HttpResponseInit> {
   try {
-    const { connectionString } = getStore();
-
     const contentType = request.headers.get("content-type");
     if (!contentType) {
-      return responseError("Content-Type header is required", context, 400);
+      return responseError("Content-Type header is required", 400);
     }
     if (!contentType.includes(CONTENT_TYPES.FORM_ENCODED)) {
       return responseError(
         `Invalid Content-Type, expected ${CONTENT_TYPES.FORM_ENCODED}`,
-        context,
         415
       );
     }
 
-    const data = ProjectCreateSchema.parse(
+    const projectModel = new ProjectsModel();
+    const data = await projectModel.create(
       urlSearchParamsToObject(await request.formData())
     );
-
-    const projectModel = new ProjectModel(context, connectionString);
-    await projectModel.create(data);
 
     const projectUrl = urlBuilder.projectId(data.id);
 
@@ -183,17 +166,15 @@ export async function createProject(
       jsonBody: { data: data, links: { self: projectUrl } },
     };
   } catch (error) {
-    return responseError(error, context);
+    return responseError(error);
   }
 }
 
 export async function updateProject(
-  request: HttpRequest,
-  context: InvocationContext
+  request: HttpRequest
 ): Promise<HttpResponseInit> {
   try {
     const { projectId } = request.params;
-    const { connectionString } = getStore();
 
     if (!projectId) {
       return { status: 400, body: "Missing project ID" };
@@ -201,22 +182,19 @@ export async function updateProject(
 
     const contentType = request.headers.get("content-type");
     if (!contentType) {
-      return responseError("Content-Type header is required", context, 400);
+      return responseError("Content-Type header is required", 400);
     }
     if (!contentType.includes(CONTENT_TYPES.FORM_ENCODED)) {
       return responseError(
         `Invalid Content-Type, expected ${CONTENT_TYPES.FORM_ENCODED}`,
-        context,
         415
       );
     }
 
-    const data = ProjectSchema.partial().parse(
+    const projectModel = new ProjectIdModel(projectId);
+    await projectModel.update(
       urlSearchParamsToObject(await request.formData())
     );
-
-    const model = new ProjectModel(context, connectionString);
-    await model.update(projectId, data);
 
     if (checkIsHTMLRequest() || checkIsHXRequest()) {
       return responseRedirect(request.url, 303);
@@ -226,18 +204,17 @@ export async function updateProject(
       status: 202,
       headers: { Location: request.url },
       jsonBody: {
-        data: await model.get(projectId),
+        data: await projectModel.get(),
         links: { self: request.url },
       },
     };
   } catch (error) {
-    return responseError(error, context, 404);
+    return responseError(error, 404);
   }
 }
 
 export async function deleteProject(
-  request: HttpRequest,
-  context: InvocationContext
+  request: HttpRequest
 ): Promise<HttpResponseInit> {
   try {
     const { projectId } = request.params;
@@ -245,9 +222,8 @@ export async function deleteProject(
       return { status: 400, body: "Missing project ID" };
     }
 
-    const { connectionString } = getStore();
-    const model = new ProjectModel(context, connectionString);
-    await model.delete(projectId);
+    const model = new ProjectIdModel(projectId);
+    await model.delete();
 
     const projectsUrl = urlBuilder.allProjects();
     if (checkIsHTMLRequest() || checkIsHXRequest()) {
@@ -256,6 +232,6 @@ export async function deleteProject(
 
     return { status: 204, headers: { Location: projectsUrl } };
   } catch (error) {
-    return responseError(error, context, 404);
+    return responseError(error, 404);
   }
 }

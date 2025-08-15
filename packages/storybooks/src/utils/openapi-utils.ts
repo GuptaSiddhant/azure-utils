@@ -1,12 +1,29 @@
+import {
+  BuildSchema,
+  BuildUploadFormSchema,
+  BuildUploadSchema,
+} from "#builds/schema";
+import {
+  ProjectCreateSchema,
+  ProjectSchema,
+  ProjectUpdateSchema,
+} from "#projects/schema";
 import type {
   ZodOpenApiPathItemObject,
   ZodOpenApiPathsObject,
   ZodOpenApiSchemaObject,
   ZodOpenApiSecuritySchemeObject,
 } from "zod-openapi";
-import { ProjectCreateSchema, ProjectSchema } from "../models/projects";
-import { BuildSchema, BuildUploadSchema } from "../models/builds";
-import { LabelSchema } from "../models/labels";
+import {
+  BuildSHASchema,
+  LabelSlugSchema,
+  ProjectIdSchema,
+} from "./shared-model";
+import {
+  LabelCreateSchema,
+  LabelSchema,
+  LabelUpdateSchema,
+} from "#labels/schema";
 
 export const openAPIPaths: ZodOpenApiPathsObject = {};
 
@@ -55,10 +72,17 @@ export const openAPITags = {
 
 export const openAPISchemas: Record<string, ZodOpenApiSchemaObject> = {
   ProjectSchema,
-  BuildSchema,
-  LabelSchema,
-  BuildUploadSchema,
+  ProjectIdSchema,
   ProjectCreateSchema,
+  ProjectUpdateSchema,
+  BuildSchema,
+  BuildSHASchema,
+  BuildUploadSchema,
+  BuildUploadFormSchema,
+  LabelSchema,
+  LabelSlugSchema,
+  LabelCreateSchema,
+  LabelUpdateSchema,
 };
 
 export const openAPISecuritySchemas = {

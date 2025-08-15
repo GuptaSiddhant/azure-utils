@@ -47,6 +47,14 @@
     }
   },
   "main": "./start.mjs",
+  "imports": {
+    "#components/*": "./src/components/*.tsx",
+    "#builds/*": "./src/resources/builds/*.ts",
+    "#handlers/*": "./src/handlers/*.tsx",
+    "#labels/*": "./src/resources/labels/*.ts",
+    "#projects/*": "./src/resources/projects/*.ts",
+    "#utils/*": "./src/utils/*.ts"
+  },
   "scripts": {
     "azurite": "npx -y azurite --skipApiVersionCheck -s -l ./.azurite",
     "build": "rolldown -c ../../scripts/rolldown.config.ts",

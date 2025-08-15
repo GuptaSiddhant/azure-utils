@@ -1,10 +1,12 @@
-import type { HttpResponseInit, InvocationContext } from "@azure/functions";
+import type { HttpResponseInit } from "@azure/functions";
 import { renderToStream } from "@kitajs/html/suspense";
 import { DocumentLayout } from "../components/layout";
 import { ErrorMessage } from "../components/error-message";
 import { CONTENT_TYPES } from "./constants";
 import { parseErrorMessage } from "./error-utils";
 import { checkIsHTMLRequest, checkIsHXRequest } from "./request-utils";
+import { createElement } from "@kitajs/html";
+import { getStore } from "./store";
 
 export function responseHTML(html: JSX.Element): HttpResponseInit {
   return {
@@ -16,9 +18,10 @@ export function responseHTML(html: JSX.Element): HttpResponseInit {
 
 export function responseError(
   error: unknown,
-  context: InvocationContext,
   init?: ResponseInit | number
 ): HttpResponseInit {
+  const { context } = getStore();
+
   try {
     const { errorMessage, errorStatus, errorType } = parseErrorMessage(error);
     context.error(
@@ -46,14 +49,16 @@ export function responseError(
         status,
         headers,
         body: renderToStream(
-          <DocumentLayout
-            title={`Error ${status}`}
-            breadcrumbs={[
-              { label: "< Back", href: "javascript:history.back()" },
-            ]}
-          >
-            <ErrorMessage>{errorMessage}</ErrorMessage>
-          </DocumentLayout>
+          createElement(
+            DocumentLayout,
+            {
+              title: `Error ${status}`,
+              breadcrumbs: [
+                { label: "< Back", href: "javascript:history.back()" },
+              ],
+            },
+            createElement(ErrorMessage, {}, errorMessage)
+          )
         ),
       };
     }

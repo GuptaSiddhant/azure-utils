@@ -1,4 +1,4 @@
-import { labelTypes, type LabelType } from "../models/labels";
+import { LabelType, labelTypes } from "#labels/schema";
 import { urlBuilder } from "../utils/url-builder";
 import { ErrorMessage } from "./error-message";
 

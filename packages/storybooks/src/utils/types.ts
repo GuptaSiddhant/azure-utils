@@ -16,8 +16,8 @@ import type z from "zod";
  */
 export type CheckPermissionsCallback = (
   permissions: Permission[],
-  context: InvocationContext,
-  request: HttpRequest
+  request: HttpRequest,
+  context: InvocationContext
 ) =>
   | boolean
   | HttpResponse

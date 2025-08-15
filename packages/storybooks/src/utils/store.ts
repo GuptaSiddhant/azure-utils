@@ -71,8 +71,8 @@ export function wrapHttpHandlerWithStore(
 
       const permitted = await checkPermissions(
         permissions.map((p) => ({ projectId, ...p })),
-        context,
-        request
+        request,
+        context
       );
 
       if (permitted === true) {
@@ -83,7 +83,7 @@ export function wrapHttpHandlerWithStore(
         .map((p) => `'${p.resource}:${p.action}'`)
         .join(", ")}] (project: ${projectId})`;
       if (permitted === false) {
-        return responseError(message, context, 403);
+        return responseError(message, 403);
       }
       if (typeof permitted === "object" && "status" in permitted) {
         context.warn(message);
