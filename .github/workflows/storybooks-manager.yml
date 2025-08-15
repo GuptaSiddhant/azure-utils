@@ -36,7 +36,10 @@ jobs:
 
       - name: Install dependencies
         working-directory: apps/storybooks-manager
-        run: npm install
+        run: |
+          npm install
+          ls -a .
+          ls -a ../..
 
       - name: "Deploy to Azure Functions"
         id: deploy
