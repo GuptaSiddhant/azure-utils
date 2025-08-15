@@ -25,13 +25,8 @@ jobs:
         with:
           fetch-depth: 0
           sparse-checkout: |
-            .nmvrc
-            .gitignore
             apps/storybooks-manager
           sparse-checkout-cone-mode: false
-
-      - name: List checkout
-        run: ls -R
 
       - uses: actions/setup-node@v4
         with:
@@ -43,7 +38,6 @@ jobs:
           shopt -s dotglob
           mv apps/storybooks-manager/* .
           rm -rf apps
-          ls -R
 
       - name: Install dependencies
         run: |
