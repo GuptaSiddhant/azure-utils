@@ -10,8 +10,8 @@ on:
       - apps/storybooks-manager/**
 
 jobs:
-  build-deploy:
-    name: Build+Deploy
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
@@ -30,9 +30,12 @@ jobs:
             apps/storybooks-manager
           sparse-checkout-cone-mode: false
 
+      - name: List checkout
+        run: ls -R
+
       - uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
+          node-version: 22
 
         # Move the subdirectory contents to the repository root
       - name: Move subdirectory contents to root
