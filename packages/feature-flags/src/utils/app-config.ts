@@ -1,47 +1,11 @@
 import type { FeatureFlag } from "../types.js";
 import { AppConfigurationClientLite } from "../client.js";
+import type {
+  AppConfigurationClient,
+  ConfigurationSetting,
+} from "@azure/app-configuration";
 
-/**
- * A lightweight representation of Azure AppConfigurationClient.
- * @internal
- * {@link import("@azure/app-configuration").AppConfigurationClient}
- */
-export type AppConfigurationClient = {
-  listConfigurationSettings: (
-    options?: FeatureFlagServiceOptions
-  ) => ListConfigurationSettingsResult;
-  getConfigurationSetting: (
-    settingId: SettingId,
-    options?: FeatureFlagServiceOptions
-  ) => Promise<ConfigurationSetting>;
-  setConfigurationSetting: (
-    configurationSetting: ConfigurationSetting,
-    options?: FeatureFlagServiceOptions
-  ) => Promise<ConfigurationSetting>;
-  deleteConfigurationSetting: (
-    settingId: SettingId,
-    options?: FeatureFlagServiceOptions
-  ) => Promise<unknown>;
-};
-type SettingId = { etag?: string; key: string; label?: string };
-type ListConfigurationSettingsResult = {
-  next(): Promise<{ done?: boolean; value: ConfigurationSetting }>;
-  [Symbol.asyncIterator](): ListConfigurationSettingsResult;
-};
-
-/**
- * Representation of a entry (setting) in  Azure App Configuration
- */
-export type ConfigurationSetting = {
-  etag?: string | undefined;
-  key: string;
-  label?: string | null;
-  contentType?: string | undefined;
-  tags?: { [propertyName: string]: string } | undefined;
-  value?: string | undefined;
-  isReadOnly: boolean;
-  lastModified?: Date | undefined;
-};
+export type { AppConfigurationClient, ConfigurationSetting };
 
 /**
  * Options for get all feature flags as record or list

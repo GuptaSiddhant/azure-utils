@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/feature-flags",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "description": "Fetch and validate feature flags managed via Azure App Configuration.",
   "author": {
@@ -97,6 +97,7 @@
     "verify": "yarn clear; yarn test && yarn build"
   },
   "devDependencies": {
+    "@azure/app-configuration": "^1.9.0",
     "@types/node": "^22.16.5",
     "@vitest/coverage-v8": "^3.2.4",
     "glob": "^10.4.5",

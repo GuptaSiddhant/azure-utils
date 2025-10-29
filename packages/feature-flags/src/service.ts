@@ -150,7 +150,7 @@ export async function setFeatureFlag(
         (): ConfigurationSetting => ({
           locked: false,
           etag: "",
-          label: null,
+          label: undefined,
           tags: {},
           last_modified: new Date().toISOString(),
           ...options,
@@ -158,7 +158,7 @@ export async function setFeatureFlag(
           value: JSON.stringify(featureFlag),
           contentType: featureFlagContentType,
           isReadOnly: false,
-          // @ts-expect-error
+          // @ts-expect-error adding missing properties
           content_type: featureFlagContentType,
         })
       );
