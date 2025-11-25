@@ -7,7 +7,7 @@ import type { ConfigEnv, Plugin } from "vite";
 import { readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { cwd, env as processEnv, argv } from "node:process";
-import { glob } from "glob";
+import * as glob from "glob";
 import {
   verifyBuild,
   type AzureFunctionsPluginBuildVerifyOptions,

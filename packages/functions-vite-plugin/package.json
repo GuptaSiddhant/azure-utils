@@ -1,6 +1,6 @@
 {
   "name": "@azure-utils/functions-vite-plugin",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "type": "module",
   "description": "Vite plugin to build and verify Azure functions nodejs.",
   "author": {
@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.16.5",
-    "glob": "^10.4.5",
+    "glob": "^11.1.0",
     "rolldown": "latest",
     "typescript": "^5.8.3",
     "vite": "^7.0.0"
