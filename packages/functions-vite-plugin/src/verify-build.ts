@@ -2,7 +2,7 @@ import { argv0, cwd, exit } from "node:process";
 import { execPromise, exitWithError, log } from "./utils";
 import { join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
-import { glob } from "glob";
+import * as glob from "glob";
 
 /**
  * Options for Azure functions build verification
